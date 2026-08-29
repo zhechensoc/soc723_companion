@@ -1,0 +1,361 @@
+---
+title: "Week 1"
+author: "Zhe Chen"
+format: html
+editor: visual
+---
+
+# The Least Squares Criterion
+
+Suppose the population relationship satisfies the linear model:
+
+$$
+Y_i = \beta_0 + \beta_1X_i + \epsilon_i, \quad E[\epsilon_i|X_i] = 0 
+$$
+
+$b_0$ is the estimate of $\beta_0$, $b_1$ is the estimate of $\beta_1$.
+
+$$
+S(b_0, b_1) = \sum_{i=1}^{n} (Y_i-b_0-b_1X_i)^2
+$$
+
+OLS estimates:
+
+$$
+(\hat\beta_0,\hat\beta_1) = \underset{b_0,b_1}{\arg\min}\, S(b_0,b_1).
+$$
+
+## Step 1: The First-Order Conditions
+
+> Chain rule of derivative
+>
+> $$
+> y=f(g(x)) \\
+> \frac{dy}{dx}=f'(g(x))g'(x)
+> $$
+>
+> ${!}{=}$ 0: set equal to zero
+
+$$
+\begin{aligned}
+\frac{\partial S}{\partial b_0}
+&= \sum_{i=1}^{n}\frac{\partial}{\partial b_0}(Y_i-b_0-b_1X_i)^2 \\
+&= \sum_{i=1}^{n}2(Y_i-b_0-b_1X_i)\frac{\partial}{\partial b_0}(Y_i-b_0-b_1X_i) \\
+&= \sum_{i=1}^{n}2(Y_i-b_0-b_1X_i)(-1)\overset{!}{=}0
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{\partial S}{\partial b_1}
+&= \sum_{i=1}^{n}\frac{\partial}{\partial b_1}(Y_i-b_0-b_1X_i)^2 \\
+&= \sum_{i=1}^{n}2(Y_i-b_0-b_1X_i)\frac{\partial}{\partial b_1}(Y_i-b_0-b_1X_i) \\
+&= \sum_{i=1}^{n}2(Y_i-b_0-b_1X_i)(-X_i)\overset{!}{=}0
+\end{aligned}
+$$
+
+Dividing the above by -2 gives **two normal equations**:
+
+$$
+\begin{align}
+\sum_i \left(Y_i-\hat{\beta}_0-\hat{\beta}_1X_i\right) &= 0, \tag{N1}\\
+\sum_i X_i\left(Y_i-\hat{\beta}_0-\hat{\beta}_1X_i\right) &= 0 \tag{N2}
+\end{align} 
+$$Given the fitted residual: $\hat{e_i} = Y_i-\hat{\beta_0}-\hat{\beta_1}X_i$
+
+Then:
+
+$$
+\begin{align}
+\sum_i \hat{e_i} &= 0, \tag{N1}\\
+\sum_i X_i\hat{e_i} &= 0 \tag{N2}
+\end{align} 
+$$
+
+### What do they mean?
+
+-   The residuals **sum to zero**. $\bar{\hat{e}} = 0$
+-   The residuals are **uncorrelated with the regressor**.
+
+> $$
+> \operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)(\hat e_i-\bar{\hat e})
+> $$
+>
+> From (N1):
+>
+> $$
+> \sum_i \hat e_i=0 \quad \Longrightarrow \quad \bar{\hat e}=0
+> $$
+>
+> Therefore:
+>
+> $$
+> \operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)\hat e_i
+> $$
+>
+> Expand:
+>
+> $$
+> \sum_i (X_i-\bar X)\hat e_i=\sum_i X_i\hat e_i-\bar X\sum_i\hat e_i
+> $$
+>
+> Using (N1) and (N2):
+>
+> $$
+> \sum_i X_i\hat e_i=0,\qquad \sum_i\hat e_i=0
+> $$
+>
+> So:
+>
+> $$
+> \operatorname{Cov}_n(X,\hat e)=\frac{1}{n}[0-\bar X(0)]=0
+> $$
+
+These patterns are true **for every model** (even the functional form is wrong)
+
+## Step 2: Solving for $\hat{\beta_0}$
+
+$$
+\sum_i \left(Y_i-\hat{\beta}_0-\hat{\beta}_1X_i\right) = 0 \tag{N1}
+$$
+
+Divide (N1) by n:
+
+$$
+\frac{1}{n}\sum_i Y_i-\hat{\beta}_0-\hat{\beta}_1\frac{1}{n}\sum_i X_i=0 \quad \Longrightarrow \quad \bar{Y}=\hat{\beta}_0+\hat{\beta}_1\bar{X}
+$$
+
+So:
+
+$$
+\boxed{\hat{\beta}_0=\bar{Y}-\hat{\beta}_1\bar{X}}
+$$
+
+The line must pass through $(\bar{X},\bar{Y})$
+
+## Step 3: Solving for $\hat{\beta_1}$
+
+Substitute $\hat{\beta}_0=\bar{Y}-\hat{\beta}_1\bar{X}$ into (N2):
+
+$$
+\begin{aligned}
+\sum_i X_i\left(Y_i-\bar{Y}+\hat{\beta}_1\bar{X}-\hat{\beta}_1X_i\right)&=0 \\
+\hat{\beta}_1\sum_i X_i(X_i-\bar{X})&=\sum_i X_i(Y_i-\bar{Y})
+\end{aligned}
+$$
+
+Replace $X_i$ by $(X_i−\bar{X})+\bar{X}$ on both sides:
+
+$$
+\hat{\beta}_1\sum_i\left[(X_i-\bar X)+\bar X\right](X_i-\bar X)=\sum_i\left[(X_i-\bar X)+\bar X\right](Y_i-\bar Y)
+$$Expand:
+
+$$
+\hat{\beta}_1\left[\sum_i(X_i-\bar X)^2+\bar X\sum_i(X_i-\bar X)\right]=\sum_i(X_i-\bar X)(Y_i-\bar Y)+\bar X\sum_i(Y_i-\bar Y)
+$$
+
+Since:
+
+$$
+\sum_i(X_i-\bar X)= 0,\qquad \sum_i(Y_i-\bar Y)=0
+$$
+
+Then:
+
+$$
+\hat{\beta}_1\sum_i(X_i-\bar X)^2=\sum_i(X_i-\bar X)(Y_i-\bar Y)
+$$
+
+Therefore:
+
+$$
+\boxed{\hat{\beta}_1=\frac{\sum_i(X_i-\bar X)(Y_i-\bar Y)}{\sum_i(X_i-\bar X)^2} = \frac{Cov_{n}(X,Y)}{Var_{n}(X)}}
+$$
+
+### What does it mean?
+
+-   **Numerator:** do $X$ and $Y$ move together across units?
+
+-   **Denominator:** how much does $X$ vary? No variation in $X$, no slope; the formula is 0/0.
+
+-   The OLS slope is a **weighted average of unit-by-unit slopes**, with more weight on observations whose $X$ is far from $\bar{X}$ . Extreme $X$ values matter disproportionately.
+
+    > $$
+    > \hat{\beta}_1=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)}=\operatorname{Corr}_n(X,Y)\cdot\frac{s_Y}{s_X}=\sum_i w_i\frac{Y_i-\bar{Y}}{X_i-\bar{X}},\qquad w_i=\frac{(X_i-\bar{X})^2}{\sum_j (X_j-\bar{X})^2}
+    > $$
+
+# Meaning of "Holding Constant"
+
+$$
+Y_i=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+\epsilon_i.
+$$
+
+**Partialling out: a three-step recipe:**
+
+1.  Regress $X_{1i}$ on $X_{2i}$ (and a constant). Keep the residuals $\tilde{X}_{1i}=X_{1i}-\hat{\gamma}_0-\hat{\gamma}_1X_{2i}.$
+2.  Regress $Y_i$ on $X_{2i}$. Keep the residuals $\tilde{Y}_i=Y_i-\hat{\delta}_0-\hat{\delta}_1X_{2i}.$
+3.  Regress $\tilde{Y_i}$ on $\tilde{X_{1i}}$. The slope you get is exactly $β_1$ from the multiple regression.
+
+**Frisch–Waugh–Lovell** (FWL) theorem
+
+$$
+\hat{\beta}_1=\frac{\sum_i \tilde{X}_{1i}\tilde{Y}_i}{\sum_i \tilde{X}_{1i}^2}.
+$$
+
+## Proof of FWL Theorem:
+
+Substitute $Y_i=\hat{\beta}_0+\hat{\beta}_1X_{1i}+\hat{\beta}_2X_{2i}+\hat{e}_i$ into the numerator:
+
+$$
+\sum_i \tilde{X}_{1i}Y_i=\hat{\beta}_0\underbrace{\sum_i \tilde{X}_{1i}}_{=0}+\hat{\beta}_1\sum_i \tilde{X}_{1i}X_{1i}+\hat{\beta}_2\underbrace{\sum_i \tilde{X}_{1i}X_{2i}}_{=0}+\underbrace{\sum_i \tilde{X}_{1i}\hat{e}_i}_{=0}
+$$
+
+-   First and third zeros: $\tilde{X}_1$ is a fitted residual from the regression of $X_1$ on $X_2$, so it sums to zero and is orthogonal to its own regressor $X_2$: the normal equations, again.
+
+-   Last zero: $\hat{e}$ is orthogonal to $1$, $X_1$, and $X_2$, and $\tilde{X}_1=X_1-\hat{\gamma}_0-\hat{\gamma}_1X_2$ is built from exactly those three.
+
+-   Middle term: $\sum_i\tilde{X}_{1i}X_{1i}=\sum_i\tilde{X}_{1i}(\tilde{X}_{1i}+\hat{\gamma}_0+\hat{\gamma}_1X_{2i})=\sum_i\tilde{X}_{1i}^2$.
+
+Divide through:
+
+$$
+\frac{\sum_i\tilde{X}_{1i}Y_i}{\sum_i\tilde{X}_{1i}^2}=\hat{\beta}_1
+$$
+
+FWL theorem is also:
+
+$$
+\hat{\beta}_1=\frac{\sum_i \tilde{X}_{1i}\tilde{Y}_i}{\sum_i \tilde{X}_{1i}^2}=\frac{\sum_i \tilde{X}_{1i}Y_i}{\sum_i \tilde{X}_{1i}^2}.
+$$
+
+## Proof: 
+
+Replace $Y_i$ by $\tilde{Y}_i=Y_i-\hat{\delta}_0-\hat{\delta}_1X_{2i}$, the residual from regressing $Y$ on $X_2$:
+
+$$
+\sum_i \tilde{X}_{1i}\tilde{Y}_i=\sum_i \tilde{X}_{1i}Y_i-\hat{\delta}_0\underbrace{\sum_i \tilde{X}_{1i}}_{=0}-\hat{\delta}_1\underbrace{\sum_i \tilde{X}_{1i}X_{2i}}_{=0}=\sum_i \tilde{X}_{1i}Y_i
+$$
+
+The part removed from $Y$ is a function of $X_2$ alone, and $\tilde{X}_1$ is orthogonal to anything built from $X_2$.
+
+## What does it mean?
+
+-   “Controlling for $X_2$” means throwing away every scrap of $X_1$ that $X_2$ can predict, and using only what is left.
+
+-   If $X_1$ and $X_2$ are strongly related, very little is left. The coefficient is then estimated from a thin, possibly unrepresentative slice of the data, and its standard error will say so.
+
+# Short and Long Regressions 
+
+Long regression:
+
+$$
+Y_i=\beta_0+\beta_1X_i+\beta_2W_i+\epsilon_i
+$$
+
+Short regression, omitting $W_i$:
+
+$$
+Y_i=\tilde{\beta}_0+\tilde{\beta}_1X_i+u_i.
+$$
+
+Let $\delta_1$ be the slope from the auxiliary regression of the omitted variable on the included one:
+
+$$
+W_i=\delta_0+\delta_1X_i+\nu_i.
+$$
+
+$$
+\boxed{\tilde{\beta}_1=\beta_1+\beta_2\delta_1}
+$$
+
+**short = long + (effect of omitted)** $\times$ **(regression of omitted on included)**
+
+## Proof: 
+
+$$
+\begin{aligned}
+\tilde{\beta}_1 &=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)} \\
+&=\frac{\operatorname{Cov}_n(X,\beta_0+\beta_1X+\beta_2W+\epsilon)}{\operatorname{Var}_n(X)} \\ &=\beta_1\underbrace{\frac{\operatorname{Cov}_n(X,X)}{\operatorname{Var}_n(X)}}_{=1}+\beta_2\underbrace{\frac{\operatorname{Cov}_n(X,W)}{\operatorname{Var}_n(X)}}_{=\delta_1}+\underbrace{\frac{\operatorname{Cov}_n(X,\epsilon)}{\operatorname{Var}_n(X)}}_{=0\text{ in the long regression}}\\
+&=\beta_1+\beta_2\delta_1
+\end{aligned}
+$$
+
+> $\operatorname{Cov}(X,c)=0$
+
+## Signing the Bias 
+
++---------------+--------------------------------+--------------------------------+
+|               | ${Cov}_n(X,W) > 0$             | ${Cov}_n(X,W) > 0$             |
+|               |                                |                                |
+|               | or $\delta_1 >0$               | or $\delta_1 >0$               |
++===============+================================+================================+
+| $\beta_2 > 0$ | positive bias (**overstate**)  | negative bias (**understate**) |
++---------------+--------------------------------+--------------------------------+
+| $\beta_2 < 0$ | negative bias (**understate**) | positive bias (**overstate**)  |
++---------------+--------------------------------+--------------------------------+
+
+# $R^2$ and PRE
+
+Write $\hat{Y}_i=\hat{\beta}_0+\hat{\beta}_1X_i$ so that $Y_i=\hat{Y}_i+\hat{e}_i$. Subtract $\bar{Y}$, square, and sum:
+
+$$
+\underbrace{\sum_i(Y_i-\bar{Y})^2}_{TSS=SSE_C}=\underbrace{\sum_i(\hat{Y}_i-\bar{Y})^2}_{ESS}+\underbrace{\sum_i\hat{e}_i^2}_{RSS=SSE_A}+2\underbrace{\sum_i(\hat{Y}_i-\bar{Y})\hat{e}_i}_{=0}
+$$
+
+## Proof:
+
+Given:
+
+$$
+Y_i=\hat Y_i+\hat e_i
+$$
+
+Then subtract $\bar{Y}$ from both sides:
+
+$$
+Y_i-\bar Y=(\hat Y_i-\bar Y)+\hat e_i
+$$
+
+Now square both sides:
+
+$$
+(Y_i-\bar Y)^2=(\hat Y_i-\bar Y)^2+\hat e_i^2+2(\hat Y_i-\bar Y)\hat e_i
+$$
+
+Summing over all observations gives
+
+$$
+\sum_i(Y_i-\bar Y)^2=\sum_i(\hat Y_i-\bar Y)^2+\sum_i\hat e_i^2+2\sum_i(\hat Y_i-\bar Y)\hat e_i
+$$
+
+Given:
+
+$$
+\sum_i\hat e_i=0,\qquad \sum_iX_i\hat e_i=0
+$$
+
+The cross term is zero:
+
+$$
+\sum_i(\hat Y_i-\bar Y)\hat e_i=\sum_i(\hat\beta_0+\hat\beta_1X_i-\bar Y)\hat e_i \\ 
+=(\hat\beta_0-\bar Y)\sum_i\hat e_i+\hat\beta_1\sum_iX_i\hat e_i \\ 
+= 0
+$$
+
+Therefore:
+
+$$
+\boxed{TSS=ESS+RSS}
+$$
+
+-   TSS = total sum of squares $TSS=\sum_i(Y_i-\bar Y)^2$
+
+-   ESS = explained sum of squares $ESS=\sum_i(\hat Y_i-\bar Y)^2$
+
+-   RSS = residual sum of squares $RSS=\sum_i\hat e_i^2$
+
+$$
+R^2=\frac{ESS}{TSS}=1-\frac{RSS}{TSS}\qquad\Longleftrightarrow\qquad PRE=\frac{SSE_C-SSE_A}{SSE_C}
+$$
+
+$R^2$ **is exactly the PRE of the estimated model against the intercept-only model**
