@@ -2,10 +2,11 @@
 title: "Week 1"
 author: "Zhe Chen"
 format: html
+embed-resources: true
 editor: visual
 ---
 
-# The Least Squares Criterion
+# The Least Squares Criterion $\bigstar$
 
 Suppose the population relationship satisfies the linear model:
 
@@ -25,7 +26,7 @@ $$
 (\hat\beta_0,\hat\beta_1) = \underset{b_0,b_1}{\arg\min}\, S(b_0,b_1).
 $$
 
-## Step 1: The First-Order Conditions
+## Step 1: The First-Order Conditions $\bigstar$
 
 > Chain rule of derivative
 >
@@ -72,7 +73,7 @@ $$
 \end{align} 
 $$
 
-### What do they mean?
+### What do they mean? $\bigstar$
 
 -   The residuals **sum to zero**. $\bar{\hat{e}} = 0$
 -   The residuals are **uncorrelated with the regressor**.
@@ -113,7 +114,19 @@ $$
 
 These patterns are true **for every model** (even the functional form is wrong)
 
-## Step 2: Solving for $\hat{\beta_0}$
+### Uncorrelated, Mean-Independent, Independent $\bigstar$
+
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| Statement                          | In words                                   | What it rules out                                   |
++====================================+============================================+=====================================================+
+| $\operatorname{Cov}(X,\epsilon)=0$ | No linear pattern                          | A linear relationship only                          |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| $E[\epsilon\mid X]=0$              | No pattern in the conditional mean         | Any systematic pattern in the mean                  |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| $\epsilon \perp\!\!\!\perp X$      | No pattern in the conditional distribution | Any dependence on $X$, including heteroskedasticity |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+
+## Step 2: Solving for $\hat{\beta_0}$ $\bigstar$
 
 $$
 \sum_i \left(Y_i-\hat{\beta}_0-\hat{\beta}_1X_i\right) = 0 \tag{N1}
@@ -133,7 +146,7 @@ $$
 
 The line must pass through $(\bar{X},\bar{Y})$
 
-## Step 3: Solving for $\hat{\beta_1}$
+## Step 3: Solving for $\hat{\beta_1}$ $\bigstar$
 
 Substitute $\hat{\beta}_0=\bar{Y}-\hat{\beta}_1\bar{X}$ into (N2):
 
@@ -172,7 +185,7 @@ $$
 \boxed{\hat{\beta}_1=\frac{\sum_i(X_i-\bar X)(Y_i-\bar Y)}{\sum_i(X_i-\bar X)^2} = \frac{Cov_{n}(X,Y)}{Var_{n}(X)}}
 $$
 
-### What does it mean?
+### What does it mean? $\bigstar$
 
 -   **Numerator:** do $X$ and $Y$ move together across units?
 
@@ -190,13 +203,13 @@ $$
 Y_i=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+\epsilon_i.
 $$
 
-**Partialling out: a three-step recipe:**
+**Partialling out: a three-step recipe** $\bigstar$
 
 1.  Regress $X_{1i}$ on $X_{2i}$ (and a constant). Keep the residuals $\tilde{X}_{1i}=X_{1i}-\hat{\gamma}_0-\hat{\gamma}_1X_{2i}.$
 2.  Regress $Y_i$ on $X_{2i}$. Keep the residuals $\tilde{Y}_i=Y_i-\hat{\delta}_0-\hat{\delta}_1X_{2i}.$
 3.  Regress $\tilde{Y_i}$ on $\tilde{X_{1i}}$. The slope you get is exactly $β_1$ from the multiple regression.
 
-**Frisch–Waugh–Lovell** (FWL) theorem
+**Frisch–Waugh–Lovell** (FWL) theorem $\bigstar$
 
 $$
 \hat{\beta}_1=\frac{\sum_i \tilde{X}_{1i}\tilde{Y}_i}{\sum_i \tilde{X}_{1i}^2}.
@@ -228,7 +241,7 @@ $$
 \hat{\beta}_1=\frac{\sum_i \tilde{X}_{1i}\tilde{Y}_i}{\sum_i \tilde{X}_{1i}^2}=\frac{\sum_i \tilde{X}_{1i}Y_i}{\sum_i \tilde{X}_{1i}^2}.
 $$
 
-## Proof: 
+## Proof:
 
 Replace $Y_i$ by $\tilde{Y}_i=Y_i-\hat{\delta}_0-\hat{\delta}_1X_{2i}$, the residual from regressing $Y$ on $X_2$:
 
@@ -238,13 +251,13 @@ $$
 
 The part removed from $Y$ is a function of $X_2$ alone, and $\tilde{X}_1$ is orthogonal to anything built from $X_2$.
 
-## What does it mean?
+## What does it mean? $\bigstar$
 
 -   “Controlling for $X_2$” means throwing away every scrap of $X_1$ that $X_2$ can predict, and using only what is left.
 
 -   If $X_1$ and $X_2$ are strongly related, very little is left. The coefficient is then estimated from a thin, possibly unrepresentative slice of the data, and its standard error will say so.
 
-# Short and Long Regressions 
+# Short and Long Regressions $\bigstar$
 
 Long regression:
 
@@ -270,7 +283,7 @@ $$
 
 **short = long + (effect of omitted)** $\times$ **(regression of omitted on included)**
 
-## Proof: 
+## Proof $\bigstar$
 
 $$
 \begin{aligned}
@@ -282,7 +295,7 @@ $$
 
 > $\operatorname{Cov}(X,c)=0$
 
-## Signing the Bias 
+## Signing the Bias $\bigstar$
 
 +---------------+--------------------------------+--------------------------------+
 |               | ${Cov}_n(X,W) > 0$             | ${Cov}_n(X,W) > 0$             |
@@ -294,7 +307,7 @@ $$
 | $\beta_2 < 0$ | negative bias (**understate**) | positive bias (**overstate**)  |
 +---------------+--------------------------------+--------------------------------+
 
-# $R^2$ and PRE
+# R2 and PRE $\bigstar$
 
 Write $\hat{Y}_i=\hat{\beta}_0+\hat{\beta}_1X_i$ so that $Y_i=\hat{Y}_i+\hat{e}_i$. Subtract $\bar{Y}$, square, and sum:
 
@@ -358,4 +371,326 @@ $$
 R^2=\frac{ESS}{TSS}=1-\frac{RSS}{TSS}\qquad\Longleftrightarrow\qquad PRE=\frac{SSE_C-SSE_A}{SSE_C}
 $$
 
-$R^2$ **is exactly the PRE of the estimated model against the intercept-only model**
+$R^2$ **is exactly the PRE of the estimated model against the intercept-only model** $\bigstar$
+
+# Properties of OLS
+
+We ask how $\hat{\beta_1}$ behaves across samples:
+
+-   **Accuracy:** is $\hat{\beta_1}$ centered on the target? (Unbiasedness)
+
+-   **Precision**: how much does it move from sample to sample? (**Variance, and what drives it**)
+
+-   **Inference**: can we quantify how far off we are likely to be?
+
+To get these, we need assumptions:
+
+## Assumptions of OLS $\bigstar$
+
+-   **A1 Linearity in parameters** (*population*): $Y_i=\beta_0+\beta_1X_{1i}+\cdots+\beta_{k-1}X_{k-1,i}+\epsilon_i$. (Not restrictive: $X$ may contain logs, powers, splines, interactions.)
+
+-   **A2 Random sampling** *(sampling)*: $(Y_i,X_i)$ i.i.d. (independent and identically distributed) from the population
+
+    > **independent**: different observations are independently sampled. For example, observation i does not affect observation j
+    >
+    > **identically distributed**: every observation comes from the same population distribution
+
+-   **A3 No perfect collinearity** *(your sample)* : $X$ varies, and no regressor is an exact linear combination of the others
+
+-   **A4 Strict exogeneity** *(population)*: $E[\epsilon_i\mid X_i]=0$.
+
+    > It means that for every value of $X_i$, the average value of the unobserved error is zero. The main implication is that $X_i$ contains no systematic information about the error term.
+
+-   **A5 Spherical errors** *(population)*: $\operatorname{Var}(\epsilon_i\mid X)=\sigma^2$ (homoskedasticity) and $\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)=0$ for $i\neq j$ (no correlation across units)
+
+-   **A6 Normality (optional)** *(population)*: $\epsilon_i\mid X_i\sim N(0,\sigma^2)$
+
+| unbiasedness | variance formula and Gauss–Markov | exact t and F. |
+|--------------|-----------------------------------|----------------|
+| A1-A4        | A1-A4                             | A1-A4          |
+|              | A5                                | A5             |
+|              |                                   | A6             |
+
+## Unbiasedness $\bigstar$
+
+Given:
+
+$$
+Y_i=\beta_0+\beta_1X_i+\epsilon_i \\
+\bar Y=\beta_0+\beta_1\bar X+\bar\epsilon
+$$
+
+Therefore:
+
+$$
+Y_i-\bar Y=\beta_1(X_i-\bar X)+(\epsilon_i-\bar\epsilon)
+$$
+
+Then:
+
+$$
+\begin{aligned}
+\hat\beta_1 &= \frac{\sum_i(X_i-\bar X)(Y_i-\bar Y)}{\sum_i(X_i-\bar X)^2} \\
+ & =\frac{\sum_i(X_i-\bar X)\left[\beta_1(X_i-\bar X)+(\epsilon_i-\bar\epsilon)\right]}{\sum_i(X_i-\bar X)^2} \\
+&=\frac{\beta_1\sum_i(X_i-\bar X)^2+\sum_i(X_i-\bar X)\epsilon_i-\bar\epsilon\sum_i(X_i-\bar X)}{\sum_i(X_i-\bar X)^2}
+\end{aligned}
+$$
+
+Since deviations from the mean sum to zero:
+
+$$
+\sum_i(X_i-\bar X)=0
+$$
+
+Thus
+
+$$
+\beta_1 =\frac{\beta_1\sum_i(X_i-\bar X)^2+\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}
+$$
+
+Finally:
+
+$$
+\boxed{\hat\beta_1=\beta_1+\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}}
+$$
+
+In other words, $\hat{\beta_1} = \beta_1 + (\text{a weighted average of the errors)}$
+
+Take the conditional expectation given $X$:
+
+$$
+E[\hat{\beta}_1\mid X]=E\left[\beta_1+\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}\,\middle|\,X\right]
+$$
+
+Conditional on $X$, all $X_i$, $\bar{X}$, and the denominator are fixed constants, so
+
+$$
+E[\hat{\beta}_1\mid X]=\beta_1+\frac{\sum_i(X_i-\bar X)E[\epsilon_i\mid X]}{\sum_i(X_i-\bar X)^2}
+$$
+
+By A4, $E[\epsilon_i\mid X]=0$,
+
+$$
+E[\hat{\beta}_1\mid X]=\beta_1+\frac{\sum_i(X_i-\bar X)(0)}{\sum_i(X_i-\bar X)^2}=\beta_1
+$$
+
+Then use the **law of iterated expectations**:
+
+$$
+E[\hat{\beta}_1]=E\left[E[\hat{\beta}_1\mid X]\right]
+$$
+
+Since:
+
+$$
+E[\hat{\beta}_1]=E[\beta_1]=\beta_1
+$$
+
+> $\beta_1$ is a constant, so $E[c]=c$
+
+Therefore:
+
+$$
+\boxed{E[\hat{\beta}_1]=\beta_1}
+$$
+
+> *Logic:* **A4 makes the error term disappear on average conditional on XX, which gives conditional unbiasedness; then the law of iterated expectations gives unconditional unbiasedness.**
+
+## The Variance of $\hat{\beta_1}$ $\bigstar$
+
+> Variance formulas
+>
+> $$
+> \operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y)
+> $$
+>
+> $$
+> \operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y)
+> $$
+>
+> $$
+> \operatorname{Var}(aX+b)=a^2\operatorname{Var}(X)
+> $$
+>
+> $$
+> \operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)
+> $$
+
+For the above, we know:
+
+$$
+\hat{\beta}_1-\beta_1=\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}
+$$
+
+Because $\beta_1$ is a fixed constant
+
+$$
+\operatorname{Var}(\hat{\beta}_1\mid X)=\operatorname{Var}(\hat{\beta}_1-\beta_1\mid X)
+$$
+
+Now condition on $X$, so $X_i$, $\bar{X}$, and denominator are treated as fixed constants:
+
+$$
+\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right)}{\left[\sum_i(X_i-\bar X)^2\right]^2}
+$$
+
+For the numerator,
+
+> General formula:
+>
+> $$
+> \operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)
+> $$
+
+$$
+\begin{aligned}
+N &= \operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right) \\ 
+&= \sum_i\operatorname{Var}\left((X_i-\bar X)\epsilon_i\mid X\right)+2\sum_{i<j}\operatorname{Cov}\left((X_i-\bar X)\epsilon_i,(X_j-\bar X)\epsilon_j\mid X\right)
+\end{aligned}
+$$
+
+Conditional on $X$, so $X_i-\bar{X}$, $X_j-\bar{X}$ are constants, use $\operatorname{Var}(aZ)=a^2\operatorname{Var}(Z)$
+
+$$
+\operatorname{Var}\left((X_i-\bar X)\epsilon_i\mid X\right)=(X_i-\bar X)^2\operatorname{Var}(\epsilon_i\mid X)
+$$
+
+And $\operatorname{Cov}(aZ,bW)=ab\operatorname{Cov}(Z,W)$, so
+
+$$
+\operatorname{Cov}\left((X_i-\bar X)\epsilon_i,(X_j-\bar X)\epsilon_j\mid X\right)=(X_i-\bar X)(X_j-\bar X)\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)
+$$
+
+Substitute both results:
+
+$$
+\begin{aligned}
+N &= \operatorname{Var}\left(\sum_i (X_i-\bar X)\epsilon_i\mid X\right)\\
+& =\sum_i(X_i-\bar X)^2\operatorname{Var}(\epsilon_i\mid X)+2\sum_{i<j}(X_i-\bar X)(X_j-\bar X)\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)
+\end{aligned}
+$$
+
+Under **A5**, $\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)=0\qquad(i\neq j)$
+
+Therefore:
+
+$$
+N =\sum_i(X_i-\bar X)^2\operatorname{Var}(\epsilon_i\mid X)
+$$
+
+$$
+\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\sum_i(X_i-\bar X)^2\operatorname{Var}(\epsilon_i\mid X)}{\left[\sum_i(X_i-\bar X)^2\right]^2}
+$$
+
+Under homoskedasticity (A5) $\operatorname{Var}(\epsilon_i\mid X)=\sigma^2$
+
+$$
+\boxed{\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}}
+$$
+
+### What Drives Precision $\bigstar$
+
+For one regressor:
+
+$$
+\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\sigma^2}{\sum_i(X_i-\bar{X})^2}=\frac{\sigma^2}{n\,\operatorname{Var}_n(X)}.
+$$\
+For more regressors:
+
+$$
+\operatorname{Var}(\hat{\beta}_j)=\frac{\sigma^2}{n\,\operatorname{Var}_n(X_j)(1-R_j^2)},
+$$
+
+where $R_j^2$ is from regressing $X_j$ on the other regressors
+
+-   Noise $\sigma^2$ up $\Rightarrow$ variance up.
+-   Sample size $n$ up $\Rightarrow$ variance down like $1/n$; standard error down like $1/\sqrt{n}$.
+-   Spread of $X$ up $\Rightarrow$ variance down.
+-   Collinearity $R_j^2\to 1$ $\Rightarrow$ variance explodes; the variance inflation factor is $\frac{1}{1-R_j^2}$.
+
+Collinearity violates no assumption. It says the data contain little independent information about $\beta_j$
+
+### Estimating $\sigma^2$
+
+$\sigma^2=E[\epsilon_i^2]$ is unknown. We have residuals $e_i$. The natural estimator is:
+
+$$
+s^2=\frac{1}{n-k}\sum_i \hat e_i^2, \qquad E[s^2]=\sigma^2
+$$
+
+### Gauss–Markov Correctly
+
+*Gauss-Markov assumptions* (A1-A5): among all unbiased estimators OLS has the [smallest variance]{.underline}: it is the **Best Linear Unbiased Estimator (BLUE).**
+
+### Finite-Sample Distribution Under Normality
+
+If A6 also holds, then conditional on $X$
+
+$$
+hat{\beta}_1\sim\mathcal{N}\left(\beta_1,\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}\right),\qquad \frac{(n-k)s^2}{\sigma^2}\sim\chi^2_{n-k},\qquad \hat{\beta}_1\perp\!\!\!\perp s^2
+$$ So that
+
+$$
+t=\frac{\hat{\beta}_1-\beta_1}{\operatorname{se}(\hat{\beta}_1)}\sim t_{n-k}
+$$
+
+-   $\hat{\beta}_1$ is a [linear]{.underline} function of the errors, hence normal when they are.
+-   Without A6, all of this holds only [approximately]{.underline}, and only for large $n$.
+
+# CEF and BLP
+
+The Conditional Expectation Function (CEF)
+
+Everything so far was about a [sample]{.underline}. Step back to the [population]{.underline}
+
+For an outcome $Y_i$ and covariates $X_i$, the **conditional expectation function** is
+
+$$
+g(x)=E[Y_i\mid X_i=x]
+$$
+
+-   In words: [the average outcome among all units in the population]{.underline} with $X_i=x$.
+
+-   Because $X_i$ is random, $E[Y_i\mid X_i]$ is itself a random variable.
+
+## Three Facts about the CEF $\bigstar$
+
+> the conditional expectation function (CEF) isdefined for [any population]{.underline} distribution of (Y,X)
+
+1.  **Law of iterated expectations**
+
+$$
+E[Y_i]=E[E[Y_i\mid X_i]]
+$$
+
+The overall mean is the average of the group means.
+
+2.  **CEF decomposition**
+
+Define $\epsilon_i\equiv Y_i-E[Y_i\mid X_i]$.
+
+Then $\boxed{Y_i=E[Y_i\mid X_i]+\epsilon_i}$ with $E[\epsilon_i\mid X_i]=0$, and hence $E[\epsilon_i m(X_i)]=0$ for any function $m(\cdot)$.
+
+> The CEF separates the predictable and unpredictable parts of Y.
+>
+> [The residual has zero conditional mean by construction.]{.underline}
+>
+> [The residual is orthogonal to any function of X]{.underline}
+
+3.  **CEF prediction**
+
+$$
+E[Y_i\mid X_i]=\underset{m(\cdot)}{\arg\min}\,E[(Y_i-m(X_i))^2]
+$$
+
+Among all functions of $X_i$, **the CEF is the best mean-squared-error predictor.**
+
+**These are identities, not assumptions. They carry no causal content whatever.**
+
+## The Best Linear Predictor (BLP) $\bigstar$
+
+1.  If the CEF is linear, the population regression is the CEF.
+2.  If the CEF is nonlinear}, $X_i'\beta$ is the minimum-MSE linear approximation to it: $\beta=\underset{b}{\arg\min}\;E\left[\left(E[Y_i\mid X_i]-X_i'b\right)^2\right]$
+3.  Regardless whether the CEF is linear, [$X_i'\beta$ is the minimum-MSE linear predictor of]{.underline} $Y_i$[.]{.underline}
+
+## Good Controls, Bad Controls (come back in Week 5)
