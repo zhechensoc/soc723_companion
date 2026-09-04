@@ -1,0 +1,151 @@
+---
+title: "Week 2"
+author: "Zhe Chen"
+format: html
+embed-resources: true
+editor: visual
+---
+
+## Recall Week 1
+
+For the bivariate model $Y_i = \beta_0 + \beta_1X_i + \epsilon_i$
+
+$$\hat{\beta}_1-\beta_1=\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}, \quad \operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right)}{\left[\sum_i(X_i-\bar X)^2\right]^2}$$
+
+Under homoskedasticity (A5) $\operatorname{Var}(\epsilon_i\mid X)=\sigma^2$
+
+$$\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}$$
+
+# Sampling Distribution
+
+## Standard Error $\bigstar$
+
+$\hat{\beta_1}$ comes from one sample, the [**standard error**]{.underline} of $\hat{\beta_1}$ is the [**estimate of its standard deviation across hypothetical repeated samples.**]{.underline}
+
+## Sampling Distribution $\bigstar$
+
+In a sampling distribution (histogram):
+
+- where it is centered tells you about bias
+
+- how wide it is is the true sampling standard deviation
+
+- the standard error is our estimate of that width
+
+## LLN and CLT $\bigstar$
+
+### Law of Large Numbers (LLN)
+
+The average of n independent draws settles down on the population mean
+
+$$\frac{1}{n}\sum_i Z_i \xrightarrow{p} E[Z]$$
+
+### Central Limit Theorem (CLT)
+
+For an average of independent draws of Z, the shape of the wobble around the truth becomes a bell curve, whatever the distribution of Z itself
+
+$$\sqrt{n}\left(\bar Z-E[Z]\right)\xrightarrow{d}N\left(0,\operatorname{Var}(Z)\right)$$
+
+## The Sampling Distribution of $\hat{\beta_1}$, as n Grows (not evaluated)
+
+$$\hat{\beta}_1-\beta_1=\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}=\boxed{\frac{\frac{1}{n}\sum_i(X_i-\bar X)\epsilon_i}{\frac{1}{n}\sum_i(X_i-\bar X)^2}}$$
+
+### Step 1: Settle the Denominator (LLN)
+
+By the law of large numbers
+
+$$\bar X \xrightarrow{p} E[X]=\mu_X$$ Then (by the definition of variance)
+
+$$\frac{1}{n}\sum_i (X_i-\bar X)^2 \xrightarrow{p} E[(X_i-\mu_X)^2]=\operatorname{Var}(X_i)$$
+
+Hereby the denominator is a [**constant**]{.underline}
+
+### Step 2: The Numerator's Mean
+
+> In general
+>
+> $$E\left[\sum_i a_iX_i\right]=\sum_i a_iE[X_i]$$
+>
+> So
+>
+> $$E\left[\sum_i(X_i-\bar X)\epsilon_i\right] = \sum_iE\left[(X_i-\bar X)\epsilon_i\right]$$
+
+$$\begin{aligned}
+E[(X_i-\mu_X)\epsilon_i]
+&=E\left[E[(X_i-\mu_X)\epsilon_i\mid X_i]\right] \quad \text{iterated expectations} \\
+&=E\left[(X_i-\mu_X)E[\epsilon_i\mid X_i]\right] \quad \text{given } X_i, (X_i-\mu_X) \text{ is fixed} \\
+&= E[(X_i-\mu_X)\cdot 0] = 0 \quad \text{A4: } E[(X_i-\mu_X) = 0    
+\end{aligned}$$
+
+By the LLN the numerator settles on the mean 0, so $\hat{\beta}_1-\beta_1\xrightarrow{p}\frac{0}{\operatorname{Var}(X_i)}=0$. In other words, [as sample approaches population]{.underline}, $\hat{\beta_1}$ nails $\beta1$.
+
+### Step 3&4: The Numerator's Variance and Shape
+
+$$\sqrt{n}(\hat{\beta}_1-\beta_1)=\frac{\underbrace{\sqrt{n}\cdot\frac{1}{n}\sum_i(X_i-\bar X)\epsilon_i}_{\xrightarrow{d}\mathcal{N}\left(0,\operatorname{Var}\left((X_i-\mu_X)\epsilon_i\right)\right)}}{\underbrace{\frac{1}{n}\sum_i(X_i-\bar X)^2}_{\xrightarrow{p}\operatorname{Var}(X_i)}}\xrightarrow{d}\mathcal{N}(0,V),\qquad V=\frac{\operatorname{Var}\left((X_i-\mu_X)\epsilon_i\right)}{\left[\operatorname{Var}(X_i)\right]^2}.$$
+
+Under A5 (homoskedasticity), $\operatorname{Var}(\epsilon_i\mid X_i)=\sigma^2$, the error variance is the same number at every value of X. $V =\sigma^2/\operatorname{Var}(X_i)$
+
+# Testing $\bigstar$
+
+- **null hypothesis:** $H_0$ is a specific claim about a population quantity, e.g. $\beta_1=0$
+
+- **test statistic:** measures the distance between estimate and null in standard-error units: $t=(\hat{\beta_1}-0)/se(\hat{\beta_1})$
+
+- **p-value:** if $H_0$ were true, how often would sampling noise alone produce a $t$ this large?
+
+- **95% confidence interval**: across repeated samples, intervals built this way cover the truth 95% of the time.
+
+## Testing a Single Coefficient $\bigstar$
+
+To test $H_0:\beta_j=\beta_j^0$ , compare
+
+$$t=\frac{\hat{\beta}_j-\beta_j^0}{\operatorname{se}(\hat{\beta}_j)}$$ against $t_{n-k}$ critical values; a 95% confidence interval is $\hat{\beta}_j\pm t_{0.975,n-k}\operatorname{se}(\hat{\beta}_j)$
+
+# Heteroskedasticity
+
+## The Sandwich $\bigstar$
+
+$$V=\frac{E\left[(X_i-\mu_X)^2\epsilon_i^2\right]}{\left[\operatorname{Var}(X_i)\right]^2}=\frac{\text{``meat''}}{\text{``bread''}^2}$$
+
+- meat: $(X_i-\mu_X)^2\epsilon_i$ is the [weighted average of the squared errors.]{.underline} Errors sitting far from the mean of X count the most.
+
+- under A5 (homoskedasticity) the meat becomes $\sigma^2\operatorname{Var}(X_i)$, and the [classical formula]{.underline} $V =\sigma^2/\operatorname{Var}(X_i)$
+
+- without A5, [the classical formula is wrong]{.underline}
+
+## White's Estimator $\bigstar$
+
+Let $d_i \equiv X_i - \bar{X}$
+
+For homoskedasticity
+
+$$\widehat{V}_{\text{classical}}(\hat{\beta}_1)=\frac{s^2}{\sum_i d_i^2}$$
+
+**(Eicker-)Huber-White estimator** (bivariate model)
+
+$$\widehat{V}_{HC0}(\hat{\beta}_1)=\frac{\sum_i d_i^2\hat{e}_i^2}{\left(\sum_i d_i^2\right)^2}$$
+
+The classical formula pools one $\sigma^2$; the robust one lets each observation carry its own $\hat{e}^2_i$
+
+## Finite-Sample Corrections: HC0-HC3 $\bigstar$
+
+Let $h_{ii}=\frac{1}{n}+d^2_i/\sum_jd^2_j$ (measure [how unusual]{.underline} $X_i$ is)
+
+**Why the Squared Residuals Are Systematically Too Small?**
+
+OLS chooses the line that makes the residuals as small as possible, so it partly fits the noise itself: residuals run systematically smaller than the errors they stand in for.
+
+So we need to each squared residual before it enters the meat, undoing the deflation
+
+|   | Meat uses | Comment |
+|------------------------|------------------------|------------------------|
+| **HC0** | $\hat e_i^2$ | White’s original; anticonservative when $n$ is small |
+| **HC1** | $\frac{n}{n-k}\hat e_i^2$ | Simple d.f. correction; [Stata’s robust default]{.underline} |
+| **HC2** | $\frac{\hat e_i^2}{1-h_{ii}}$ | Exact at the homoskedastic benchmark |
+| **HC3** | $\frac{\hat e_i^2}{(1-h_{ii})^2}$ | Jackknife-like; [**recommended default**]{.underline} |
+
+[All four are consistent under any heteroskedasticity pattern and coincide as n → ∞.]{.underline} [**With n \< 250, use HC3.**]{.underline}
+
+Robust standard errors can be larger or smaller than classical ones.
+
+Recommendation: [**Do not pre-test and then choose. Just report robust standard errors.**]{.underline}
