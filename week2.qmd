@@ -138,7 +138,7 @@ OLS chooses the line that makes the residuals as small as possible, so it partly
 So we need to each squared residual before it enters the meat, undoing the deflation
 
 |   | Meat uses | Comment |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | **HC0** | $\hat e_i^2$ | White’s original; anticonservative when $n$ is small |
 | **HC1** | $\frac{n}{n-k}\hat e_i^2$ | Simple d.f. correction; [Stata’s robust default]{.underline} |
 | **HC2** | $\frac{\hat e_i^2}{1-h_{ii}}$ | Exact at the homoskedastic benchmark |
