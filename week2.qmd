@@ -138,14 +138,132 @@ OLS chooses the line that makes the residuals as small as possible, so it partly
 So we need to each squared residual before it enters the meat, undoing the deflation
 
 |   | Meat uses | Comment |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **HC0** | $\hat e_i^2$ | White’s original; anticonservative when $n$ is small |
 | **HC1** | $\frac{n}{n-k}\hat e_i^2$ | Simple d.f. correction; [Stata’s robust default]{.underline} |
 | **HC2** | $\frac{\hat e_i^2}{1-h_{ii}}$ | Exact at the homoskedastic benchmark |
-| **HC3** | $\frac{\hat e_i^2}{(1-h_{ii})^2}$ | Jackknife-like; [**recommended default**]{.underline} |
+| **HC3** | $\frac{\hat e_i^2}{(1-h_{ii})^2}$ | Jackknife-like; [**recommended default (esp. n \< 250)**]{.underline} |
 
 [All four are consistent under any heteroskedasticity pattern and coincide as n → ∞.]{.underline} [**With n \< 250, use HC3.**]{.underline}
 
 Robust standard errors can be larger or smaller than classical ones.
 
 Recommendation: [**Do not pre-test and then choose. Just report robust standard errors.**]{.underline}
+
+# Clustering
+
+When independence fails: [within a group observations share something]{.underline}
+
+## The Error Components Model $\bigstar$
+
+$$Y_{ig}=\beta_0+\beta_1X_{ig}+\epsilon_{ig},\qquad \epsilon_{ig}=\underbrace{\nu_g}_{\text{one draw per cluster}}+\underbrace{\eta_{ig}}_{\text{one draw per person}}$$
+
+- $\eta_{ig}$ individual-level idiosyncrasy, independent across units and independent of the group shock
+
+- $\nu_g$ group-level shock for everyone in cluster $g$
+
+For two individuals $i$, $j$ in group $\nu$:
+
+> The individual shocks are independent of the cluster shock and of each other
+>
+> $$\operatorname{Cov}(\nu_g,\eta_{ig})=0,\qquad \operatorname{Cov}(\eta_{ig},\eta_{jg})=0$$
+
+$$\begin{aligned}
+\operatorname{Cov}(\epsilon_{ig},\epsilon_{jg})
+&=\operatorname{Cov}(\nu_g + \eta_{ig}, \nu_g + \eta_{jg})\\
+&=\operatorname{Var}(\nu_g)+\operatorname{Cov}(\nu_g,\eta_{jg})+\operatorname{Cov}(\eta_{ig},\nu_g)+\operatorname{Cov}(\eta_{ig},\eta_{jg})\\
+&=\operatorname{Var}(\nu_g)\\
+&=\sigma_\nu^2 \quad (i\neq j)
+\end{aligned}$$
+
+- [different clusters share nothing (errors across clusters are independent)]{.underline}
+
+## Cluster-Robust Estimator CR0
+
+Let
+
+> $d_i \equiv X_i - \bar{X}$
+
+$$S_g=\sum_{i\in g} d_i\hat e_i \qquad \text{(one number per cluster)}$$
+
+$$\widehat{V}_{CR}(\hat\beta_1)=\boxed{\frac{\sum_{g=1}^{G}S_g^2}{\left(\sum_i d_i^2\right)^2}}$$
+
+> $$S_g^2=\left(\sum_{i\in g}d_i\hat e_i\right)^2=\underbrace{\sum_{i\in g}d_i^2\hat e_i^2}_{\text{White's terms}}+\underbrace{\sum_{\substack{i\neq j\\ i,j\in g}}d_id_j\hat e_i\hat e_j}_{\text{cross terms, now estimated}}$$
+
+[**Sum within clusters first, then square.**]{.underline}
+
+## Cluster-Robust Estimator CR1 (Liang-Zeger) (not evaluated)
+
+$$\widehat{V}_{CR}(\hat{\beta})=c\,(X'X)^{-1}\left(\sum_{g=1}^{G}X_g'\hat e_g\hat e_g'X_g\right)(X'X)^{-1}$$
+
+$$c=\frac{G}{G-1}\cdot\frac{n-1}{n-k} \qquad \text{(CR1: Stata's default)}$$
+
+- allows arbitrary correlation within cluster (including serial correlation over time) and any heteroskedasticity, while assuming independence across clusters
+
+- consistency in G → ∞, not n → ∞.
+
+## At What Level Should You Cluster $\bigstar$
+
+- **Sampling-based**: [**cluster at the level of the sampling units**]{.underline}, when the clusters in your data are a small share of the clusters in the population.
+
+- [**Design-based:**]{.underline} [**cluster at the level at which treatment is assigned**]{.underline}. If a policy varies by state, cluster on state, even with individual-level data.
+
+- Cluster at the level the design justifies; the right level, not the biggest.
+
+- [**Never choose the level by whichever gives the smallest p-value.**]{.underline}
+
+# Bootstrap
+
+## The Idea $\bigstar$
+
+Everything so far derived a formula for the sampling distribution. The bootstrap instead [**simulates**]{.underline} it.
+
+> We want the sampling distribution of a statistic when samples are drawn from the population F. We do not know F, but the sample is our best estimate of F. So draw new samples from the sample.
+
+## The Nonparametric (Pairs) Bootstrap $\bigstar$
+
+Notation: $\theta$ is any target, $\hat{\theta}$ its estimate,$B$ the number of resamples.
+
+1.  For $b=1,\ldots,B$: draw $n$ observations $(Y_i,X_i)$ [**with replacement**]{.underline} from the sample.
+2.  Re-estimate on the resample to get $\hat{\theta}^{(b)}$.
+3.  Use the empirical distribution of $\{\hat{\theta}^{(b)}\}_{b=1}^B$.
+
+- $\operatorname{se}_{\text{boot}}$ = the standard deviation of the $\hat{\theta}^{(b)}$.
+- Percentile CI: the 2.5th and 97.5th percentiles of $\{\hat{\theta}^{(b)}\}$.
+- Because it resamples $(Y_i,X_i)$ jointly, the pairs bootstrap is [**automatically heteroskedasticity-robust**]{.underline}, given independent observations; it assumes nothing about how the error variance moves with $X$.
+
+## Confidence Intervals from the Bootstrap $\bigstar$
+
+Two ways to turn the $\hat{\theta}^{(b)}$'s into a 95% interval:
+
+- **Normal-approximation**: $\hat{\theta}\pm1.96\,\operatorname{se}_{\text{boot}}$, with $\operatorname{se}_{\text{boot}}$ the standard deviation of the $\hat{\theta}^{(b)}$. Uses the bootstrap only for the width, then assumes the bell shape.
+- **Percentile**: the 2.5th and 97.5th percentiles of the $\hat{\theta}^{(b)}$ themselves. Uses the whole shape.
+
+[The bootstrap is not necessarily normally distributed.]{.underline}
+
+## Bootstrapping Clustered Data $\bigstar$
+
+Draw G whole clusters with replacement (Resample at the level you would cluster the SEs)
+
+# Summary $\bigstar$
+
+| Problem | Robust SEs? | What actually helps |
+|------------------------|------------------------|------------------------|
+| Heteroskedasticity | **yes** | given independent observations |
+| Within-cluster correlation | **yes (cluster-robust)** | design-based clustering |
+| Serial correlation in panels | **yes** | cluster on unit |
+| Non-normal errors | **yes (large-**$n$ approx.) | larger $n$ |
+| Omitted variable bias | no | identification strategy (Wks 5--11) |
+| Simultaneity, reverse causation | no | a design (Weeks 7--10) |
+| Measurement error in $X$ | no | IV, validation data |
+| Nonlinear CEF (CEF the target) | no | saturate, splines, flexible ML |
+| Selection into the sample | no | modelling the selection |
+| Wrong estimand | no | say what you are estimating |
+| Influential outliers | no | diagnostics; robust regression |
+| $p$-hacking, specification search | no | pre-registration |
+
+- State the [**estimand**]{.underline} and the design before choosing a standard error.
+
+- Identify the independently sampled or independently assigned [**units**]{.underline}, and cluster there. Use HC1 or HC3 only when observations are plausibly independent
+
+- If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention
