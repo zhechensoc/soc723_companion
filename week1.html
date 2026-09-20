@@ -2345,12 +2345,22 @@ window.Quarto = {
 <p><span class="math display">\[(\hat\beta_0,\hat\beta_1) = \underset{b_0,b_1}{\arg\min}\, S(b_0,b_1).\]</span></p>
 <section id="step-1-the-first-order-conditions-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="step-1-the-first-order-conditions-bigstar">Step 1: The First-Order Conditions <span class="math inline">\(\bigstar\)</span></h2>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>Chain rule of derivative</p>
 <p><span class="math display">\[y=f(g(x)) \\
 \frac{dy}{dx}=f&#39;(g(x))g&#39;(x)\]</span></p>
 <p><span class="math inline">\({!}{=}\)</span> 0: set equal to zero</p>
-</blockquote>
+</div>
+</div>
 <p><span class="math display">\[\begin{aligned}
 \frac{\partial S}{\partial b_0}
 &amp;= \sum_{i=1}^{n}\frac{\partial}{\partial b_0}(Y_i-b_0-b_1X_i)^2 \\
@@ -2379,7 +2389,16 @@ window.Quarto = {
 <li>The residuals <strong>sum to zero</strong>. <span class="math inline">\(\bar{\hat{e}} = 0\)</span></li>
 <li>The residuals are <strong>uncorrelated with the regressor</strong>.</li>
 </ul>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math display">\[\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)(\hat e_i-\bar{\hat e})\]</span></p>
 <p>From (N1):</p>
 <p><span class="math display">\[\sum_i \hat e_i=0 \quad \Longrightarrow \quad \bar{\hat e}=0\]</span></p>
@@ -2391,7 +2410,8 @@ window.Quarto = {
 <p><span class="math display">\[\sum_i X_i\hat e_i=0,\qquad \sum_i\hat e_i=0\]</span></p>
 <p>So:</p>
 <p><span class="math display">\[\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}[0-\bar X(0)]=0\]</span></p>
-</blockquote>
+</div>
+</div>
 <p>These patterns are true <strong>for every model</strong> (even the functional form is wrong)</p>
 </section>
 <section id="uncorrelated-mean-independent-independent-bigstar" class="level3">
@@ -2459,11 +2479,21 @@ window.Quarto = {
 <ul>
 <li><p><strong>Numerator:</strong> do <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> move together across units?</p></li>
 <li><p><strong>Denominator:</strong> how much does <span class="math inline">\(X\)</span> vary? No variation in <span class="math inline">\(X\)</span>, no slope; the formula is 0/0.</p></li>
-<li><p>The OLS slope is a <strong>weighted average of unit-by-unit slopes</strong>, with more weight on observations whose <span class="math inline">\(X\)</span> is far from <span class="math inline">\(\bar{X}\)</span> . Extreme <span class="math inline">\(X\)</span> values matter disproportionately.</p>
-<blockquote class="blockquote">
-<p><span class="math display">\[\hat{\beta}_1=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)}=\operatorname{Corr}_n(X,Y)\cdot\frac{s_Y}{s_X}=\sum_i w_i\frac{Y_i-\bar{Y}}{X_i-\bar{X}},\qquad w_i=\frac{(X_i-\bar{X})^2}{\sum_j (X_j-\bar{X})^2}\]</span></p>
-</blockquote></li>
+<li><p>The OLS slope is a <strong>weighted average of unit-by-unit slopes</strong>, with more weight on observations whose <span class="math inline">\(X\)</span> is far from <span class="math inline">\(\bar{X}\)</span> . Extreme <span class="math inline">\(X\)</span> values matter disproportionately.</p></li>
 </ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[\hat{\beta}_1=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)}=\operatorname{Corr}_n(X,Y)\cdot\frac{s_Y}{s_X}=\sum_i w_i\frac{Y_i-\bar{Y}}{X_i-\bar{X}},\qquad w_i=\frac{(X_i-\bar{X})^2}{\sum_j (X_j-\bar{X})^2}\]</span></p>
+</div>
+</div>
 </section>
 </section>
 </section>
@@ -2523,9 +2553,19 @@ window.Quarto = {
 &amp;=\frac{\operatorname{Cov}_n(X,\beta_0+\beta_1X+\beta_2W+\epsilon)}{\operatorname{Var}_n(X)} \\ &amp;=\beta_1\underbrace{\frac{\operatorname{Cov}_n(X,X)}{\operatorname{Var}_n(X)}}_{=1}+\beta_2\underbrace{\frac{\operatorname{Cov}_n(X,W)}{\operatorname{Var}_n(X)}}_{=\delta_1}+\underbrace{\frac{\operatorname{Cov}_n(X,\epsilon)}{\operatorname{Var}_n(X)}}_{=0\text{ in the long regression}}\\
 &amp;=\beta_1+\beta_2\delta_1
 \end{aligned}\]</span></p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math inline">\(\operatorname{Cov}(X,c)=0\)</span></p>
-</blockquote>
+</div>
+</div>
 </section>
 <section id="signing-the-bias-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="signing-the-bias-bigstar">Signing the Bias <span class="math inline">\(\bigstar\)</span></h2>
@@ -2609,10 +2649,22 @@ window.Quarto = {
 <p><strong>identically distributed</strong>: every observation comes from the same population distribution</p>
 </blockquote></li>
 <li><p><strong>A3 No perfect collinearity</strong> <em>(your sample)</em> : <span class="math inline">\(X\)</span> varies, and no regressor is an exact linear combination of the others</p></li>
-<li><p><strong>A4 Strict exogeneity</strong> <em>(population)</em>: <span class="math inline">\(E[\epsilon_i\mid X_i]=0\)</span>.</p>
-<blockquote class="blockquote">
+<li><p><strong>A4 Strict exogeneity</strong> <em>(population)</em>: <span class="math inline">\(E[\epsilon_i\mid X_i]=0\)</span>.</p></li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>It means that for every value of <span class="math inline">\(X_i\)</span>, the average value of the unobserved error is zero. The main implication is that <span class="math inline">\(X_i\)</span> contains no systematic information about the error term.</p>
-</blockquote></li>
+</div>
+</div>
+<ul>
 <li><p><strong>A5 Spherical errors</strong> <em>(population)</em>: <span class="math inline">\(\operatorname{Var}(\epsilon_i\mid X)=\sigma^2\)</span> (homoskedasticity) and <span class="math inline">\(\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)=0\)</span> for <span class="math inline">\(i\neq j\)</span> (no correlation across units)</p></li>
 <li><p><strong>A6 Normality (optional)</strong> <em>(population)</em>: <span class="math inline">\(\epsilon_i\mid X_i\sim N(0,\sigma^2)\)</span></p></li>
 </ul>
@@ -2673,9 +2725,19 @@ window.Quarto = {
 <p><span class="math display">\[E[\hat{\beta}_1]=E\left[E[\hat{\beta}_1\mid X]\right]\]</span></p>
 <p>Since:</p>
 <p><span class="math display">\[E[\hat{\beta}_1]=E[\beta_1]=\beta_1\]</span></p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math inline">\(\beta_1\)</span> is a constant, so <span class="math inline">\(E[c]=c\)</span></p>
-</blockquote>
+</div>
+</div>
 <p>Therefore:</p>
 <p><span class="math display">\[\boxed{E[\hat{\beta}_1]=\beta_1}\]</span></p>
 <blockquote class="blockquote">
@@ -2684,13 +2746,22 @@ window.Quarto = {
 </section>
 <section id="the-variance-of-hatbeta_1-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="the-variance-of-hatbeta_1-bigstar">The Variance of <span class="math inline">\(\hat{\beta_1}\)</span> <span class="math inline">\(\bigstar\)</span></h2>
-<blockquote class="blockquote">
-<p>Variance formulas</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Variance formulas
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math display">\[\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y)\]</span></p>
 <p><span class="math display">\[\operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y)\]</span></p>
 <p><span class="math display">\[\operatorname{Var}(aX+b)=a^2\operatorname{Var}(X)\]</span></p>
 <p><span class="math display">\[\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i&lt;j}\operatorname{Cov}(X_i,X_j)\]</span></p>
-</blockquote>
+</div>
+</div>
 <p>For the above, we know:</p>
 <p><span class="math display">\[\hat{\beta}_1-\beta_1=\frac{\sum_i(X_i-\bar X)\epsilon_i}{\sum_i(X_i-\bar X)^2}\]</span></p>
 <p>Because <span class="math inline">\(\beta_1\)</span> is a fixed constant</p>
@@ -2698,10 +2769,19 @@ window.Quarto = {
 <p>Now condition on <span class="math inline">\(X\)</span>, so <span class="math inline">\(X_i\)</span>, <span class="math inline">\(\bar{X}\)</span>, and denominator are treated as fixed constants:</p>
 <p><span class="math display">\[\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right)}{\left[\sum_i(X_i-\bar X)^2\right]^2}\]</span></p>
 <p>For the numerator,</p>
-<blockquote class="blockquote">
-<p>General formula:</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math display">\[\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i&lt;j}\operatorname{Cov}(X_i,X_j)\]</span></p>
-</blockquote>
+</div>
+</div>
 <p><span class="math display">\[\begin{aligned}
 N &amp;= \operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right) \\
 &amp;= \sum_i\operatorname{Var}\left((X_i-\bar X)\epsilon_i\mid X\right)+2\sum_{i&lt;j}\operatorname{Cov}\left((X_i-\bar X)\epsilon_i,(X_j-\bar X)\epsilon_j\mid X\right)
@@ -2769,9 +2849,19 @@ For more regressors:</p>
 </ul>
 <section id="three-facts-about-the-cef-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="three-facts-about-the-cef-bigstar">Three Facts about the CEF <span class="math inline">\(\bigstar\)</span></h2>
-<blockquote class="blockquote">
-<p>the conditional expectation function (CEF) isdefined for <u>any population</u> distribution of (Y,X)</p>
-</blockquote>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>the conditional expectation function (CEF) is defined for <u>any population</u> distribution of (Y,X)</p>
+</div>
+</div>
 <ol type="1">
 <li><strong>Law of iterated expectations</strong></li>
 </ol>
@@ -2782,11 +2872,21 @@ For more regressors:</p>
 </ol>
 <p>Define <span class="math inline">\(\epsilon_i\equiv Y_i-E[Y_i\mid X_i]\)</span>.</p>
 <p>Then <span class="math inline">\(\boxed{Y_i=E[Y_i\mid X_i]+\epsilon_i}\)</span> with <span class="math inline">\(E[\epsilon_i\mid X_i]=0\)</span>, and hence <span class="math inline">\(E[\epsilon_i m(X_i)]=0\)</span> for any function <span class="math inline">\(m(\cdot)\)</span>.</p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>The CEF separates the predictable and unpredictable parts of Y.</p>
 <p><u>The residual has zero conditional mean by construction.</u></p>
 <p><u>The residual is orthogonal to any function of X</u></p>
-</blockquote>
+</div>
+</div>
 <ol start="3" type="1">
 <li><strong>CEF prediction</strong></li>
 </ol>

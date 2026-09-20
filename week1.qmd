@@ -22,12 +22,14 @@ $$(\hat\beta_0,\hat\beta_1) = \underset{b_0,b_1}{\arg\min}\, S(b_0,b_1).$$
 
 ## Step 1: The First-Order Conditions $\bigstar$
 
-> Chain rule of derivative
->
-> $$y=f(g(x)) \\
-> \frac{dy}{dx}=f'(g(x))g'(x)$$
->
-> ${!}{=}$ 0: set equal to zero
+::: callout-tip
+Chain rule of derivative
+
+$$y=f(g(x)) \\
+\frac{dy}{dx}=f'(g(x))g'(x)$$
+
+${!}{=}$ 0: set equal to zero
+:::
 
 $$\begin{aligned}
 \frac{\partial S}{\partial b_0}
@@ -62,27 +64,29 @@ $$\begin{align}
 - The residuals **sum to zero**. $\bar{\hat{e}} = 0$
 - The residuals are **uncorrelated with the regressor**.
 
-> $$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)(\hat e_i-\bar{\hat e})$$
->
-> From (N1):
->
-> $$\sum_i \hat e_i=0 \quad \Longrightarrow \quad \bar{\hat e}=0$$
->
-> Therefore:
->
-> $$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)\hat e_i$$
->
-> Expand:
->
-> $$\sum_i (X_i-\bar X)\hat e_i=\sum_i X_i\hat e_i-\bar X\sum_i\hat e_i$$
->
-> Using (N1) and (N2):
->
-> $$\sum_i X_i\hat e_i=0,\qquad \sum_i\hat e_i=0$$
->
-> So:
->
-> $$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}[0-\bar X(0)]=0$$
+::: callout-note
+$$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)(\hat e_i-\bar{\hat e})$$
+
+From (N1):
+
+$$\sum_i \hat e_i=0 \quad \Longrightarrow \quad \bar{\hat e}=0$$
+
+Therefore:
+
+$$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}\sum_i (X_i-\bar X)\hat e_i$$
+
+Expand:
+
+$$\sum_i (X_i-\bar X)\hat e_i=\sum_i X_i\hat e_i-\bar X\sum_i\hat e_i$$
+
+Using (N1) and (N2):
+
+$$\sum_i X_i\hat e_i=0,\qquad \sum_i\hat e_i=0$$
+
+So:
+
+$$\operatorname{Cov}_n(X,\hat e)=\frac{1}{n}[0-\bar X(0)]=0$$
+:::
 
 These patterns are true **for every model** (even the functional form is wrong)
 
@@ -143,7 +147,9 @@ $$\boxed{\hat{\beta}_1=\frac{\sum_i(X_i-\bar X)(Y_i-\bar Y)}{\sum_i(X_i-\bar X)^
 
 - The OLS slope is a **weighted average of unit-by-unit slopes**, with more weight on observations whose $X$ is far from $\bar{X}$ . Extreme $X$ values matter disproportionately.
 
-  > $$\hat{\beta}_1=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)}=\operatorname{Corr}_n(X,Y)\cdot\frac{s_Y}{s_X}=\sum_i w_i\frac{Y_i-\bar{Y}}{X_i-\bar{X}},\qquad w_i=\frac{(X_i-\bar{X})^2}{\sum_j (X_j-\bar{X})^2}$$
+::: callout-note
+$$\hat{\beta}_1=\frac{\operatorname{Cov}_n(X,Y)}{\operatorname{Var}_n(X)}=\operatorname{Corr}_n(X,Y)\cdot\frac{s_Y}{s_X}=\sum_i w_i\frac{Y_i-\bar{Y}}{X_i-\bar{X}},\qquad w_i=\frac{(X_i-\bar{X})^2}{\sum_j (X_j-\bar{X})^2}$$
+:::
 
 # Meaning of "Holding Constant"
 
@@ -219,7 +225,9 @@ $$\begin{aligned}
 &=\beta_1+\beta_2\delta_1
 \end{aligned}$$
 
-> $\operatorname{Cov}(X,c)=0$
+::: callout-note
+$\operatorname{Cov}(X,c)=0$
+:::
 
 ## Signing the Bias $\bigstar$
 
@@ -307,7 +315,9 @@ To get these, we need assumptions:
 
 - **A4 Strict exogeneity** *(population)*: $E[\epsilon_i\mid X_i]=0$.
 
-  > It means that for every value of $X_i$, the average value of the unobserved error is zero. The main implication is that $X_i$ contains no systematic information about the error term.
+::: callout-note
+It means that for every value of $X_i$, the average value of the unobserved error is zero. The main implication is that $X_i$ contains no systematic information about the error term.
+:::
 
 - **A5 Spherical errors** *(population)*: $\operatorname{Var}(\epsilon_i\mid X)=\sigma^2$ (homoskedasticity) and $\operatorname{Cov}(\epsilon_i,\epsilon_j\mid X)=0$ for $i\neq j$ (no correlation across units)
 
@@ -372,7 +382,9 @@ Since:
 
 $$E[\hat{\beta}_1]=E[\beta_1]=\beta_1$$
 
-> $\beta_1$ is a constant, so $E[c]=c$
+::: callout-tip
+$\beta_1$ is a constant, so $E[c]=c$
+:::
 
 Therefore:
 
@@ -382,15 +394,17 @@ $$\boxed{E[\hat{\beta}_1]=\beta_1}$$
 
 ## The Variance of $\hat{\beta_1}$ $\bigstar$
 
-> Variance formulas
->
-> $$\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y)$$
->
-> $$\operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y)$$
->
-> $$\operatorname{Var}(aX+b)=a^2\operatorname{Var}(X)$$
->
-> $$\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)$$
+::: callout-tip
+## Variance formulas
+
+$$\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y)$$
+
+$$\operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y)$$
+
+$$\operatorname{Var}(aX+b)=a^2\operatorname{Var}(X)$$
+
+$$\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)$$
+:::
 
 For the above, we know:
 
@@ -406,9 +420,9 @@ $$\operatorname{Var}(\hat{\beta}_1\mid X)=\frac{\operatorname{Var}\left(\sum_i(X
 
 For the numerator,
 
-> General formula:
->
-> $$\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)$$
+::: callout-tip
+$$\operatorname{Var}\left(\sum_{i=1}^n X_i\right)=\sum_{i=1}^n\operatorname{Var}(X_i)+2\sum_{i<j}\operatorname{Cov}(X_i,X_j)$$
+:::
 
 $$\begin{aligned}
 N &= \operatorname{Var}\left(\sum_i(X_i-\bar X)\epsilon_i\mid X\right) \\ 
@@ -497,7 +511,9 @@ $$g(x)=E[Y_i\mid X_i=x]$$
 
 ## Three Facts about the CEF $\bigstar$
 
-> the conditional expectation function (CEF) isdefined for [any population]{.underline} distribution of (Y,X)
+::: callout-important
+the conditional expectation function (CEF) is defined for [any population]{.underline} distribution of (Y,X)
+:::
 
 1.  **Law of iterated expectations**
 
@@ -511,11 +527,13 @@ Define $\epsilon_i\equiv Y_i-E[Y_i\mid X_i]$.
 
 Then $\boxed{Y_i=E[Y_i\mid X_i]+\epsilon_i}$ with $E[\epsilon_i\mid X_i]=0$, and hence $E[\epsilon_i m(X_i)]=0$ for any function $m(\cdot)$.
 
-> The CEF separates the predictable and unpredictable parts of Y.
->
-> [The residual has zero conditional mean by construction.]{.underline}
->
-> [The residual is orthogonal to any function of X]{.underline}
+::: callout-important
+The CEF separates the predictable and unpredictable parts of Y.
+
+[The residual has zero conditional mean by construction.]{.underline}
+
+[The residual is orthogonal to any function of X]{.underline}
+:::
 
 3.  **CEF prediction**
 
