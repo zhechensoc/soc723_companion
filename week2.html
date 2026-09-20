@@ -2382,12 +2382,22 @@ window.Quarto = {
 </section>
 <section id="step-2-the-numerators-mean" class="level3">
 <h3 class="anchored" data-anchor-id="step-2-the-numerators-mean">Step 2: The Numerator’s Mean</h3>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>In general</p>
 <p><span class="math display">\[E\left[\sum_i a_iX_i\right]=\sum_i a_iE[X_i]\]</span></p>
 <p>So</p>
 <p><span class="math display">\[E\left[\sum_i(X_i-\bar X)\epsilon_i\right] = \sum_iE\left[(X_i-\bar X)\epsilon_i\right]\]</span></p>
-</blockquote>
+</div>
+</div>
 <p><span class="math display">\[\begin{aligned}
 E[(X_i-\mu_X)\epsilon_i]
 &amp;=E\left[E[(X_i-\mu_X)\epsilon_i\mid X_i]\right] \quad \text{iterated expectations} \\
@@ -2495,10 +2505,20 @@ E[(X_i-\mu_X)\epsilon_i]
 <li><p><span class="math inline">\(\nu_g\)</span> group-level shock for everyone in cluster <span class="math inline">\(g\)</span></p></li>
 </ul>
 <p>For two individuals <span class="math inline">\(i\)</span>, <span class="math inline">\(j\)</span> in group <span class="math inline">\(\nu\)</span>:</p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>The individual shocks are independent of the cluster shock and of each other</p>
 <p><span class="math display">\[\operatorname{Cov}(\nu_g,\eta_{ig})=0,\qquad \operatorname{Cov}(\eta_{ig},\eta_{jg})=0\]</span></p>
-</blockquote>
+</div>
+</div>
 <p><span class="math display">\[\begin{aligned}
 \operatorname{Cov}(\epsilon_{ig},\epsilon_{jg})
 &amp;=\operatorname{Cov}(\nu_g + \eta_{ig}, \nu_g + \eta_{jg})\\
@@ -2513,14 +2533,34 @@ E[(X_i-\mu_X)\epsilon_i]
 <section id="cluster-robust-estimator-cr0" class="level2">
 <h2 class="anchored" data-anchor-id="cluster-robust-estimator-cr0">Cluster-Robust Estimator CR0</h2>
 <p>Let</p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p><span class="math inline">\(d_i \equiv X_i - \bar{X}\)</span></p>
-</blockquote>
+</div>
+</div>
 <p><span class="math display">\[S_g=\sum_{i\in g} d_i\hat e_i \qquad \text{(one number per cluster)}\]</span></p>
 <p><span class="math display">\[\widehat{V}_{CR}(\hat\beta_1)=\boxed{\frac{\sum_{g=1}^{G}S_g^2}{\left(\sum_i d_i^2\right)^2}}\]</span></p>
-<blockquote class="blockquote">
-<p><span class="math display">\[S_g^2=\left(\sum_{i\in g}d_i\hat e_i\right)^2=\underbrace{\sum_{i\in g}d_i^2\hat e_i^2}_{\text{White&#39;s terms}}+\underbrace{\sum_{\substack{i\neq j\\ i,j\in g}}d_id_j\hat e_i\hat e_j}_{\text{cross terms, now estimated}}\]</span></p>
-</blockquote>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[S_g^2=\left(\sum_{i\in g}d_i\hat e_i\right)^2=\underbrace{\sum_{i\in g}d_i^2\hat e_i^2}_{\text{White&#39;s terms}}+\underbrace{\sum_{\substack{i\neq j\\ i,j\in g}}d_id_j\hat e_i\hat e_j}_{\text{cross terms, now estimated}}\]</span> ::</p>
+</div>
+</div>
 <p><u><strong>Sum within clusters first, then square.</strong></u></p>
 </section>
 <section id="cluster-robust-estimator-cr1-liang-zeger-not-evaluated" class="level2">
@@ -2547,9 +2587,19 @@ E[(X_i-\mu_X)\epsilon_i]
 <section id="the-idea-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="the-idea-bigstar">The Idea <span class="math inline">\(\bigstar\)</span></h2>
 <p>Everything so far derived a formula for the sampling distribution. The bootstrap instead <u><strong>simulates</strong></u> it.</p>
-<blockquote class="blockquote">
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>We want the sampling distribution of a statistic when samples are drawn from the population F. We do not know F, but the sample is our best estimate of F. So draw new samples from the sample.</p>
-</blockquote>
+</div>
+</div>
 </section>
 <section id="the-nonparametric-pairs-bootstrap-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="the-nonparametric-pairs-bootstrap-bigstar">The Nonparametric (Pairs) Bootstrap <span class="math inline">\(\bigstar\)</span></h2>
@@ -2660,7 +2710,7 @@ E[(X_i-\mu_X)\epsilon_i]
 <ul>
 <li><p>State the <u><strong>estimand</strong></u> and the design before choosing a standard error.</p></li>
 <li><p>Identify the independently sampled or independently assigned <u><strong>units</strong></u>, and cluster there. Use HC1 or HC3 only when observations are plausibly independent</p></li>
-<li><p>If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention</p></li>
+<li><p>If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention ::::</p></li>
 </ul>
 </section>
 

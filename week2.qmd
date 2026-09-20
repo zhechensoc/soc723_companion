@@ -62,13 +62,15 @@ Hereby the denominator is a [**constant**]{.underline}
 
 ### Step 2: The Numerator's Mean
 
-> In general
->
-> $$E\left[\sum_i a_iX_i\right]=\sum_i a_iE[X_i]$$
->
-> So
->
-> $$E\left[\sum_i(X_i-\bar X)\epsilon_i\right] = \sum_iE\left[(X_i-\bar X)\epsilon_i\right]$$
+::: callout-tip
+In general
+
+$$E\left[\sum_i a_iX_i\right]=\sum_i a_iE[X_i]$$
+
+So
+
+$$E\left[\sum_i(X_i-\bar X)\epsilon_i\right] = \sum_iE\left[(X_i-\bar X)\epsilon_i\right]$$
+:::
 
 $$\begin{aligned}
 E[(X_i-\mu_X)\epsilon_i]
@@ -164,9 +166,11 @@ $$Y_{ig}=\beta_0+\beta_1X_{ig}+\epsilon_{ig},\qquad \epsilon_{ig}=\underbrace{\n
 
 For two individuals $i$, $j$ in group $\nu$:
 
-> The individual shocks are independent of the cluster shock and of each other
->
-> $$\operatorname{Cov}(\nu_g,\eta_{ig})=0,\qquad \operatorname{Cov}(\eta_{ig},\eta_{jg})=0$$
+::: callout-important
+The individual shocks are independent of the cluster shock and of each other
+
+$$\operatorname{Cov}(\nu_g,\eta_{ig})=0,\qquad \operatorname{Cov}(\eta_{ig},\eta_{jg})=0$$
+:::
 
 $$\begin{aligned}
 \operatorname{Cov}(\epsilon_{ig},\epsilon_{jg})
@@ -182,13 +186,17 @@ $$\begin{aligned}
 
 Let
 
-> $d_i \equiv X_i - \bar{X}$
+::: callout-tip
+$d_i \equiv X_i - \bar{X}$
+:::
 
 $$S_g=\sum_{i\in g} d_i\hat e_i \qquad \text{(one number per cluster)}$$
 
 $$\widehat{V}_{CR}(\hat\beta_1)=\boxed{\frac{\sum_{g=1}^{G}S_g^2}{\left(\sum_i d_i^2\right)^2}}$$
 
-> $$S_g^2=\left(\sum_{i\in g}d_i\hat e_i\right)^2=\underbrace{\sum_{i\in g}d_i^2\hat e_i^2}_{\text{White's terms}}+\underbrace{\sum_{\substack{i\neq j\\ i,j\in g}}d_id_j\hat e_i\hat e_j}_{\text{cross terms, now estimated}}$$
+::: callout-note
+$$S_g^2=\left(\sum_{i\in g}d_i\hat e_i\right)^2=\underbrace{\sum_{i\in g}d_i^2\hat e_i^2}_{\text{White's terms}}+\underbrace{\sum_{\substack{i\neq j\\ i,j\in g}}d_id_j\hat e_i\hat e_j}_{\text{cross terms, now estimated}}$$
+:::
 
 [**Sum within clusters first, then square.**]{.underline}
 
@@ -218,7 +226,9 @@ $$c=\frac{G}{G-1}\cdot\frac{n-1}{n-k} \qquad \text{(CR1: Stata's default)}$$
 
 Everything so far derived a formula for the sampling distribution. The bootstrap instead [**simulates**]{.underline} it.
 
-> We want the sampling distribution of a statistic when samples are drawn from the population F. We do not know F, but the sample is our best estimate of F. So draw new samples from the sample.
+::: callout-important
+We want the sampling distribution of a statistic when samples are drawn from the population F. We do not know F, but the sample is our best estimate of F. So draw new samples from the sample.
+:::
 
 ## The Nonparametric (Pairs) Bootstrap $\bigstar$
 
@@ -266,4 +276,4 @@ Draw G whole clusters with replacement (Resample at the level you would cluster 
 
 - Identify the independently sampled or independently assigned [**units**]{.underline}, and cluster there. Use HC1 or HC3 only when observations are plausibly independent
 
-- If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention
+- If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention ::::
