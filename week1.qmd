@@ -1,5 +1,5 @@
 ---
-title: "Week 1"
+title: "Week 1 The Linear Model and OLS"
 author: "Zhe Chen"
 format: html
 embed-resources: true
@@ -92,11 +92,15 @@ These patterns are true **for every model** (even the functional form is wrong)
 
 ### Uncorrelated, Mean-Independent, Independent $\bigstar$
 
-| Statement | In words | What it rules out |
-|----|----|----|
-| $\operatorname{Cov}(X,\epsilon)=0$ | No linear pattern | A linear relationship only |
-| $E[\epsilon\mid X]=0$ | No pattern in the conditional mean | Any systematic pattern in the mean |
-| $\epsilon \perp\!\!\!\perp X$ | No pattern in the conditional distribution | Any dependence on $X$, including heteroskedasticity |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| Statement                          | In words                                   | What it rules out                                   |
++====================================+============================================+=====================================================+
+| $\operatorname{Cov}(X,\epsilon)=0$ | No linear pattern                          | A linear relationship only                          |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| $E[\epsilon\mid X]=0$              | No pattern in the conditional mean         | Any systematic pattern in the mean                  |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
+| $\epsilon \perp\!\!\!\perp X$      | No pattern in the conditional distribution | Any dependence on $X$, including heteroskedasticity |
++------------------------------------+--------------------------------------------+-----------------------------------------------------+
 
 ## Step 2: Solving for $\hat{\beta_0}$ $\bigstar$
 
