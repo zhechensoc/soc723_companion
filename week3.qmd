@@ -1,0 +1,176 @@
+---
+title: "Week 3 Maximum Likelihood: Theory"
+author: "Zhe Chen"
+format: html
+embed-resources: true
+editor: visual
+---
+
+# Why Likelihood $\bigstar$
+
+Cost of OLS: never know *how Y is was generated,* only which line fits best
+
+A line cannot fit all types of outcomes, e.g., binaries (0/1).
+
+Maximum likelihood asks: [**Which parameter values would have made the data I observed most likely?**]{.underline}
+
+Pros of maximum likelihood:
+
+- One method for any outcome: binary, count, ordered, duration.
+
+- Standard errors from the shape of the likelihood, not a new formula per model.
+
+- One way to test hypotheses, logit or Poisson alike: three tests read off the same curve.
+
+- Nothing lost: with bell-shaped errors it returns the least-squares line exactly.
+
+# The Likelihood
+
+## Probability vs. Likelihood $\bigstar$
+
+| Probability | Likelihood |
+|---------------------------------------------|---------------------------|
+| $f(y\mid\theta)$ | $\mathcal{L}(\theta;y)\equiv f(y\mid\theta)$ |
+| $\theta$ is fixed and know, $y$ varies | $y$ is fixed (your data), $\theta$ varies |
+| If the parameter were $\theta$, how likely are different possible data values $y$? | Given the data we actually observed, which values of $\theta$ make those data more plausible? |
+
+::: callout-important
+The likelihood is the same formula read backwards: a function of $\theta$ with the data fixed. It is **not** a distribution over $\theta$: it **does not** integrate to one.
+:::
+
+## Example: Marbles in a Bag
+
+- An opaque bag holds blue and white marbles; $\theta$ is the proportion blue.
+
+- You draw 10 marbles *with replacement* and get 7 blue.
+
+- Ten draws are ten *observations*, each a Bernoulli outcome (blue or not); the summary “7 of 10” is a binomial count.
+
+Build its probability:
+
+- **One draw**: blue with probability $\theta$, white with probability $1-\theta$ (replacement makes the draws identical and independent).
+
+- **One particular sequence,** say BBBBBBBWWW, independence means multiply \$ \theta \cdot \theta \cdots \theta \cdot (1-\theta)(1-\theta)(1-\theta) = \theta^7(1-^\theta)3\$. Any other order with 7 blues and 3 whites has the **same** product.
+
+- **All such sequences**: there are $\binom{10}{3}=\binom{10}{7}=\frac{10!}{3!7!}=120$ ways to place 3 whites (equivalently the 7 blues) among the 10 draws, so $\Pr(7\text{ blue}\mid\theta)=120\theta^7(1-\theta)^3$
+
+::: callout-tip
+$\binom{n}{k}$, read "$n$ choose $k$". $\binom{n}{k} = \frac{n!}{(n-k)!k!}$
+:::
+
+## Plot of the Likelihood
+
+```{r}
+#| echo: false
+# likelihood function
+L <- function(theta) {
+  120 * theta^7 * (1 - theta)^3
+}
+
+# theta values
+theta <- seq(0, 1, length.out = 1000)
+
+# likelihood values
+lik <- L(theta)
+
+# plot
+plot(theta, lik,
+     type = "l",
+     lwd = 3,
+     col = "navy",
+     xlim = c(0, 1.15),
+     ylim = c(0, max(lik) * 1.15),
+     xlab = "",
+     ylab = "",
+     axes = FALSE)
+
+# x-axis
+axis(1,
+     at = c(0, 0.25, 0.5, 0.75, 1),
+     labels = c("0", "0.25", "0.5", "0.75", "1"))
+
+# axes
+abline(h = 0)
+abline(v = 0)
+
+# MLE
+theta_hat <- 0.7
+
+# dashed vertical line
+segments(theta_hat, 0,
+         theta_hat, L(theta_hat),
+         lty = 2,
+         col = "orangered",
+         lwd = 2)
+
+# labels
+text(0, max(lik) * 1.12,
+     expression(L(theta)),
+     pos = 4)
+
+text(1.12, 0,
+     expression(theta),
+     pos = 4)
+
+text(theta_hat + 0.03,
+     L(theta_hat),
+     expression(hat(theta) == 0.7),
+     col = "orangered",
+     pos = 4)
+```
+
+- The height at any $\theta$ is the probability of these data if that $\theta$ were true.
+
+- The peak is the MLE (maximum likelihood estimate). The width the the peak measures uncertainty.
+
+## Formula of Likelihood (Joint Density) $\bigstar$
+
+If the $n$ observations are independent given $\theta$, their joint density:
+
+$$\mathcal{L}(\theta;y_1,...,y_n) = \prod_{i=1}^n f(y_i\mid\theta)$$
+
+::: callout-tip
+Independence means $f(y_1, y_2 \mid \theta) = f(y_1 \mid \theta) f(y_2 \mid \theta)$
+:::
+
+Take logs
+
+$$\boxed{\ell(\theta) \equiv \log \mathcal{L}(\theta) = \sum_{i=1}^{n} \log f(y_i \mid \theta)}$$
+
+::: callout-tip
+$$\log_b(xy)=\log_b x+\log_b y \\
+\log_b\left(\frac{x}{y}\right)=\log_b x-\log_b y \\
+\log_b(x^k)=k\log_b x \\
+\log_b\left(\sqrt[k]{x}\right)=\frac{1}{k}\log_b x$$
+:::
+
+- log is strictly increasing, so it does not move the maximum ($\arg\max_\theta \mathcal L(\theta)=\arg\max_\theta \ell(\theta)$)
+
+- A product becomes a sum, so the derivative is a sum over observations: setting it to zero is a kind of averaging.
+
+## Bernoulli $\bigstar$
+
+$$f(y_i\mid \theta) = \theta^{y_i}(1-\theta)^{1-y_i} \\
+\mathcal{L}(\theta)=\prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}=\theta^{\sum_i y_i}(1-\theta)^{n-\sum_i y_i} \\
+\ell(\theta)
+=
+\left(\sum_i y_i\right)\log\theta
++
+\left(n-\sum_i y_i\right)\log(1-\theta)$$
+
+## Binomial $\bigstar$
+
+$$\Pr(Y=y \mid n,\theta)=\binom{n}{y}\theta^y(1-\theta)^{n-y},\qquad y=0,1,\ldots,n$$
+
+## Poisson $\bigstar$
+
+$$\Pr(Y=y\mid\theta)=\frac{\theta^y e^{-\theta}}{y!},\qquad y=0,1,2,\ldots$$
+
+::: callout-important
+mean and variance are both $\theta$.
+:::
+
+## Counting Data $\bigstar$
+
+- Units out of a known $n$ → each is a Bernoulli, the total is binomial
+- Units accumulate over exposure (no count, no ceiling) → Poisson
