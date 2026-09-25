@@ -29,7 +29,7 @@ Pros of maximum likelihood:
 ## Probability vs. Likelihood $\bigstar$
 
 | Probability | Likelihood |
-|---------------------------------------------|---------------------------|
+|------------------------------------|------------------------------------|
 | $f(y\mid\theta)$ | $\mathcal{L}(\theta;y)\equiv f(y\mid\theta)$ |
 | $\theta$ is fixed and know, $y$ varies | $y$ is fixed (your data), $\theta$ varies |
 | If the parameter were $\theta$, how likely are different possible data values $y$? | Given the data we actually observed, which values of $\theta$ make those data more plausible? |
@@ -50,7 +50,7 @@ Build its probability:
 
 - **One draw**: blue with probability $\theta$, white with probability $1-\theta$ (replacement makes the draws identical and independent).
 
-- **One particular sequence,** say BBBBBBBWWW, independence means multiply \$ \theta \cdot \theta \cdots \theta \cdot (1-\theta)(1-\theta)(1-\theta) = \theta^7(1-^\theta)3\$. Any other order with 7 blues and 3 whites has the **same** product.
+- **One particular sequence,** say BBBBBBBWWW, independence means multiply $\theta \cdot \theta \cdots \theta \cdot (1-\theta)(1-\theta)(1-\theta)=\theta^7(1-\theta)^3$. Any other order with 7 blues and 3 whites has the **same** product.
 
 - **All such sequences**: there are $\binom{10}{3}=\binom{10}{7}=\frac{10!}{3!7!}=120$ ways to place 3 whites (equivalently the 7 blues) among the 10 draws, so $\Pr(7\text{ blue}\mid\theta)=120\theta^7(1-\theta)^3$
 
@@ -138,10 +138,7 @@ Take logs
 $$\boxed{\ell(\theta) \equiv \log \mathcal{L}(\theta) = \sum_{i=1}^{n} \log f(y_i \mid \theta)}$$
 
 ::: callout-tip
-$$\log_b(xy)=\log_b x+\log_b y \\
-\log_b\left(\frac{x}{y}\right)=\log_b x-\log_b y \\
-\log_b(x^k)=k\log_b x \\
-\log_b\left(\sqrt[k]{x}\right)=\frac{1}{k}\log_b x$$
+$$\log_b(xy)=\log_b x+\log_b y$$ $$\log_b\left(\frac{x}{y}\right)=\log_b x-\log_b y$$ $$\log_b(x^k)=k\log_b x$$ $$log_b\left(\sqrt[k]{x}\right)=\frac{1}{k}\log_b x$$
 :::
 
 - log is strictly increasing, so it does not move the maximum ($\arg\max_\theta \mathcal L(\theta)=\arg\max_\theta \ell(\theta)$)
@@ -150,13 +147,15 @@ $$\log_b(xy)=\log_b x+\log_b y \\
 
 ## Bernoulli $\bigstar$
 
-$$f(y_i\mid \theta) = \theta^{y_i}(1-\theta)^{1-y_i} \\
-\mathcal{L}(\theta)=\prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}=\theta^{\sum_i y_i}(1-\theta)^{n-\sum_i y_i} \\
-\ell(\theta)
-=
-\left(\sum_i y_i\right)\log\theta
-+
-\left(n-\sum_i y_i\right)\log(1-\theta)$$
+$$f(y_i\mid \theta)=\theta^{y_i}(1-\theta)^{1-y_i}$$
+
+$$\mathcal{L}(\theta)
+=\prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}
+=\theta^{\sum_i y_i}(1-\theta)^{n-\sum_i y_i}$$
+
+$$\ell(\theta)
+=\left(\sum_i y_i\right)\log\theta
++\left(n-\sum_i y_i\right)\log(1-\theta)$$
 
 ## Binomial $\bigstar$
 
@@ -166,11 +165,771 @@ $$\Pr(Y=y \mid n,\theta)=\binom{n}{y}\theta^y(1-\theta)^{n-y},\qquad y=0,1,\ldot
 
 $$\Pr(Y=y\mid\theta)=\frac{\theta^y e^{-\theta}}{y!},\qquad y=0,1,2,\ldots$$
 
+$$\begin{aligned}\mathcal{L}(\theta)&=\prod_{i=1}^{n}\frac{\theta^{y_i}e^{-\theta}}{y_i!}\\\ell(\theta)&=\sum_{i=1}^{n}\log\left(\frac{\theta^{y_i}e^{-\theta}}{y_i!}\right)\\&=\sum_{i=1}^{n}\left(y_i\log\theta-\theta-\log(y_i!)\right)\\&=\log(\theta)\sum_i y_i-n\theta-\sum_i \log(y_i!)\end{aligned}$$
+
 ::: callout-important
-mean and variance are both $\theta$.
+The mean and variance of Poisson distribution are both $\theta$.
+:::
+
+## Normal Linear Model $\bigstar$
+
+$$f(y \mid \mu,\sigma^2)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(y-\mu)^2}{2\sigma^2}\right)$$
+
+When
+
+1.  **Linear CEF**: $\quad E[Y_i \mid X_i] = \beta_0 + \beta_1 X_i.$
+2.  **Normal Errors**: $\quad \epsilon_i \sim \mathcal{N}(0,\sigma^2)$, independently.
+
+Then $Y_i \mid X_i \sim \mathcal{N}(\beta_0+\beta_1X_i,\sigma^2)$: the bell's curve center $\mu$ is the line.
+
+Put $\mu = b_0 + b_1X_i$ into the density, and one observation’s likelihood at candidate values ($b_0$, $b_1$) is
+
+$$f(Y_i \mid b_0,b_1)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(Y_i-b_0-b_1X_i)^2}{2\sigma^2}\right)$$
+
+### OLS is an MLE $\bigstar$
+
+$$\begin{aligned}
+\ell(b_0,b_1)
+&=
+\sum_{i=1}^{n}\log f(Y_i\mid b_0,b_1) \\
+&=
+\sum_{i=1}^{n}
+\left[
+-\frac{1}{2}\log(2\pi\sigma^2)
+-\frac{(Y_i-b_0-b_1X_i)^2}{2\sigma^2}
+\right] \\
+&=
+\underbrace{
+-\frac{n}{2}\log(2\pi\sigma^2)
+}_{\text{no }b_0,b_1}
+-
+\underbrace{
+\frac{1}{2\sigma^2}
+\sum_{i=1}^{n}(Y_i-b_0-b_1X_i)^2
+}_{\text{Week 1's }S(b_0,b_1)}.
+\end{aligned}$$
+
+::: callout-important
+Maximizing ℓ is exactly minimizing S, the MLE is the least-squares line.
+
+Least squares was never arbitrary: it is what “make the data as probable as possible” prescribes for normal errors around a line.
+:::
+
+::: callout-warning
+OLS itself never needed normality. Normality entered only to make the t table exact.
+
+Normality is only needed for MLE, but MLE extends to everything that OLS cannot do.
 :::
 
 ## Counting Data $\bigstar$
 
 - Units out of a known $n$ → each is a Bernoulli, the total is binomial
 - Units accumulate over exposure (no count, no ceiling) → Poisson
+
+# Finding the MLE
+
+## The Score Function $\bigstar$
+
+The **score** is the derivative of the log-likelihood with respect to the parameter:
+
+$$S(\theta)
+\equiv
+\frac{\partial \ell(\theta)}{\partial \theta}
+=
+\sum_{i=1}^{n}
+\frac{\partial \log f(y_i \mid \theta)}{\partial \theta}.$$
+
+- **First-order condition:** the MLE $\hat{\theta}$ solves $S(\hat{\theta}) = 0$.
+
+- **Second-order condition:** $\partial^2\ell/\partial\theta^2 < 0$ at $\hat{\theta}$, so that we have a maximum rather than a minimum.
+
+- Write $\theta_0$ for the *true* value. Across repeated samples, $E[S(\theta_0)] = 0$.
+
+## Bernoulli: Deriving $\hat{\theta}$ $\bigstar$
+
+$$\begin{aligned}
+\ell(\theta)
+&=
+\left(\sum_i y_i\right)\log\theta
++
+\left(n-\sum_i y_i\right)\log(1-\theta) \\
+S(\theta)
+&=
+\frac{\sum_i y_i}{\theta}
+-
+\frac{n-\sum_i y_i}{1-\theta}
+\overset{!}{=}0
+\end{aligned}$$
+
+Multiply through by $\theta(1-\theta)$:
+
+$$\begin{aligned}
+(1-\theta)\sum_i y_i
+-
+\theta\left(n-\sum_i y_i\right)
+&= 0 \\
+\sum_i y_i
+-
+\theta\sum_i y_i
+-
+n\theta
++
+\theta\sum_i y_i
+&= 0
+\end{aligned}$$
+
+$$\boxed{
+\hat{\theta}
+=
+\frac{1}{n}\sum_i y_i
+=
+\bar y
+}$$
+
+## Poisson: Deriving $\hat{\theta}$ $\bigstar$
+
+$$\ell(\theta)
+=
+\log(\theta)\sum_i y_i
+-
+n\theta
+-
+\sum_i \log(y_i!)$$
+
+$$S(\theta)
+=
+\frac{\sum_i y_i}{\theta}
+-
+n$$
+
+Set the score equal to zero:
+
+$$S(\hat{\theta})=0
+\quad\Longrightarrow\quad
+\frac{\sum_i y_i}{\hat{\theta}}
+=
+n$$
+
+$$\Longrightarrow\quad
+\boxed{
+\hat{\theta}
+=
+\frac{\sum_i y_i}{n}
+=
+\bar{y}
+}$$
+
+Second-order condition:
+
+$$\frac{\partial^2 \ell}{\partial \theta^2}
+=
+-\frac{\sum_i y_i}{\theta^2}
+<
+0$$
+
+## Linear Regression: Deriving $\hat{\beta}$ and $\hat{\sigma}^2$ $\bigstar$
+
+Write $e_i=Y_i-b_0-b_1X_i$
+
+Then
+
+$$\ell(b_0,b_1,\sigma^2)=-\frac{n}{2}\log(2\pi\sigma^2)-\frac{1}{2\sigma^2}\sum_{i=1}^n e_i^2$$
+
+$$\begin{aligned}
+\frac{\partial\ell}{\partial b_0}
+&=-\frac{1}{2\sigma^2}\sum_i 2e_i\frac{\partial e_i}{\partial b_0}\\
+&=-\frac{1}{2\sigma^2}\sum_i2e_i(-1)\\
+&=\frac{1}{\sigma^2}\sum_i e_i
+\end{aligned}$$
+
+$$\begin{aligned}
+\frac{\partial\ell}{\partial b_1}
+&=-\frac{1}{2\sigma^2}\sum_i2e_i\frac{\partial e_i}{\partial b_1}\\
+&=-\frac{1}{2\sigma^2}\sum_i2e_i(-X_i)\\
+&=\frac{1}{\sigma^2}\sum_iX_ie_i
+\end{aligned}$$
+
+::: callout-note
+OLS normal equations
+:::
+
+$$\begin{aligned}
+\frac{\partial\ell}{\partial\sigma^2}
+&=-\frac{n}{2\sigma^2}
+-\frac{1}{2}\sum_i e_i^2\left(-\frac{1}{\sigma^4}\right)\\
+&=-\frac{n}{2\sigma^2}
++\frac{1}{2\sigma^4}\sum_i e_i^2
+\end{aligned}$$
+
+Set $-\frac{n}{2\sigma^2}+\frac{1}{2\sigma^4}\sum_i e_i^2=0$
+
+$$\boxed{\hat\sigma^2=\frac{1}{n}\sum_i\hat e_i^2}$$
+
+::: callout-warning
+The MLE of $\sigma^2$ is biased, for $e_i=Y_i-b_0-b_1X_i$
+
+$$s^2_{OLS}=\frac{1}{n-2}\sum_{i=1}^n \hat e_i^2 = \sigma^2$$
+
+$$E[\hat\sigma^2_{\text{MLE}}]=\frac{1}{n}\sum_i\hat e_i^2=\frac{n-2}{n}\sigma^2 $$ So\
+
+$$E[\hat{\sigma}^2] = \frac{n-2}{n}\sigma^2 < \sigma^2$$
+:::
+
+## Newton-Raphson
+
+Most likelihoods like logit, probit, negative binomial, anything with covariates, have no algebraic solution to $S(\theta)=0$.
+
+**Newton–Raphson**: Start at a guess $\theta^{[0]}$, and iterate
+
+$$\theta^{[t+1]}
+=
+\theta^{[t]}
+-
+\left[
+\left.
+\frac{\partial^2 \ell}{\partial \theta^2}
+\right|_{\theta^{[t]}}
+\right]^{-1}
+S\left(\theta^{[t]}\right)$$
+
+Variants:
+
+- **BFGS** approximates the second derivative
+
+- **Fisher** scoring uses its expectation (what `glm()` does).
+
+::: callout-note
+## Steps of Newton-Raphson
+
+1.  Guess $\theta^{[t]}$
+2.  $S_{\theta^{t}}$ (score function)
+3.  $\ell''_{\theta^{t}}$
+4.  $\theta^{t+1}=\theta^t+S_{\theta^t}/\ell''_{\theta^t}$
+:::
+
+# Information
+
+## Curvature Is Information $\bigstar$
+
+The more negative the $\ell''$ is, the more information
+
+```{r}
+#| echo: false
+par(mfrow = c(1, 2),
+    mar = c(5, 5, 2, 1))
+
+theta <- seq(0, 1, length.out = 500)
+theta_hat <- 0.5
+
+# -------------------------
+# Flat log-likelihood
+# -------------------------
+ell_flat <- -0.45 * (theta - theta_hat)^2 + 1
+
+plot(theta, ell_flat,
+     type = "l",
+     lwd = 3,
+     col = "navy",
+     xlab = expression(theta),
+     ylab = expression(ell(theta)),
+     xlim = c(0, 1),
+     ylim = c(0.82, 1.05),
+     las = 1)
+
+segments(theta_hat,
+         min(ell_flat),
+         theta_hat,
+         max(ell_flat),
+         lty = 2,
+         col = "orangered",
+         lwd = 1.5)
+
+mtext("flat: little information",
+      side = 1,
+      line = 3,
+      cex = 1.1)
+
+
+# -------------------------
+# Peaked log-likelihood
+# -------------------------
+ell_peak <- -4 * (theta - theta_hat)^2 + 1
+
+plot(theta, ell_peak,
+     type = "l",
+     lwd = 3,
+     col = "navy",
+     xlab = expression(theta),
+     ylab = expression(ell(theta)),
+     xlim = c(0, 1),
+     ylim = c(0, 1.05),
+     las = 1)
+
+segments(theta_hat,
+         min(ell_peak),
+         theta_hat,
+         max(ell_peak),
+         lty = 2,
+         col = "orangered",
+         lwd = 1.5)
+
+mtext("peaked: much information",
+      side = 1,
+      line = 3,
+      cex = 1.1)
+```
+
+## Fisher Information $\bigstar$
+
+At the true value $\theta_0$
+
+$$\mathcal{I}(\theta_0)
+\equiv
+-E\!\left[\ell''(\theta_0)\right]
+=
+E\!\left[S(\theta_0)^2\right]
+=
+\operatorname{Var}\!\left(S(\theta_0)\right)$$
+
+- **Information quality**: $-E\!\left[\ell''(\theta_0)\right]=E\!\left[S(\theta_0)^2\right]$ true if the model is right
+- **Observed information:** $-\ell''(\theta_0)$, this is what the software reports
+- **additive**: $\mathcal I_n=n\mathcal I_1$
+
+::: callout-note
+For independent observations:
+
+$$\ell_n(\theta)=\sum_{i=1}^n \ell_i(\theta)$$
+
+Differentiate twice:
+
+$$\ell_n''(\theta)=\sum_{i=1}^n \ell_i''(\theta)$$
+
+Fisher information is
+
+$$\mathcal I_n(\theta_0)=-E[\ell_n''(\theta_0)]$$
+
+Using linearity of expectation
+
+$$\mathcal I_n(\theta_0)=-\sum_{i=1}^nE[\ell_i''(\theta_0)]$$
+
+If the observations are identically distributed, each one contributes the same amount of information, $\mathcal{I}$ . Therefore,
+
+$$\boxed{\mathcal I_n=n\mathcal I_1}$$
+:::
+
+## The Variance of the MLE $\bigstar$
+
+The variance is one over minus the second derivative of the log-likelihood at its peak.
+
+$$\widehat{V}(\hat{\theta})
+=
+\left[
+-\left.
+\frac{\partial^2 \ell}{\partial \theta^2}
+\right|_{\hat{\theta}}
+\right]^{-1}
+=
+\frac{1}{\text{observed information}}$$
+
+::: callout-note
+That is the “familiar 1/n1/n”:
+
+$$\boxed{\operatorname{Var}(\hat\theta)\propto\frac{1}{n}}$$
+
+And therefore the standard error behaves like
+
+$$SE(\hat\theta)\propto\frac{1}{\sqrt n}$$
+
+Intuition: **each independent observation contributes information;** $n$ **observations give** $n$ **times as much information, which makes variance shrink at rate** $1/n$ **and standard error shrink at rate** $1/\sqrt{n}$**.**
+:::
+
+### Bernoulli Information
+
+$$S(\theta)
+=
+\frac{\sum_i y_i}{\theta}
+-
+\frac{n-\sum_i y_i}{1-\theta},$$
+
+$$\frac{\partial^2 \ell}{\partial \theta^2}
+=
+-\frac{\sum_i y_i}{\theta^2}
+-
+\frac{n-\sum_i y_i}{(1-\theta)^2}.$$ Taking expectations, using $E\left[\sum_i y_i\right]=n\theta$
+
+$$\begin{aligned}
+\mathcal{I}(\theta)
+&=
+\frac{n\theta}{\theta^2}
++
+\frac{n(1-\theta)}{(1-\theta)^2} \\
+&=
+\frac{n}{\theta}
++
+\frac{n}{1-\theta} \\
+&=
+\frac{n}{\theta(1-\theta)}.
+\end{aligned}$$
+
+$$\operatorname{Var}(\hat{\theta})
+=
+\mathcal{I}(\theta)^{-1}
+=
+\frac{\theta(1-\theta)}{n}.$$
+
+### Poisson Information
+
+$$\frac{\partial^2 \ell}{\partial \theta^2}
+=
+-\frac{\sum_i y_i}{\theta^2}
+\quad\Longrightarrow\quad
+\mathcal{I}(\theta)
+=
+\frac{E\left[\sum_i y_i\right]}{\theta^2}
+=
+\frac{n\theta}{\theta^2}
+=
+\frac{n}{\theta},$$
+
+so
+
+$$\operatorname{Var}(\hat{\theta})
+=
+\frac{\theta}{n},
+\qquad
+\widehat{V}(\hat{\theta})
+=
+\frac{\bar{y}}{n}.$$
+
+# Properties
+
+As $n \to \infty$
+
+1.  **Consistency** $\bigstar$: $\hat{\theta}\xrightarrow{p}\theta_0$.
+2.  **Asymptotic normality** $\bigstar$: $\hat{\theta}\overset{a}{\sim}\mathcal{N}(\theta_0,\mathcal{I}(\theta_0)^{-1})$.
+3.  Asymptotic efficiency (not evaluated): if the model is right, no other well-behaved estimator has a smaller asymptotic variance
+4.  Invariance (not evaluated): if $\hat{\theta}$ is the MLE of $\theta$, then $c(\hat{\theta})$ is the MLE of $\theta$ for any function $c(\cdot)$. Implication: the MLE of the odds is the odds of the MLE.
+
+::: callout-important
+The first three are asymptotic.
+
+Invariance, by contrast, holds exactly in any sample.
+:::
+
+# Testing
+
+General idea: **Is the null value** $\theta_0$ **far from the peak** $\hat{\theta}$
+
+## Z-score (Walder) test $\bigstar$
+
+$$Z = \frac{\hat{\theta}-\theta_0}{\operatorname{se}(\hat{\theta})}, \qquad se(\hat{\theta}) = \frac{1}{\mathcal{I_\theta}}$$ reject if $|z| > 1.96$ ($\alpha = 0.05$). This is what `summary(glm)` reports.
+
+$$W = Z^2 = \mathcal{I}(\hat{\theta}-\theta_0)^2, \quad \mathcal{I}= -\ell''(\hat{\theta}) $$
+
+reject if $W > 3.84$ ($\alpha = 0.05$).
+
+::: callout-tip
+The distribution of $Z^2$ or $W$ is $\chi_1^2$
+:::
+
+## Likelihood Ratio $\bigstar$
+
+$$LR = 2[\ell(\hat{\theta})-\ell(\theta_0)]$$
+
+with q restrictions, $LR \xrightarrow{d}\chi_q^2$
+
+## Three Rulers $\bigstar$
+
+```{r}
+#| echo: false
+# Base R recreation of the likelihood diagram
+
+theta0 <- 0.30
+theta_hat <- 0.68
+
+# concave log-likelihood
+ell <- function(theta) {
+  1.25 - 2.2 * (theta - theta_hat)^2
+}
+
+# values at theta0 and theta_hat
+ell0 <- ell(theta0)
+ellhat <- ell(theta_hat)
+
+# derivative of ell(theta)
+ell_prime <- function(theta) {
+  -4.4 * (theta - theta_hat)
+}
+
+# plotting region
+par(mar = c(5, 6, 2, 2))
+
+plot(
+  NA,
+  xlim = c(0, 1.05),
+  ylim = c(-0.25, 1.55),
+  axes = FALSE,
+  xlab = "",
+  ylab = ""
+)
+
+# log-likelihood curve
+theta <- seq(0.05, 1, length.out = 500)
+
+lines(
+  theta,
+  ell(theta),
+  lwd = 3,
+  col = "navy"
+)
+
+# x- and y-axes with arrows
+arrows(
+  0, 0, 1.03, 0,
+  length = 0.08
+)
+
+arrows(
+  0, 0, 0, 1.48,
+  length = 0.08
+)
+
+# axis labels
+text(
+  1.04, 0,
+  expression(theta),
+  pos = 4,
+  cex = 1.3
+)
+
+text(
+  0, 1.50,
+  expression(paste("\u2113(", theta, ")")),
+  pos = 3,
+  cex = 1.3
+)
+
+# dashed vertical lines
+segments(
+  theta0, 0,
+  theta0, ell0,
+  lty = 2,
+  col = "grey50"
+)
+
+segments(
+  theta_hat, 0,
+  theta_hat, ellhat,
+  lty = 2,
+  col = "grey50"
+)
+
+# dotted horizontal lines
+segments(
+  0, ell0,
+  theta0, ell0,
+  lty = 3,
+  col = "grey50"
+)
+
+segments(
+  0, ellhat,
+  theta_hat, ellhat,
+  lty = 3,
+  col = "grey50"
+)
+
+# labels on y-axis
+text(
+  -0.02, ellhat,
+  expression(paste("\u2113(", hat(theta), ")")),
+  pos = 2,
+  cex = 1.1,
+  xpd = TRUE
+)
+
+text(
+  -0.02, ell0,
+  expression(paste("\u2113(", theta[0], ")")),
+  pos = 2,
+  cex = 1.1,
+  xpd = TRUE
+)
+
+# theta labels on x-axis
+text(
+  theta0, -0.08,
+  expression(theta[0]),
+  cex = 1.1
+)
+
+text(
+  theta_hat, -0.08,
+  expression(hat(theta)),
+  cex = 1.1
+)
+
+# point at theta0
+points(
+  theta0, ell0,
+  pch = 19,
+  col = "orangered3",
+  cex = 1.2
+)
+
+# vertical drop in log-likelihood
+arrows(
+  theta0, ell0,
+  theta0, ellhat,
+  code = 3,
+  angle = 20,
+  length = 0.07,
+  col = "orangered3",
+  lwd = 2
+)
+
+text(
+  theta0 - 0.13,
+  (ell0 + ellhat) / 2,
+  expression(paste("vertical: drop in ", "\u2113")),
+  col = "orangered3",
+  cex = 1.05
+)
+
+# tangent / slope at theta0
+slope <- ell_prime(theta0)
+
+x_tan <- c(theta0 - 0.08, theta0 + 0.08)
+y_tan <- ell0 + slope * (x_tan - theta0)
+
+segments(
+  x_tan[1], y_tan[1],
+  x_tan[2], y_tan[2],
+  col = "orangered3",
+  lwd = 2
+)
+
+text(
+  theta0 + 0.12,
+  ell0 + 0.08,
+  expression(paste("slope at ", theta[0])),
+  col = "orangered3",
+  pos = 4,
+  cex = 1.05
+)
+
+# horizontal distance theta_hat - theta0
+arrows(
+  theta0, -0.16,
+  theta_hat, -0.16,
+  code = 3,
+  angle = 20,
+  length = 0.07,
+  col = "orangered3",
+  lwd = 2,
+  xpd = TRUE
+)
+
+text(
+  (theta0 + theta_hat) / 2,
+  -0.23,
+  expression(paste("horizontal: ", hat(theta) - theta[0])),
+  col = "orangered3",
+  cex = 1.05,
+  xpd = TRUE
+)
+```
+
+1.  **Horizontal (Wald/z-test):** the gap $\hat{\theta}-\theta_0$
+2.  **Vertical (likelihood ratio):** the fit lost by moving from $\hat{\theta}$ down to $\theta_0$
+3.  **Slope (score):** at peak it is zero
+
+Both the first two rulers are compared with $\chi^2$. When $\ell$ is a parabola, they agree exactly.
+
+::: callout-note
+$$\begin{aligned}
+\ell(\theta)
+&=
+\ell(\hat{\theta})
+-
+\frac{1}{2}\mathcal{I}(\theta-\hat{\theta})^2
+&& \text{the parabola: peak at }\hat{\theta}\text{, curvature }-\mathcal{I}
+\\
+\ell(\hat{\theta})-\ell(\theta_0)
+&=
+\frac{1}{2}\mathcal{I}(\hat{\theta}-\theta_0)^2
+&& \text{plug in }\theta=\theta_0\text{: the drop}
+\\
+LR
+&=
+2\times \text{drop}
+=
+\mathcal{I}(\hat{\theta}-\theta_0)^2
+=
+W
+&& \text{doubling undoes the }\frac{1}{2}
+\end{aligned}$$
+
+If $\ell$ is not parabola,$$\ell(\theta)\neq\ell(\hat{\theta})-
+\frac{1}{2}\mathcal{I}(\theta-\hat{\theta})^2$$
+:::
+
+## What Software Reports $\bigstar$
+
+- `summary(glm)` z-statstics and p-values: **Wald**
+
+- `anova(m0, m1, test = "Chisq")` the deviance: **likelihood ratio**
+
+**When Wald and LR disagree, use LR.**
+
+## What to Report in Practice $\bigstar$
+
+- **One coefficient, large n, an ordinary variable:** `summary()` the Wald z and p. At large n, Wald z equals LR.
+
+**A block:** `anova(m0, m1, test = "Chisq"`. LR
+
+- **A rare outcome, a small group, a huge standard error, a coefficient near a boundary:** [never use Wald z]{.underline}
+
+## AIC and BIC $\bigstar$
+
+$$AIC = -2\ell(\hat{\theta}) + 2k$$
+
+$$BIC = -2\ell(\hat{\theta}) + k\log{n}$$
+
+- **Lower is better**
+
+- No null model, no p-value, the models need not to be nested
+
+### BIC and LR: more $\bigstar$
+
+- **Why BIC**: it asks "whether a term worth its place"
+
+::: callout-important
+## Large n Rejects Everything with LR
+
+LR grows with n for any effect that is not exactly zero, but BIC penalizes a large n
+:::
+
+- **Reading BIC:**
+
+  - 0-2 weak
+
+  - 2-6 positive
+
+  - 6-10 strong
+
+  - \>10 very strong
+
+- **When LR is needed:** for nested models
+
+- They cannot decide which controls to hold constant.
+
+::: callout-tip
+## Rule of Thumb
+
+**Nested models** and one focused hypothesis: LR
+
+A **menu of competing models** of competing models: BIC
+
+Every model should be estimated on the **same observations** when comparing LR, BIC, AIC, or log-likelihoods
+:::
