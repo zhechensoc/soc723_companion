@@ -1,0 +1,416 @@
+---
+title: "Week 4: Maximum Likelihood Applications"
+format: html
+embeded-resources: true 
+editor: visual
+---
+
+# Overview of Models and Functions $\bigstar$
+
+$$\begin{array}{llll}
+\hline
+\text{Week 3 model}
+&
+\text{its }\theta\text{ lives in}
+&
+\theta_i=h(X_i'\beta)
+&
+\text{the regression}
+\\
+\hline
+\text{Normal, mean }\mu
+&
+(-\infty,\infty)
+&
+\mu_i=X_i'\beta
+&
+\text{OLS (the hook)}
+\\
+\text{Bernoulli, prob. }p
+&
+(0,1)
+&
+p_i=\Lambda(X_i'\beta)
+=\dfrac{e^{X_i'\beta}}{1+e^{X_i'\beta}}
+&
+\text{logit}
+\\
+\text{Bernoulli, prob. }p
+&
+(0,1)
+&
+p_i=\Phi(X_i'\beta)
+&
+\text{probit}
+\\
+\text{Poisson, rate }\theta
+&
+(0,\infty)
+&
+\theta_i=e^{X_i'\beta}
+&
+\text{Poisson regression}
+\\
+\hline
+\end{array}$$
+
+- $\Lambda$ and $\Phi$ are S-curves from $0$ to $1$ (the logistic and normal CDFs); $e^{(\cdot)}$ is positive.
+
+- The **link function** is the inverse, $g=h^{-1}$, mapping $\theta$ back to the line:
+
+$g(p)=\log\left(\frac{p}{1-p}\right), \qquad g(\theta)=\log\theta.$
+
+Textbooks start from $g$; think in $h$.
+
+- Every row is a *generalized linear model*.
+
+## Connect to Log Likelihood $\bigstar$
+
+Substitute $\theta_i=h(X_i'\beta)$ into Week 3's log-likelihood:
+
+$$\ell(\beta)
+=
+\sum_{i=1}^{n}
+\log f(y_i\mid\theta_i),
+\qquad
+\theta_i=h(X_i'\beta).$$
+
+- **Estimate:** the peak, in $k$ dimensions. [No closed form except OLS]{.underline}; Newton-Raphson, which `glm()` runs in a few steps.
+
+- **Standard errors:** the **square root of the inverse of the negative curvature** of the log-likelihood at the peak. `summary()` prints the square roots.
+
+::: callout-tip
+$$\widehat{SE}(\hat\theta)=\sqrt{\left[-\ell''(\hat\theta)\right]^{-1}}$$
+
+The variance of MLE is one over minus the second derivative of the log-likelihood at its peak.
+
+$$\widehat{V}(\hat{\theta}) = \left[ -\left. \frac{\partial^2 \ell}{\partial \theta^2} \right|_{\hat{\theta}} \right]^{-1} = \frac{1}{\text{observed information}}$$
+:::
+
+- **Tests:** `summary()`'s $z$ is Wald; `anova()` is LR.
+
+- **Comparison:** AIC and BIC from $\ell(\hat{\beta})$.
+
+- **Interpretation:** $\beta_j$ moves the line; how much it moves $\theta_i$ depends on $h$ and on where person $i$ sits.
+
+::: callout-note
+$$\eta_i=X_i'\beta, \qquad \theta_i=h(\eta_i)=h(X_i'\beta)$$ For the linear predictor, the effect of $X_i'$ on $\eta_i$ is $\beta$.
+
+Using the chain rule,
+
+$$\frac{\partial \theta_i}{\partial x_{ij}}
+=
+h'(\eta_i)\beta_j$$ Now $h'(\eta_i)\beta_j$ depends on $h$ and on where observation $i$ is on that curve.
+
+For OLS, $h(\eta)=\eta$, $h'(\eta)=1$, thus the effect of $X_i'$ is constant.
+
+For logit, $p_i=\Lambda(\eta_i)$
+
+$$\Lambda'(\eta_i)=p_i(1-p_i) $$
+
+$$\frac{\partial p_i}{\partial x_{ij}} = \beta_jp_i(1-p_i)$$
+
+Two people can therefore have the same $\beta_j$ but different probability changes because they have different $X_i$ and hence different baseline probabilities $p_i$.
+
+For Poisson, $\theta_i=e^{\eta_i}$
+
+$$\frac{\partial \theta_i}{\partial x_{ij}}
+=
+\beta_j e^{\eta_i}
+=
+\beta_j\theta_i$$
+
+The effect depends on where person $i$ sits.
+:::
+
+# Binary
+
+Two ways for the same model:
+
+$$\log\left(\frac{p_i}{1-p_i}\right) = X_i'\beta $$ Or
+
+$$p_i=\Lambda(X_i'\beta)
+=\dfrac{e^{X_i'\beta}}{1+e^{X_i'\beta}}$$
+
+- $\Lambda$ is the inverse of the log-odds
+
+- $1-p_i = \frac{1}{1+e^{X_i'\beta}}$
+
+## Logit: The S-Curve $\bigstar$
+
+```{r}
+#| echo: false
+# Base R: logistic inverse-link h(X'beta)
+
+eta <- seq(-6, 6, length.out = 1000)
+
+# logistic function
+h <- function(eta) {
+  1 / (1 + exp(-eta))
+}
+
+p <- h(eta)
+
+# plotting region
+par(mar = c(4, 5, 2, 3))
+
+plot(
+  eta, p,
+  type = "l",
+  lwd = 3,
+  col = "navy",
+  xlim = c(-6.5, 6.7),
+  ylim = c(0, 1.12),
+  axes = FALSE,
+  xlab = "",
+  ylab = ""
+)
+
+# axes with arrows
+arrows(-6.3, 0, 6.6, 0,
+       length = 0.08)
+
+arrows(0, 0, 0, 1.10,
+       length = 0.08)
+
+# x-axis labels
+axis(
+  1,
+  at = c(-6, -4, -2, 2, 4, 6),
+  labels = c("-6", "-4", "-2", "2", "4", "6"),
+  tick = FALSE
+)
+
+# reference lines
+segments(-6.3, 0.5, 0, 0.5,
+         lty = 2,
+         col = "grey50")
+
+segments(-6.3, 1, 6, 1,
+         lty = 2,
+         col = "grey50")
+
+# labels
+text(-6.4, 0.5, "0.5",
+     pos = 2,
+     col = "grey50")
+
+text(6.5, 1, "1",
+     pos = 4,
+     col = "grey50")
+
+text(0, 1.1,
+     expression(theta),
+     pos = 3,
+     cex = 1.2)
+
+text(6.65, 0,
+     expression(X^prime * beta),
+     pos = 4,
+     cex = 1.2)
+
+# point at eta = 0
+points(0, 0.5,
+       pch = 19,
+       col = "orangered3")
+
+# tangent at eta = 0
+# logistic derivative at 0 = 0.25
+x_tan <- seq(-1.5, 1.5, length.out = 100)
+y_tan <- 0.5 + 0.25 * x_tan
+
+lines(
+  x_tan, y_tan,
+  col = "orangered3",
+  lwd = 2
+)
+
+# annotation
+text(
+  1.5, 0.30,
+  "slope 0.25 at 0",
+  col = "orangered3",
+  pos = 4,
+  cex = 1.05
+)
+```
+
+- $\Lambda$ is an S-surve, flat near 0 and 1, steepest at $\theta = 0.5$ ($X'\beta = 0$). Any real $X'\beta$ ($p$) lands inside (0, 1)
+
+- The slope of $X'\beta$ is $\theta(1-\theta)$: one unit moves the probability by up to 0.25 in the middle and almost nothing in the tails.
+
+::: callout-note
+$$\theta=\Lambda(\eta)=\frac{e^\eta}{1+e^\eta},
+\qquad \eta=X'\beta$$
+
+$$\frac{d\theta}{d\eta}
+=
+\frac{e^\eta(1+e^\eta)-e^\eta e^\eta}{(1+e^\eta)^2}
+=
+\frac{e^\eta}{(1+e^\eta)^2}$$
+
+$$\theta(1-\theta)
+=
+\frac{e^\eta}{1+e^\eta}
+\frac{1}{1+e^\eta}
+=
+\frac{e^\eta}{(1+e^\eta)^2}$$
+
+$$\boxed{\frac{d\theta}{d(X'\beta)}=\theta(1-\theta)}$$
+:::
+
+- Only 0s and 1s are observed on the vertical axis
+
+### Connect Logit to Log Likelihood $\bigstar$
+
+$$\ell(\beta)
+=
+\sum_{i=1}^{n}
+\left[
+y_i\log p_i
++
+(1-y_i)\log(1-p_i)
+\right]
+=
+\sum_{i=1}^{n}
+\left[
+y_iX_i'\beta
+-
+\log\left(1+e^{X_i'\beta}\right)
+\right]$$
+
+Or
+
+$$\log\left(\frac{p_i}{1-p_i}\right)
+=
+X_i'\beta,
+\qquad
+\log(1-p_i)
+=
+-\log\left(1+e^{X_i'\beta}\right).$$
+
+### Newton's Method
+
+$$\beta^{[t+1]}
+=
+\beta^{[t]}
++
+\mathcal{I}\left(\beta^{[t]}\right)^{-1}
+S\left(\beta^{[t]}\right),
+\qquad
+S(\beta)
+=
+\sum_i (y_i-p_i)X_i,
+\qquad
+\mathcal{I}(\beta)
+=
+\sum_i p_i(1-p_i)X_iX_i'$$
+
+### Interpret the Coefficient $\bigstar$
+
+If $\hat{\beta} = 0.391$
+
+$$\begin{array}{llll}
+\hline
+\text{Scale}
+&
+\text{Quantity}
+&
+\hat{\beta}=0.391\text{ says}
+&
+\\
+\hline
+\text{Log-odds}
+&
+\log\left(\dfrac{p}{1-p}\right)=X'\beta
+&
+\text{one more word adds }0.391
+&
+\text{linear, not intuitive}
+\\
+\text{Odds}
+&
+\dfrac{p}{1-p}=e^{X'\beta}
+&
+\text{odds multiply by }e^{0.391}=1.48
+&
+\text{the odds ratio}
+\\
+\text{Probability}
+&
+p=\Lambda(X'\beta)
+&
+\text{depends on where you start}
+&
+\text{what we care about}
+\\
+\hline
+\end{array}$$
+
+::: callout-warning
+An odds ratio is not a risk ratio and **not a difference in probabilities**.
+
+Report on the probability scale, and say *for whom*.
+:::
+
+::: callout-tip
+### Conversion Across Scales
+
+1.  Start from the linear predictor $X'\beta$
+2.  Convert log-odds to odds $odds = p/(1-p)= exp(X'\beta)$
+3.  Convert odds to probability $p = exp(X'\beta)/(exp(X'\beta)+1)$
+:::
+
+### Average Marginal Effect $\bigstar$
+
+For one person, the slope of the probability with respect to $X_j$ is $\frac{\partial p_i}{\partial X_{ij}} = p_i(1-p_i)\beta_j$, so $\beta_j$ is scaled by where the person sits on the S-curve
+
+- **Average Marginal Effect (AME)**: compute the marginal effect separately for every actual observation, then average those marginal effects.
+
+- **Marginal Effect at the Mean (MEM):** create one hypothetical observation with every covariate set to its sample mean, compute its predicted probability, and then compute the marginal effect at that point.
+
+`avg_slopes()` reports both MEM and AME
+
+[**AME** (observed-value approach; Hanmer and Kalkan 2013) is recommended,]{.underline} because:
+
+- An “average” case may not correspond to any real person, so MEM can evaluate the model at an unrealistic combination of covariates.
+
+- For non-linear models, the effect of $\beta_j$ on $p_i$ on where person $i$ sits. (see the call-out under \[**Connect to Log Likelihood**\].)
+
+#### Calculate SE of the AME
+
+- Delta Method
+
+- Simulation
+
+- Bootstrap
+
+**Never build an interval on the log-odds scale and transform its endpoints if what you want is an interval for a difference in probabilities.**
+
+::: callout-note
+An example:
+
+In a logit regression
+
+$$\text{logit}(p)=\log\left(\frac{p}{1-p}\right)=\eta$$
+
+Its inversion $$p = \eta^-1 = \frac{e^\eta}{1+e^\eta}$$
+
+If we want to compare two log-odds $\eta_1=\beta_0+\beta_1,\qquad \eta_0=\beta_0$
+
+The difference of probability is
+
+$$\Delta p=p_1-p_0=\frac{e^{\eta_1}}{1+e^{\eta_1}}-\frac{e^{\eta_0}}{1+e^{\eta_0}}$$
+
+And
+
+$$\text{logit}^{-1}(\eta_1-\eta_0)=\frac{e^{\eta_1-\eta_0}}{1+e^{\eta_1-\eta_0}}$$
+
+$$\text{logit}^{-1}(\eta_1)-\text{logit}^{-1}(\eta_0)=\frac{e^{\eta_1}}{1+e^{\eta_1}}-\frac{e^{\eta_0}}{1+e^{\eta_0}}$$
+
+Clearly
+
+$$\text{logit}^{-1}(\eta_1-\eta_0)\neq\text{logit}^{-1}(\eta_1)-\text{logit}^{-1}(\eta_0)$$
+:::
+
+## Probit
