@@ -404,7 +404,7 @@ Variants:
 1.  Guess $\theta^{[t]}$
 2.  $S_{\theta^{t}}$ (score function)
 3.  $\ell''_{\theta^{t}}$
-4.  $\theta^{t+1}=\theta^t+S_{\theta^t}/\ell''_{\theta^t}$
+4.  $\theta^{t+1}=\theta^t-S_{\theta^t}/\ell''_{\theta^t}$
 :::
 
 # Information
