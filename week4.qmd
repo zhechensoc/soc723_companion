@@ -375,7 +375,7 @@ For one person, the slope of the probability with respect to $X_j$ is $\frac{\pa
 
 - An “average” case may not correspond to any real person, so MEM can evaluate the model at an unrealistic combination of covariates.
 
-- For non-linear models, the effect of $\beta_j$ on $p_i$ on where person $i$ sits. (see the call-out under \[**Connect to Log Likelihood**\].)
+- For non-linear models, the effect of $X_i$ on $p_i$ on where person $i$ sits. (see the call-out under \[**Connect to Log Likelihood**\].)
 
 #### Calculate SE of the AME
 
@@ -413,4 +413,386 @@ Clearly
 $$\text{logit}^{-1}(\eta_1-\eta_0)\neq\text{logit}^{-1}(\eta_1)-\text{logit}^{-1}(\eta_0)$$
 :::
 
-## Probit
+## Probit $\bigstar$
+
+$$p_i=\Phi(X_i'\beta)$$
+
+- $\Phi$ is slightly narrower than $S$.
+
+```{r}
+#| echo: false
+# Linear predictor
+z <- seq(-5, 5, length.out = 1000)
+
+# Logit and probit inverse links
+logit <- plogis(z)
+probit <- pnorm(z)
+
+# Empty plot
+plot(
+  z, logit,
+  type = "n",
+  xlim = c(-5, 5),
+  ylim = c(0, 1.12),
+  xlab = "",
+  ylab = "",
+  axes = FALSE
+)
+
+# Curves
+lines(z, logit, lwd = 2)
+lines(z, probit, lwd = 2, lty = 2)
+
+# Axes through the origin
+abline(h = 0)
+abline(v = 0)
+
+# Horizontal reference at 1
+abline(h = 1, lty = 3)
+
+# Labels
+text(4.8, -0.06, expression(X * "'" * beta), cex = 1.2)
+text(0, 1.1, expression(theta), cex = 1.2)
+text(4.7, 1, "1", pos = 4)
+
+text(2.1, 0.63, expression(logit~Lambda(z)), cex = 1.1)
+text(1.0, 0.88, expression(probit~Phi(z)), cex = 1.1)
+
+# Arrow heads
+arrows(4.7, 0, 5, 0, length = 0.08)
+arrows(0, 1.05, 0, 1.12, length = 0.08)
+```
+
+## Logit or Probit $\bigstar$
+
+- [**Default: Logit**]{.underline}
+- Probit: when the next step needs a normal, e.g., selection models, bivariate probit, or a subfield convention.
+- **Never compare raw coefficients across nested models or across groups**
+  - Because adding a covariate rescales all the coefficients
+  - Instead, [**compare AMEs or predicted probabilities**]{.underline}
+- Usually the AMEs from logit and probit are similar
+
+## Interactions in Nonlinear Models $\bigstar$
+
+$$\begin{array}{lll}
+\hline
+&
+\text{log-odds scale}
+&
+\text{probability scale}
+\\
+\hline
+\text{no product}
+&
+\text{one slope, }\beta_1,\text{ forced equal across }X_2
+&
+\text{differs across }X_2\text{ anyway, by }p_i(1-p_i)\text{ only}
+\\
+\text{with product}
+&
+\beta_1+\beta_{12}X_2,\text{ the data choose }\beta_{12}
+&
+\text{differs by }p_i(1-p_i)\text{ and by }\beta_{12}
+\\
+\hline
+\end{array}$$
+
+- **Always include the product whenever the question is whether X1’s effect differs by X2.**
+
+  - The two models agree on probabilities only when $\hat{\beta}_{12} \approx 0$ otherwise the no-product model has the wrong probabilities in the cells.
+
+- Report the interaction as a difference in AMEs of X1 between the X2 groups, with an interval.
+
+::: callout-important
+## Recommendations for Nonlinear Interaction Effects
+
+Mize, Trenton D. 2019. “Best Practices for Estimating, Interpreting, and Presenting Nonlinear Interaction Effects.” *Sociological Science* 6: 81-117.
+
+1.  Include a product (interaction) term in the model if you want to investigate whether the effect of one independent variable is contingent on the level of a second independent variable.
+    - If the interaction effect is false, the only cost is additional degree of freedom
+    - If the interaction effect is true, omitting it can cause incorrect estimation
+2.  Ignore the coefficient of the product term. It does not necessarily provide accurate information about the significance, magnitude, or even the direction of the underlying interaction effect on the predictions.
+3.  Plot the predictions to determine the nature of the underlying interaction effect on the metric of interest.
+4.  Determine the size and significance of the effects of interest using marginal effects, not regression coefficients.
+5.  Use tests of second differences (whether two marginal effects are equal) to determine whether an interaction effect is significant for specific values of interest of your independent variables.
+    - You should not decide whether two groups differ by easily checking whether their separate confidence intervals overlap.
+
+    - [**Rule of thumb**]{.underline}
+
+      - If the two CIs **do not overlap**, then there is evidence that the two estimates differ at roughly the $\alpha$ level.
+      - If the two CIs **do overlap**, the two estimates can **still be statistically significantly different**.
+        - Why: Because the two estimate may share covariance.
+
+          - $SE(\hat\theta_1-\hat\theta_2) = \sqrt{\operatorname{Var}(\hat\theta_1) + \operatorname{Var}(\hat\theta_2) -2\operatorname{Cov}(\hat\theta_1,\hat\theta_2)}$
+6.  Absent substantive or theoretically interesting values of the focal independent or control variables to test the interaction effect, use average marginal effects to summarize whether there is an interaction effect present on average in the data.
+:::
+
+# Several Categories
+
+## Multinomial Logit $\bigstar$
+
+The categories [have no order]{.underline}
+
+$$\ell
+=
+\sum_{i=1}^{n}
+\sum_{j=1}^{J}
+\mathbf{1}\{Y_i=j\}\log p_{ij}$$
+
+$$\log\left(\frac{p_{ij}}{p_{iJ}}\right)=X_i'\beta_j,\qquad j=1,\dots,J-1$$
+
+$$\begin{aligned}
+p_{ij}
+&=
+p_{i,\mathrm{base}}\,e^{X_i'\beta_j}
+&& \text{exponentiate the }j\text{th line}
+\\[4pt]
+1
+&=
+\sum_j p_{ij}
+=
+p_{i,\mathrm{base}}
+\left(
+1+\sum_{m\neq \mathrm{base}} e^{X_i'\beta_m}
+\right)
+&& \text{add up all }J\text{ categories; the base contributes }e^0=1
+\\[4pt]
+p_{i,\mathrm{base}}
+&=
+\frac{1}{
+1+\sum_{m\neq \mathrm{base}} e^{X_i'\beta_m}
+}
+&& \text{solve for the base}
+\\[4pt]
+p_{ij}
+&=
+\frac{
+e^{X_i'\beta_j}
+}{
+1+\sum_{m\neq \mathrm{base}} e^{X_i'\beta_m}
+}
+&& \text{substitute back: the multinomial logit}
+\end{aligned}$$
+
+## Ordered Logit $\bigstar$
+
+The categories are [ordered]{.underline}
+
+The probability of being at or below each level:
+
+$$\log\left(
+\frac{\Pr(Y_i\le j)}
+{\Pr(Y_i>j)}
+\right)
+=
+\tau_j-X_i'\beta,
+\qquad
+j=1,\ldots,J-1
+\quad\Longrightarrow\quad
+\Pr(Y_i\le j)
+=
+\Lambda\left(\tau_j-X_i'\beta\right).$$
+
+- $\hat{\beta}$ reads like a logit coefficient, it is the same for each category
+
+- $\tau_j$ is like a intercept or gate
+
+# Counts
+
+## Poisson Regression $\bigstar$
+
+$$\theta_i = e^{X_i'\beta}, \qquad \log{\theta_i} = X_i'\beta$$
+
+- $e^\hat{\beta}$ = rate
+
+- [Why not use]{.underline} $\log{y}$[:]{.underline} $\log{0}$ [is undefined.]{.underline}
+
+## Overdispersion $\bigstar$
+
+Poisson has one parameter, its mean equals to its variance
+
+$$\theta = Var(Y_i|X_i) = E(Y_i|X_i) $$
+
+Over dispersion has a larger variance than the mean
+
+- Use `AER::dispersiontest` to examine the overdispersion
+
+### Repairs for Overdispersion (adjust the SE)
+
+$$\begin{array}{lll}
+\hline
+\text{Repair}
+&
+\text{Belief about }\operatorname{Var}(Y_i\mid X_i)
+&
+\text{What changes}
+\\
+\hline
+\text{Quasi-Poisson}
+&
+\phi\theta_i,\ \text{one multiple everywhere}
+&
+\text{every SE, by one factor }\sqrt{\hat{\phi}}
+\\
+\text{Negative binomial}
+&
+\theta_i+\theta_i^2/\alpha,\ \text{grows faster than the mean}
+&
+\text{the likelihood: }\hat{\beta}\text{ and SEs}
+\\
+\text{Robust (sandwich)}
+&
+\text{none; use the squared residuals as they are}
+&
+\text{SEs only, each on its own}
+\\
+\hline
+\end{array}$$
+
+## Excess Zeros $\bigstar$
+
+```{r}
+#| echo: false
+# number of children
+x <- 0:8
+
+# approximate values from the figure
+observed <- c(.30, .18, .28, .145, .055, .018, .006, .003, .002)
+poisson  <- c(.245, .29, .215, .13, .065, .028, .010, .003, .001)
+negbin   <- c(.255, .285, .21, .125, .065, .027, .009, .003, .001)
+hurdle   <- c(.305, .225, .205, .13, .07, .03, .011, .004, .001)
+
+# observed bars
+plot(
+  x, observed,
+  type = "n",
+  ylim = c(0, .35),
+  xlab = "number of children",
+  ylab = "share of respondents",
+  axes = FALSE
+)
+
+axis(1, at = x)
+axis(2, las = 2)
+box(bty = "l")
+
+# grey bars
+rect(
+  xleft = x - .35,
+  ybottom = 0,
+  xright = x + .35,
+  ytop = observed,
+  col = "grey85",
+  border = NA
+)
+
+# fitted distributions
+lines(x, poisson, type = "o", pch = 16, lty = 1)
+lines(x, negbin,  type = "o", pch = 17, lty = 2)
+lines(x, hurdle,  type = "o", pch = 15, lty = 3)
+
+legend(
+  "topright",
+  inset = c(-0.18, 0),
+  xpd = TRUE,
+  legend = c("observed", "Poisson", "negative binomial", "hurdle"),
+  fill = c("grey85", NA, NA, NA),
+  border = c(NA, NA, NA, NA),
+  lty = c(NA, 1, 2, 3),
+  pch = c(NA, 16, 17, 15),
+  bty = "n"
+)
+```
+
+**Two solutions**
+
+- **Hurdle:** a logit for zero versus positive, then a truncated count model for the positives. `pscl::hurdel`
+
+- **Zero-inflated**: a mixture; a share of “structural zeros” who could never have a positive count, the rest a count model that can also produce zeros. `pscl::zeroinfl`
+
+## How to Decide $\bigstar$
+
+1.  Start with **Poisson**, **robust SEs**. Coefficients are right for the mean under any variance
+2.  Run the **overdispersion test**. If it rejects and you need a likelihood (prediction, AIC, LR against a bigger model), fit the **negative binomial**.
+3.  Compare the **observed and predicted distribution** of counts, as in the figure. **A zero problem is visible before any test**.
+4.  **Hurdle or zero-inflated**: choose on substance. Hurdle when crossing from zero to one is a different process (having any children, ever being arrested). Zero-inflated when some zeros are a different kind of person (a nonsmoker’s zero cigarettes versus a smoker’s zero today). Then **AIC or BIC** between them; they are not nested.
+5.  [**Never compare by fit alone across models fitted to different rows.**]{.underline}
+
+# Multilevel
+
+## Why not OLS with Clustered SEs $\bigstar$
+
+$$Y_{ij} = \beta_0 + \beta_1X_{1ij} + \beta_2X_{2j} + u_{j} + e_{ij}$$
+
+- $u_j$ how far the group is from the mean of groups
+
+- $e_{ij}$ the individuals own deviation
+
+Three ways to do with $u_j$
+
+- **Clustered OLS**: split $\epsilon_{ij} = v_g + \eta_{ig}$ , but does not estimating $u_j$ or its variance
+
+- **Fixed effects:** estimate every $u_j$, but it is absorbed
+
+- **Multilevel Model:** treats $u_j$ as draws from a distribution and estimates the variance.
+
+## The Random-Intercept Model $\bigstar$
+
+$$Y_{ij} = \beta_0 + \beta_1X_{1ij} + \beta_2X_{2j} + \mu_{j} + e_{ij},
+\qquad
+u_j\sim N(0,\tau^2),
+\qquad
+e_{ij}\sim N(0,\sigma^2)$$
+
+- Each group has its own intercept $\beta_0 + \mu_j$
+
+- $\text{TotalVar}(Y_{ij}) = \tau^2 + \sigma^2$
+
+  - $\tau^2$ : between-group variance
+
+  - $\sigma^2$ : within-group variance
+
+- Individuals in each group share the same $\mu_j$, so $Cov(Y_{ij}, Y_{i'j}) = \tau^2$ . The model is the correction of clustering errors.
+
+::: callout-important
+As long as the multilevel covariance structure is correctly specified, there is no need to cluster SEs
+:::
+
+## Two Assumptions about $\mu_j$ $\bigstar$
+
+1.  $u_j\sim N(0,\tau^2)$. The distribution of **deviation from the overall intercept** (random effects) is a normal distribution with mean zero.
+2.  $u$ is uncorrelated with $X_j$, so $E[\mu_i | X_j] = 0$. The group random effect is **mean-independent of the covariates**
+
+## Intraclass Correlation $\bigstar$
+
+$$\text{ICC} = \frac{\hat{\tau}^2}{(\hat{\tau}^2)+\hat{\sigma}^2} $$
+
+[**Test of**]{.underline} $\hat{\tau}$: LR against OLS (without $u$)
+
+## When You Need a Random Intercept $\bigstar$
+
+1.  **The split itself is the finding**. You want to know the ICC
+2.  **A group-level variable with few groups**. Clustered SEs are unreliable with a small number of groups
+
+Otherwise, OLS is enough.
+
+::: callout-note
+## Why clustered SEs are unreliable with a small number of groups
+
+The estimator of clustered SEs is
+$$\widehat V_{CR}(\hat\beta)
+=
+c(X'X)^{-1}
+\left(
+\sum_{g=1}^G
+X_g'\hat e_g\hat e_g'X_g
+\right)
+(X'X)^{-1}$$
+
+$$c
+=
+\frac{G}{G-1}
+\frac{n-1}{n-k} \qquad (CR1)$$
+
+The consistency relies on $G \rightarrow \infty$. With small $G$, there are only a few independent cluster-level contributions, so the estimated variance is noisy and often too small.
+:::
