@@ -710,17 +710,19 @@ P(A=\mathrm{HS})&=\Lambda(5.21-4.29)-\Lambda(1.84-4.29) \\
 
 Why?
 
-\$\$ \log\left( \frac{\Pr(Y_i\le j)} {\Pr(Y_i\>j)} \right) = \tau\_j-X_i'\beta \quad
-
-\Longleftrightarrow
-
-\quad
-
-\log\frac{\Pr(Y_i>j)}{\Pr(Y_i\le j)}=X_i'\beta-\tau\_j. \$\$
+$$
+\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i > j)}\right)
+= \tau_j - X_i^\prime\beta
+\quad \Longleftrightarrow \quad
+\log\left(\frac{\Pr(Y_i > j)}{\Pr(Y_i \le j)}\right)
+= X_i^\prime\beta - \tau_j.
+$$
 
 Then for each category $j$
 
-$$OR=e^{\beta_k}$$
+$$
+OR=e^{\beta_k}
+$$
 
 We can test whether the odds ratio is constant. If the assumption fails, use *partial proportional models* (`VGAM::vglm`,`ordinal::clm`), which frees the slope $\tau_j$.
 

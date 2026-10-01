@@ -2941,10 +2941,17 @@ P(A=\mathrm{HS})&amp;=\Lambda(5.21-4.29)-\Lambda(1.84-4.29) \\
 <h3 class="anchored" data-anchor-id="proportional-assumption-bigstar">Proportional Assumption <span class="math inline">\(\bigstar\)</span></h3>
 <p><strong>ordered logit model = proportional odds model = parallel lines model = parallel regressions model</strong></p>
 <p>Why?</p>
-<p>$$ ( {(Y_i&gt;j)} ) = _j-X_i’</p>
-<p>=X_i’-_j. $$</p>
+<p><span class="math display">\[
+\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i &gt; j)}\right)
+= \tau_j - X_i^\prime\beta
+\quad \Longleftrightarrow \quad
+\log\left(\frac{\Pr(Y_i &gt; j)}{\Pr(Y_i \le j)}\right)
+= X_i^\prime\beta - \tau_j.
+\]</span></p>
 <p>Then for each category <span class="math inline">\(j\)</span></p>
-<p><span class="math display">\[OR=e^{\beta_k}\]</span></p>
+<p><span class="math display">\[
+OR=e^{\beta_k}
+\]</span></p>
 <p>We can test whether the odds ratio is constant. If the assumption fails, use <em>partial proportional models</em> (<code>VGAM::vglm</code>,<code>ordinal::clm</code>), which frees the slope <span class="math inline">\(\tau_j\)</span>.</p>
 </section>
 </section>
