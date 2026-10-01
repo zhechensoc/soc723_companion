@@ -1,0 +1,784 @@
+---
+title: "Week 5 Potential Outcomes and DAGs"
+format: html
+author: Zhe Chen
+embed-resources: true
+---
+
+# Potential Outcomes
+
+## Potential outcomes model
+
+For a binary treatment $D\in\{0, 1\}$, each unit $i$ has two potential outcomes
+
+$$Y_i (1): \text{the outcome if unit }i\text{ were treated} \\
+Y_i (0): \text{the outcome if unit }i\text{ were not treated}$$
+
+The **individual treatment effect** is $\tau_i = Y_i(1) - Y_i(0)$. But we can only observe either of them.
+
+$$\boxed{Y_i = D_iY_i(1) + (1-D_i)Y_i(0)} \qquad (\text{the switching equation})$$\
+
+**The Fundamental Problem of Causal Inference**: $\tau_i$ is never observed for anyone. Causal inference is a missing data problem.
+
+Example of the missing data problem:
+
+$$\begin{array}{c|ccccc}
+\hline
+\text{Unit} & D_i & Y_i(0) & Y_i(1) & \tau_i & Y_i\text{ (observed)} \\
+\hline
+1 & 1 & ? & 12 & ? & 12 \\
+2 & 0 & 7 & ? & ? & 7 \\
+3 & 1 & ? & 9 & ? & 9 \\
+4 & 0 & 5 & ? & ? & 5 \\
+\hline
+\end{array}$$
+
+## Estimands: ATE, ATT, ATU, and CATE $\bigstar$
+
+$$\begin{array}{rll}
+\mathrm{ATE} = E[Y_i(1)-Y_i(0)] = E[\tau_i]
+& \qquad & \text{average treatment effect} \\[6pt]
+\mathrm{ATT} = E[Y_i(1)-Y_i(0)\mid D_i=1]
+& & \text{on the treated} \\[6pt]
+\mathrm{ATU} = E[Y_i(1)-Y_i(0)\mid D_i=0]
+& & \text{on the untreated} \\[6pt]
+\mathrm{CATE}(x) = E[Y_i(1)-Y_i(0)\mid X_i=x]
+& & \text{conditional on covariates}
+\end{array}$$
+
+$$\mathrm{ATE} = \pi\mathrm{ATT} + (1-\pi)\mathrm{ATU}, \quad \pi = \mathrm{Pr}(D_i=1)$$
+
+### Calculation from an Example $\bigstar$
+
+$$\begin{array}{cccccc}
+\hline
+\text{Unit} & D_i & Y_i(0) & Y_i(1) & \tau_i & Y_i\text{ observed} \\
+\hline
+1 & 1 & 4 & 10 & 6 & 10 \\
+2 & 1 & 6 & 14 & 8 & 14 \\
+3 & 0 & 5 & 6 & 1 & 5 \\
+4 & 0 & 7 & 10 & 3 & 7 \\
+\hline
+\end{array}$$
+
+$$\mathrm{ATE} = \frac{1}{4}(6+8+1+3) = 4.5,
+\qquad
+\mathrm{ATT} = \frac{1}{2}(6+8) = 7,
+\qquad
+\mathrm{ATU} = \frac{1}{2}(1+3) = 2.$$
+
+$$\pi \mathrm{ATT} + (1-\pi)\mathrm{ATU}
+= 0.5(7) + 0.5(2)
+= 4.5
+= \mathrm{ATE}.$$
+
+## Selection Bias
+
+### Decomposition around ATT $\bigstar$
+
+$$\begin{aligned}
+&\underbrace{E[Y_i \mid D_i=1]-E[Y_i \mid D_i=0]}_{\text{naive comparison}} \\[8pt]
+&= E[Y_i(1)\mid D_i=1]-E[Y_i(0)\mid D_i=0] \\[8pt]
+&= E[Y_i(1)\mid D_i=1]
+   -E[Y_i(0)\mid D_i=1] \\
+&\quad +E[Y_i(0)\mid D_i=1]
+   -E[Y_i(0)\mid D_i=0] \\[8pt]
+&= \underbrace{E[Y_i(1)-Y_i(0)\mid D_i=1]}_{\mathrm{ATT}} \\
+&\quad +\underbrace{
+E[Y_i(0)\mid D_i=1]-E[Y_i(0)\mid D_i=0]
+}_{\text{selection bias}}
+\end{aligned}$$
+
+- Selection bias asks: *would the treated and untreated have differed even with no treatment?* Almost always yes. Data alone cannot solve it.
+
+### Decomposition around ATE
+
+$$\begin{aligned}
+\tau = \mathrm{ATE} &= \pi\mathrm{ATT}+(1-\pi)\mathrm{ATU} \\[6pt]
+&= \pi\mathrm{ATT}+(1-\pi)\mathrm{ATT}
+   -(1-\pi)\mathrm{ATT}+(1-\pi)\mathrm{ATU} \\[6pt]
+&= \mathrm{ATT}-(1-\pi)(\mathrm{ATT}-\mathrm{ATU}).
+\end{aligned}$$
+
+$$\begin{aligned}
+E[Y_i\mid D_i=1]-E[Y_i\mid D_i=0]
+&= \tau
++\underbrace{
+E[Y_i(0)\mid D_i=1]-E[Y_i(0)\mid D_i=0]
+}_{\text{selection on the baseline }Y_i(0)} \\[12pt]
+&\quad+
+\underbrace{
+(1-\pi)(\mathrm{ATT}-\mathrm{ATU})
+}_{\text{selection on the effect }\tau_i}.
+\end{aligned}$$
+
+Two types of bias towards ATE:
+
+- Selection bias on the baseline $E[Y_i(0)\mid D_i=1]-E[Y_i(0)\mid D_i=0]$: Treated and untreated individuals would have had different outcomes even without treatment.
+- Selection on treatment effects $\mathrm{ATT}-\mathrm{ATU}$:Treated individuals benefit more (or less) from treatment than untreated individuals would.
+
+## Randomization $\bigstar$
+
+Randomization solves the selection bias
+
+$$(Y_i(0),Y_i(1)) \perp\!\!\!\perp D_i$$
+
+Then
+
+$$E[Y_i(0)\mid D_i=1]=E[Y_i(0)\mid D_i=0],$$
+
+so the selection-bias term is zero, and
+
+$$E[Y_i\mid D_i=1]-E[Y_i\mid D_i=0]=ATE=ATT.$$
+
+- Randomization makes the groups **exchangeable**.
+
+## SUTVA $\bigstar$
+
+Stable Unit Treatment Value Assumption
+
+- **No interference**: unit $i$’s outcome does not depend on anyone else’s treatment
+- **No hidden versions of treatment**: $D_i = 1$ means the same thing for everyone
+  - **Consistency**: for a unit that received $d$, the observed outcome is its potential outcome under $d$, $Y_i = Y_i(d)$ when $D_i = d$.
+
+## Four Conditions of Identification $\bigstar$
+
+1.  **Conditional independence (ignorability, unconfoundedness)**:$(Y_i(0),Y_i(1)) \perp\!\!\!\perp D_i|X_i$
+2.  **Positivity: (overlap)**: $0<\Pr(D_i=1\mid X_i=x)<1$
+3.  **Consistency**: $Y_i=Y_i(D_i)$
+4.  **SUTVA**: one unit’s outcome does not depend on others’ treatments, and “treated” means one thing for everyone.
+
+::: callout-important
+These assumptions are not testable.
+:::
+
+Then the ATE is identified:
+
+$$ATE
+=
+E\left[
+E[Y_i\mid D_i=1,X_i]
+-
+E[Y_i\mid D_i=0,X_i]
+\right].$$
+
+The left side is causal and unobservable; the right side is a function of the observed data.
+
+### Proof $\bigstar$
+
+Fix a covariate value $x$ and work inside the cell $X_i=x$:
+
+$$\begin{aligned}
+E[Y_i\mid D_i=1,X_i=x] &= E[Y_i(1)\mid D_i=1,X_i=x] && \text{consistency}\\
+&= E[Y_i(1)\mid X_i=x] && \text{conditional independence}\\
+E[Y_i\mid D_i=0,X_i=x] &= E[Y_i(0)\mid X_i=x] && \text{same two steps}\\
+CATE(x) &= E[Y_i\mid D_i=1,X_i=x]-E[Y_i\mid D_i=0,X_i=x] && \text{subtract}\\
+ATE &= \sum_x CATE(x)\Pr(X_i=x) && \text{iterated expectations}
+\end{aligned}$$
+
+### What Positivity Is Saying $\bigstar$
+
+$0<\Pr(D_i=1\mid X_i=x)<1$: within every covariate cell we must see both treated and untreated units.
+
+- If no one with $X = x$ is ever treated, extrapolation there is model, not evidence.
+- Regression does not warn you. It fills empty cells by extrapolating the functional form.
+
+# DAGS $\bigstar$
+
+```{r}
+#| echo: false
+library(DiagrammeR)
+```
+
+```{r}
+#| echo: false
+#| column: screen-inset
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, margin = 0, pad = 0.25]
+  node [shape = circle, fixedsize = true, width = 0.5]
+
+  # Chain
+  A1 [label='A', pos='0,1!']
+  B1 [label='B', pos='1.2,1!']
+  C1 [label='C', pos='2.4,1!']
+  A1 -> B1
+  B1 -> C1
+
+  # Fork
+  B2 [label='B', pos='4.2,1.6!']
+  A2 [label='A', pos='3.6,0.7!']
+  C2 [label='C', pos='4.8,0.7!']
+  B2 -> A2
+  B2 -> C2
+
+  # Collider -- shifted left
+  A3 [label='A', pos='6.2,1.6!']
+  C3 [label='C', pos='7.4,1.6!']
+  B3 [label='B', pos='6.8,0.7!']
+  A3 -> B3
+  C3 -> B3
+
+  # Labels
+  L1 [label='chain: B is a mediator', shape=plaintext, pos='1.2,0!']
+  L2 [label='fork: B is a confounder', shape=plaintext, pos='4.2,0!']
+  L3 [label='collider: B is a common effect', shape=plaintext, pos='6.8,0!']
+}
+", width = "100%", height = 300)
+```
+
+$$\begin{array}{lll}\hline
+\text{Structure} & A\text{ and }C,\ \text{unconditionally} & \text{conditioning on }B\\ \hline
+\text{Chain }A\to B\to C & \text{associated} & \text{blocks the path}\\
+\text{Fork }A\leftarrow B\to C & \text{associated} & \text{blocks the path}\\
+\text{Collider }A\to B\leftarrow C & \text{independent} & \text{opens the path}\\ \hline
+\end{array}$$
+
+## d-separation $\bigstar$
+
+**Blocking**
+
+Given *conditioned on* a set of variables $Z$, a path is blocked by $Z$ if it contains:
+
+1.  a chain $\cdot \to B \to \cdot$ or a fork $\cdot \leftarrow B \to \cdot$ with $B \in Z$, or
+
+2.  a collider $\cdot \to B \leftarrow \cdot$ with $B \notin Z$ and no descendant of $B$ in $Z$.
+
+::: callout-note
+A descendant of a collider is a partial record of it. Conditioning on the descendant opens the path too.
+:::
+
+A and C are **d-separated** by $Z$ if every path between them is blocked.
+
+- **What it buys:** $d$-separation by $Z$ implies $A \perp\!\!\!\perp C \mid Z$ in every distribution the graph can generate. Within each stratum of $Z$, knowing $A$ says nothing about $C$.
+
+- This is a statement about the *observed* variables $A$, $C$, and $Z$. No potential outcome appears; the connection to $Y(d) \perp\!\!\!\perp D \mid Z$ comes with the back-door criterion.
+
+::: callout-note
+$$\boxed{\text{Back-door criterion = use \(d\)-separation to block all confounding paths from \(D\) to \(Y\).}}$$
+:::
+
+::: callout-tip
+In d-separation: - For a chain $A\to B\to C$, conditioning on $B$ blocks the path. - For a fork $A\leftarrow B\to C$, conditioning on $B$ blocks the path. - For a collider $A\to B\leftarrow C$, conditioning on $B$ opens the path.
+:::
+
+### d-separation in graphs
+
+```{r}
+#| echo: false
+
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]
+  node [shape = circle, fixedsize = true, width = 0.5]
+
+  X [label='X', pos='1,2!']
+  D [label='D', pos='0,1!']
+  Y [label='Y', pos='2,1!']
+  C [label='C', pos='1,0!']
+
+  X -> D
+  X -> Y
+  D -> Y
+  D -> C
+  Y -> C
+}
+", width = "100%", height = 300)
+```
+
+$$\begin{array}{llll}\hline
+\text{Path} & Z=\varnothing & Z=\{X\} & Z=\{X,C\}\\ \hline
+1:\ D\to Y & \text{open} & \text{open} & \text{open}\\
+2:\ D\leftarrow X\to Y & \text{open} & \text{blocked} & \text{blocked}\\
+3:\ D\to C\leftarrow Y & \text{blocked} & \text{blocked} & \text{open}\\ \hline
+\end{array}$$ \## Back-door Criterion $\bigstar$
+
+$Z$ satisfies the back-door criterion for the effect of $D$ on $Y$ if
+
+1.  no node in $Z$ is a descendant of $D$, and
+2.  $Z$ blocks every path between $D$ and $Y$ that **starts with an arrow into D (a back door)**.
+
+- In d-separation terms: delete every arrow out of $D$; in what is left, $Z$ must d-separate $D$ from $Y$.
+- Potential-outcome reading: the causes of $Y(d)=f_Y(d,\ldots)$ are the arrows into $Y$ other than $D$; $Y(d)\perp\!\!\!\perp D\mid Z$ holds when $Z$ blocks every path from $D$ to them.
+
+### Example
+
+```{r}
+#| echo: false
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, margin = 0, pad = 0.20]
+  node [shape = circle, fixedsize = true, width = 0.55]
+
+  D [label='D', pos='0,2!']
+  M [label='M', pos='2,2.8!']
+  Y [label='Y', pos='4,2!']
+  X [label='X', pos='0.8,0.8!']
+  A [label='A', pos='3.2,0.8!']
+  U [label='U', pos='4.8,-0.2!', style='dashed']
+
+  D -> M
+  M -> Y
+  D -> Y
+
+  X -> D
+  X -> Y
+
+  A -> D
+  A -> Y
+
+  U -> A [color='gray']
+  U -> Y [color='gray']
+}
+", width = "100%", height = 420)
+```
+
+Back-door paths from $D$ to $Y$:
+
+- $D \leftarrow X \to Y$: blocked by $X$.
+- $D \leftarrow A \to Y$: blocked by $A$.
+- $D \leftarrow A \leftarrow U \to Y$: blocked by $A$, a chain node on it.
+
+$\{X,A\}$ satisfies the criterion.
+
+# Colliders
+
+## Example: Berkson’s paradox
+
+```{r}
+#| echo: false
+grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]
+  node [shape = circle, fixedsize = true, width = 0.6]
+
+  T [label='T', pos='0,1.8!']
+  A [label='A', pos='2.8,1.8!']
+  C [label='C', pos='1.4,0.3!']
+
+  LT [label='test score', shape=plaintext, pos='0,2.55!']
+  LA [label='athletic talent', shape=plaintext, pos='2.8,2.55!']
+  LC [label='admitted', shape=plaintext, pos='1.4,-0.45!']
+
+  T -> C
+  A -> C
+}
+", width = "100%", height = 320)
+```
+
+Admission to a selective college requires either a high test score or athletic talent; the two are independent among applicants.
+
+Among admitted students, someone with a mediocre score must have got in some other way, so they are probably a strong athlete. A negative association appears from nothing.
+
+## Condition on Ancestors
+
+Conditioning on a collider opens associations among its parents and all of their ancestors.
+
+```{r}
+#| echo: false
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, splines = true, margin = 0.02]
+  node [shape = circle, fixedsize = true, width = 0.7, fontsize = 26]
+  edge [penwidth = 1.5]
+
+  # ---------------- left panel ----------------
+  T1 [label='T', pos='0,1.3!']
+  A1 [label='A', pos='2.4,1.3!']
+  C1 [label='C', pos='1.2,0!', color='orangered']
+  H1 [label='', shape=point, width=0.01, pos='1.2,1.95!']
+
+  T1 -> C1
+  A1 -> C1
+
+  T1 -> H1 [style=dashed, color='orangered', dir=back, arrowtail=normal, arrowhead=none, constraint=false]
+  H1 -> A1 [style=dashed, color='orangered', arrowhead=normal, constraint=false]
+
+  # ---------------- right panel ----------------
+  X2 [label='X', pos='4.6,1.3!']
+  T2 [label='T', pos='6.1,1.3!']
+  A2 [label='A', pos='9.0,1.3!']
+  Y2 [label='Y', pos='10.8,1.3!']
+  C2 [label='C', pos='7.55,0!', color='orangered']
+
+  H2a [label='', shape=point, width=0.01, pos='6.1,1.95!']
+  H2b [label='', shape=point, width=0.01, pos='9.0,1.95!']
+
+  X2 -> T2
+  T2 -> C2
+  A2 -> C2
+  Y2 -> A2
+
+  X2 -> H2a [style=dashed, color='orangered', dir=back, arrowtail=normal, arrowhead=none, constraint=false]
+  H2a -> H2b [style=dashed, color='orangered', arrowhead=none, constraint=false]
+  H2b -> Y2 [style=dashed, color='orangered', arrowhead=normal, constraint=false]
+}
+", width = "100%", height = 320)
+```
+
+## Selection Bias Is Collider Bias $\bigstar$
+
+In sociology, the most common invisible collider is the sample itself.
+
+Examples:
+
+- Wage regressions on employed workers: employment is caused by schooling and by the unobserved determinants of wages. Restricting to the employed conditions on a collider.
+
+- Studies of college students, surviving firms, intact marriages: each is a conditioning operation. - Panel attrition: staying in the sample is an outcome.
+
+- “Among those who report X”: reporting is behavior.
+
+::: callout-tip
+## The practical rule
+
+Draw the selection mechanism into your DAG as a node you have conditioned on. Then read off what it opens. If the sample was constructed by any process downstream of treatment or outcome, assume it opened something.
+:::
+
+# Controls $\bigstar$
+
+$$\begin{array}{lll}\hline
+\text{Variable} & \text{Role} & \text{Control for it?}\\ \hline
+\text{Common cause of }D\text{ and }Y & \text{confounder} & \text{yes: this is the point}\\
+\text{Pre-treatment predictor of }Y\text{ only} & \text{precision variable} & \text{yes: reduces variance}\\
+\text{Pre-treatment predictor of }D\text{ only} & \text{instrument-like} & \text{no: inflates variance, amplifies bias}\\
+\text{Consequence of }D\text{ on the path to }Y & \text{mediator} & \text{no: removes part of the effect}\\
+\text{Common effect of }D\text{ and }Y & \text{collider} & \text{no: creates spurious association}\\
+\text{Consequence of }Y & \text{outcome proxy} & \text{no}\\
+\text{Sample selection on a collider} & \text{implicit conditioning} & \text{no, and often invisible}\\ \hline
+\end{array}$$
+
+::: callout-important
+(the third row) a strong predictor of $D$ with no direct effect on $Y$ amplifies whatever unmeasured confounding remains. “More controls” is not conservative.
+:::
+
+## Causes of the Outcome Only, or of the Treatment Only
+
+```{r}
+#| echo: false
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, margin = 0, pad = 0.12]
+  node [shape = circle, fixedsize = true, width = 0.55]
+
+  # 1: Z -> Y only
+  Z1 [label='Z', pos='0,1.2!']
+  D1 [label='D', pos='1.4,1.2!']
+  Y1 [label='Y', pos='2.7,1.2!']
+
+  D1 -> Y1
+  Z1 -> Y1
+
+  L1 [label='1: Z -> Y only', shape=plaintext, pos='1.35,0.15!']
+
+  # 2: Z -> D only
+  Z2 [label='Z', pos='4.0,1.2!']
+  D2 [label='D', pos='5.4,1.2!']
+  Y2 [label='Y', pos='6.7,1.2!']
+
+  Z2 -> D2
+  D2 -> Y2
+
+  L2 [label='2: Z -> D only', shape=plaintext, pos='5.35,0.15!']
+
+  # 3: Z -> D only, U unmeasured
+  Z3 [label='Z', pos='8.0,1.2!']
+  D3 [label='D', pos='9.4,1.2!']
+  Y3 [label='Y', pos='10.7,1.2!']
+  U3 [label='U', pos='10.05,0.0!', style='dashed', color='gray']
+
+  Z3 -> D3
+  D3 -> Y3
+  U3 -> D3 [color='gray']
+  U3 -> Y3 [color='gray']
+
+  L3 [label='3: Z -> D only, U unmeasured', shape=plaintext, pos='9.35,-0.85!']
+}
+", width = "100%", height = 300)
+```
+
+- **1, good.** $Z$ is a *precision variable*: it absorbs residual variance in $Y$ and shrinks the standard error. Include it.
+
+- **2, neutral for bias, bad for precision.** $Z$ removes variation in $D$; the estimate is unbiased but noisier.
+
+- **3, bad.** Adjusting for $Z$ throws away the clean variation in $D$ and keeps the confounded part, so the remaining estimate leans harder on $U$: **bias amplification**. Variables like $Z$ are *instruments*; they identify an effect by a different route and should not generally be used as ordinary controls.
+
+## Post-Treatment Variables
+
+Adjusting for a post-treatment variable is almost always a mistake, even when the coefficient “looks better.”
+
+## Mediators
+
+```{r}
+#| echo: false
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, splines = polyline, outputorder = edgesfirst, margin = 0, pad = 0.2]
+  node [shape = circle, fixedsize = true, width = 0.6]
+
+  # ---------------- Left ----------------
+  D1 [label='D', pos='0,1.4!']
+  M1 [label='M', pos='1.5,1.4!', color='orangered']
+  Y1 [label='Y', pos='3.0,1.4!']
+  H1 [label='', shape=point, width=0.01, height=0.01, style=invis, pos='1.5,2.2!']
+
+  D1 -> M1
+  M1 -> Y1
+  D1 -> H1 [arrowhead=none]
+  H1 -> Y1
+
+  L1 [label='control M: bad', shape=plaintext, pos='1.5,-0.1!']
+
+  # ---------------- Middle ----------------
+  D2 [label='D', pos='4.5,1.4!']
+  M2 [label='M', pos='6.0,1.4!']
+  Y2 [label='Y', pos='7.5,1.4!']
+  Z2 [label='Z', pos='6.0,0.0!', color='orangered']
+  H2 [label='', shape=point, width=0.01, height=0.01, style=invis, pos='6.0,2.2!']
+
+  D2 -> M2
+  M2 -> Y2
+  M2 -> Z2
+  D2 -> H2 [arrowhead=none]
+  H2 -> Y2
+
+  L2 [label='control Z <- M: bad', shape=plaintext, pos='6.0,-1.0!']
+
+  # ---------------- Right ----------------
+  D3 [label='D', pos='9.0,1.4!']
+  M3 [label='M', pos='10.5,1.4!']
+  Y3 [label='Y', pos='12.0,1.4!']
+  Z3 [label='Z', pos='10.5,0.0!', color='orangered']
+  H3 [label='', shape=point, width=0.01, height=0.01, style=invis, pos='10.5,2.2!']
+
+  D3 -> M3
+  M3 -> Y3
+  Z3 -> M3
+  D3 -> H3 [arrowhead=none]
+  H3 -> Y3
+
+  L3 [label='control Z -> M: neutral', shape=plaintext, pos='10.5,-1.0!']
+}
+")
+```
+
+- **Left.** $M$ carries part of the effect of $D$. Holding it fixed removes that part; what remains is not the total effect.
+
+- **Middle.** $Z$ is a *descendant of the mediator*, a noisy copy of it. Holding $Z$ fixed partly holds $M$ fixed: the same damage, diluted.
+
+- **Right.** $Z$ causes the mediator but lies on no path from $D$ to $Y$. Controlling for it leaves the total effect alone. The rule is about *paths*, not timing alone.
+
+```{r}
+#| echo: false
+DiagrammeR::grViz("
+digraph dag {
+  graph [layout = neato, overlap = false, splines = polyline, margin = 0, pad = 0.15]
+  node [shape = circle, fixedsize = true, width = 0.55]
+
+  # ---------------- Left: mediator ----------------
+  D1 [label='D', pos='0,1.4!']
+  M1 [label='M', pos='1.5,1.4!', color='orangered']
+  Y1 [label='Y', pos='3.0,1.4!']
+  U1 [label='U', pos='2.2,0.1!', style='dashed', color='gray']
+  H1 [label='', shape=point, width=0.01, style=invis, pos='1.5,2.15!']
+
+  D1 -> M1
+  M1 -> Y1
+  D1 -> H1 [arrowhead=none]
+  H1 -> Y1
+  U1 -> M1 [color='gray']
+  U1 -> Y1 [color='gray']
+
+  T1 [label='Mediators and the direct effect', shape=plaintext, fontsize=20, pos='1.5,2.9!']
+  L1 [label='M is a bad control even if you want the\\ndirect effect: conditioning on M opens\\nD -> M <- U -> Y. Direct effects need\\nstronger assumptions than total effects.',
+      shape=plaintext, pos='1.5,-1.2!']
+
+  # ---------------- Right: consequence of outcome ----------------
+  D2 [label='D', pos='5.1,1.7!']
+  Y2 [label='Y', pos='6.5,1.7!']
+  Z2 [label='Z', pos='7.9,1.7!', color='orangered']
+
+  D2 -> Y2
+  Y2 -> Z2
+
+  T2 [label='Consequences of the outcome', shape=plaintext, fontsize=20, pos='6.5,2.9!']
+  L2 [label='Z happens after Y and is caused by it.\\nControlling for it partials out variation in the\\noutcome itself. The direction of the bias\\ndepends on the rest of the graph; do not\\nassume it is conservative.',
+      shape=plaintext, pos='6.7,0.0!']
+}
+", width = "100%", height = 430)
+```
+
+::: callout-important
+Controlling for consequences of $Y$ generally does not help remove confounding between $D$ and $Y$, and it can create bias.
+
+For example
+
+$$D \rightarrow Y \rightarrow P$$
+
+where $P$ is an outcome proxy measured after $Y$.
+
+Suppose $P$ is also affected by something else $U$.
+
+$$Y \rightarrow P \leftarrow U$$
+
+Then $P$ is a collider. Conditioning on $P$ can open the path between $Y$ and $U$, creating spurious association.
+:::
+
+## Mechanism Test $\bigstar$
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, margin=0, pad=0.15]
+  node [shape=circle, fixedsize=true, width=0.6]
+
+  D [label="D", pos="0,1!"]
+  M [label="M", pos="1.5,1!"]
+  Y [label="Y", pos="3,1!"]
+  H [label="", shape=point, width=0.01, style=invis, pos="1.5,1.8!"]
+
+  D -> M [label="a"]
+  M -> Y [label="b"]
+
+  D -> H [arrowhead=none]
+  H -> Y [label="c′"]
+}
+)", width="100%", height=260)
+```
+
+$$\begin{aligned}
+Y &= cD + e_1 && \text{total effect } c\\
+M &= aD + e_2 && D \text{ moves the mediator}\\
+Y &= c'D + bM + e_3 && \text{direct effect } c',\ \text{mediator effect } b
+\end{aligned}$$
+
+With OLS and no interaction, $c=c'+ab$ holds *exactly*: Week 1's omitted-variable formula with $M$ omitted.
+
+$ab$ is the indirect effect, and $ab/c$ is the *share mediated*.
+
+Sobel's SE for $ab$ (is Week 3's delta method.)
+
+$$SE(ab)=\sqrt{b^2SE(a)^2+a^2SE(b)^2},$$
+
+## Mechanism Test Assumption $\bigstar$
+
+No unmeasured cause of both $M$ and $Y$. Randomizing D does not solve it. (also called **sequential ignorability**)
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.15]
+  node [shape=circle, fixedsize=true, width=0.55]
+
+  D [label="D", pos="0,1.2!"]
+  M [label="M", pos="1.5,1.2!", color="orangered"]
+  Y [label="Y", pos="3.0,1.2!"]
+  U [label="U", pos="2.2,0.0!", style=dashed, color=gray]
+
+  H [label="", shape=point, width=0.01, style=invis, pos="1.5,2.0!"]
+
+  D -> M
+  M -> Y
+
+  D -> H [arrowhead=none]
+  H -> Y
+
+  U -> M [color=gray]
+  U -> Y [color=gray]
+}
+)", width="100%", height=280)
+```
+
+**Solution**: sensitivity analysis (`mediation::medsens`)
+
+# Front Door
+
+Sometimes no back door can be closed, but the mechanism can be measured **without measuring the confounder**
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.15]
+  node [shape=circle, fixedsize=true, width=0.6]
+
+  D [label='D', pos='0,0!']
+  M [label='M', pos='1.7,0!']
+  Y [label='Y', pos='3.4,0!']
+  U [label='U', pos='1.7,1.5!', style=dashed, color='gray']
+
+  D -> M
+  M -> Y
+
+  U -> D [color='gray']
+  U -> Y [color='gray']
+}
+)", width="100%", height=280)
+```
+
+## Three conditions
+
+- Complete mediation: every directed path from $D$ to $Y$ passes through $M$.
+
+- No open back door from $D$ to $M$
+
+- Every back door from $M$ to $Y$ is blocked by $D$.
+
+## Why it works
+
+- **Leg 1,** $D \to M$. By condition 2 there is no back door, so $M(d)$ is independent of $D$ and $\Pr(M(d)=m)=\Pr(M=m\mid D=d)$. Read it straight off the data.
+
+- **Leg 2,** $M \to Y$. The only back door from $M$ to $Y$ is $M\leftarrow D\leftarrow U\to Y$, and $D$ is a chain node on it. Conditioning on $D$ blocks it, so the effect of $M$ on $Y$ is identified by adjusting for $D$.
+
+- **Compose.** The effect of $D$ on $Y$ is the effect of $D$ on $M$, pushed through the effect of $M$ on $Y$; by complete mediation there is nothing else.
+
+## Critiques of Front-Door Identification
+
+- **Complete mediation is a strong claim**: Every effect of $D$ on $Y$ must pass through the measured $M$. One unmediated path breaks identification.
+
+- **No hidden confounding of the legs**: $D → M$ must have no back door, and $M → Y$ must be identified by $D$ alone. Anything unobserved that drives both the mechanism and the outcome breaks leg 2.
+
+- **Measurement**: In leg 1, $M$ is the outcome and classical error only adds noise. In leg 2, $M$ is conditioned on, and error there biases the leg and the composed estimate.
+
+- **Sensitivity**: The assumptions are strong: report how the estimate moves as a small unmediated path is allowed.
+
+A real result, the front-Door identification is rarely satisfied.
+
+# Potential Outcomes and DAG Are Complements
+
+**Potential outcomes**
+
+- Precise about the estimand: ATE, ATT, LATE.
+
+- Natural home for heterogeneity, effect distributions, and design-based inference.
+
+- Clumsy for reasoning about long chains of variables
+
+**DAGs**
+
+- Precise about identification: which paths are open, what to condition on.
+
+- Makes collider and mediator mistakes visible immediately.
+
+- Silent about magnitude, heterogeneity, and which average you get.
+
+**Use Both**
+
+Draw the DAG to work out what to condition on. Write the potential outcomes to state what you are estimating. They are one theory in two notations; in practice each makes a different mistake easy to catch.
+
+# Estimands
+
+> Lundberg, I., Johnson, R., & Stewart, B. M. (2021). What Is Your Estimand? Defining the Target Quantity Connects Statistical Evidence to Theory. *American Sociological Review*, 86(3), 532-565.
+
+1. *Theoretical estimand*. A unit-specific quantity and a target population. “The average difference in earnings at 40 between completing college and not, among US-born adults who completed high school.” Stated before any data.
+
+2. *Empirical estimand*. Which identification assumptions turn the theoretical estimand into a function of observable distributions? This is the back-door argument.
+
+3. *Estimation strategy*. E.g., regression, matching, weighting, IV, machine learning.
+
+:::callout-important
+Write the theoretical estimand as one sentence, in words, before you write any code.
+
+**You will be asked to do exactly this on the final exam.**
+:::
