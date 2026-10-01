@@ -1,7 +1,8 @@
 ---
 title: "Week 4: Maximum Likelihood Applications"
 format: html
-embeded-resources: true 
+author: Zhe Chen
+embed-resources: true
 editor: visual
 ---
 
@@ -94,13 +95,19 @@ $$\widehat{V}(\hat{\theta}) = \left[ -\left. \frac{\partial^2 \ell}{\partial \th
 - **Interpretation:** $\beta_j$ moves the line; how much it moves $\theta_i$ depends on $h$ and on where person $i$ sits.
 
 ::: callout-note
-$$\eta_i=X_i'\beta, \qquad \theta_i=h(\eta_i)=h(X_i'\beta)$$ For the linear predictor, the effect of $X_i'$ on $\eta_i$ is $\beta$.
+Let
+
+$$\eta_i=X_i'\beta, \qquad \theta_i=h(\eta_i)=h(X_i'\beta)$$
+
+For the linear predictor, the effect of $X_i'$ on $\eta_i$ is $\beta$.
 
 Using the chain rule,
 
 $$\frac{\partial \theta_i}{\partial x_{ij}}
 =
-h'(\eta_i)\beta_j$$ Now $h'(\eta_i)\beta_j$ depends on $h$ and on where observation $i$ is on that curve.
+h'(\eta_i)\beta_j$$
+
+Now $h'(\eta_i)\beta_j$ depends on $h$ and on where observation $i$ is on that curve.
 
 For OLS, $h(\eta)=\eta$, $h'(\eta)=1$, thus the effect of $X_i'$ is constant.
 
@@ -521,7 +528,7 @@ Mize, Trenton D. 2019. “Best Practices for Estimating, Interpreting, and Prese
 
       - If the two CIs **do not overlap**, then there is evidence that the two estimates differ at roughly the $\alpha$ level.
       - If the two CIs **do overlap**, the two estimates can **still be statistically significantly different**.
-        - Why: Because the two estimate may share covariance.
+        - Why: the two estimates may share covariance.
 
           - $SE(\hat\theta_1-\hat\theta_2) = \sqrt{\operatorname{Var}(\hat\theta_1) + \operatorname{Var}(\hat\theta_2) -2\operatorname{Cov}(\hat\theta_1,\hat\theta_2)}$
 6.  Absent substantive or theoretically interesting values of the focal independent or control variables to test the interaction effect, use average marginal effects to summarize whether there is an interaction effect present on average in the data.
@@ -576,6 +583,36 @@ e^{X_i'\beta_j}
 
 ## Ordered Logit $\bigstar$
 
+::: callout-tip
+## Latent Variable
+
+Latent variable is very useful for understanding ordered logit models
+
+(adapted from Richard Williams, *Ordered Logit Models – Basic & Intermediate Topics*)
+
+1.  In the ordered logit model, there is an observed ordinal variable, $Y$.
+
+2.  $Y$, in turn, is a function of another variable $Y^*$, that is not measured.
+
+    a\. The latent continous variable $Y^*$ determines the value of observed variable $Y$
+
+    b\. $Y^*$ has various threshold points $\tau$. The value of $Y$ depends on whether or not you have crossed a particular threshold. For example, when $J = 3$
+
+    $Y_i$ = 1 if $Y_i^* \le \tau_1$
+
+    $Y_i$ = 2 if $\tau_1 \le Y_i^* \le \tau_2$
+
+    $Y_i$ = 3 if $\tau_2 \le Y_i^*$
+
+    c\. In general,
+
+$$\begin{aligned}
+Y_i^* &= \mu_i + \varepsilon_i, \qquad \varepsilon_i \sim f_L(0,1), \\
+\mu_i &= X_i'\boldsymbol{\beta}, \\
+Y_i &= m \iff \tau_{m-1} < Y_i^* \le \tau_m, \qquad \forall\, m \in \{1,\ldots,M\}.
+\end{aligned}$$
+:::
+
 The categories are [ordered]{.underline}
 
 The probability of being at or below each level:
@@ -587,8 +624,9 @@ $$\log\left(
 =
 \tau_j-X_i'\beta,
 \qquad
-j=1,\ldots,J-1
-\quad\Longrightarrow\quad
+j=1,\ldots,J-1$$
+
+$$\quad\Longrightarrow\quad
 \Pr(Y_i\le j)
 =
 \Lambda\left(\tau_j-X_i'\beta\right).$$
@@ -596,6 +634,95 @@ j=1,\ldots,J-1
 - $\hat{\beta}$ reads like a logit coefficient, it is the same for each category
 
 - $\tau_j$ is like a intercept or gate
+
+::: callout-note
+Base on the latent variable model:
+
+$$\text{Pr}(Y_i \le j) = \text{Pr}(Y_i^* \le \tau_j)$$
+
+Since $Y_i^* = \mu_i + \varepsilon_i$,
+
+$$\begin{aligned}
+\Pr(Y_i\le j)& =\Pr(Y_i^*\le\tau_j) \\
+&= \Pr(X_i'\beta+\varepsilon_i\le\tau_j) \\
+&= \Pr(\varepsilon_i \le \tau_j - X_i'\beta )
+\end{aligned}$$
+
+It means, how small should the error need to be to make the latent outcome below the threshold
+
+For logit model, the key assumption is $\varepsilon_i \sim \text{Logistic}(0, 1)$
+
+And the cumulative distribution function of $\text{Logistic}(0, 1)$ is
+
+$$F_L(z)=\Lambda(z)=\frac{e^z}{1+e^z}=\frac{1}{1+e^{-z}}.$$
+
+So $\Pr(\varepsilon_i\le z)=\Lambda(z)$ (definition of cumulative distribution function)
+
+Set $z=\tau_j-X_i'\beta$, then
+
+$$\boxed{\Pr(Y_i\le j)=\Lambda(\tau_j-X_i'\beta)}$$
+
+Then
+
+$$\Pr(Y_i\le j)=\frac{\exp(\tau_j-X_i'\beta)}{1+\exp(\tau_j-X_i'\beta)}, \quad \Pr(Y_i>j)=1-\Pr(Y_i\le j) = \frac{1}{1+\exp(\tau_j-X_i'\beta)}$$
+
+The cumulative odds is
+
+$$\frac{\Pr(Y_i\le j)}{\Pr(Y_i>j)}=\frac{\frac{\exp(\tau_j-X_i'\beta)}{1+\exp(\tau_j-X_i'\beta)}}{\frac{1}{1+\exp(\tau_j-X_i'\beta)}}=\exp(\tau_j-X_i'\beta)$$ Take the log
+
+$$\boxed{\log\frac{\Pr(Y_i\le j)}{\Pr(Y_i>j)}=\tau_j-X_i'\beta}$$
+:::
+
+### Probabilities $\bigstar$
+
+$$p_{ij}=\Lambda(\tau_j-X_i'\beta)-\Lambda(\tau_{j-1}-X_i'\beta)$$
+
+::: callout-note
+**Example:**
+
+$$\begin{array}{lrrrr}\hline
+& \hat{\beta} & z & \text{cutpoint} & \hat{\tau}\\ \hline
+\text{parents' education} & 0.208 & 19.9 & <\mathrm{HS}\mid \mathrm{HS} & 1.84\\
+\text{vocabulary} & 0.358 & 18.6 & \mathrm{HS}\mid \text{junior college} & 5.21\\
+\text{female} & 0.335 & 5.2 & \text{junior college}\mid \text{bachelor's} & 5.67\\
+\text{black} & -0.024 & -0.3 & \text{bachelor's}\mid \text{graduate} & 7.36\\ \hline
+\end{array}$$
+
+$$\begin{array}{lrrrrrr}\hline
+& X_i'\hat{\beta} & <\mathrm{HS} & \mathrm{HS} & \mathrm{JC} & \mathrm{BA} & \mathrm{grad}\\ \hline
+\text{A: parents 12 yrs, vocabulary 5, male, white} & 4.29 & 0.08 & 0.64 & 0.08 & 0.16 & 0.04\\
+\text{B: parents 16 yrs, vocabulary 8, female, white} & 6.53 & 0.01 & 0.20 & 0.09 & 0.40 & 0.30\\ \hline
+\end{array}$$
+
+For A:
+
+$$\begin{aligned}
+P(A=\mathrm{HS})&=\Lambda(5.21-4.29)-\Lambda(1.84-4.29) \\
+&=\frac{e^{0.92}}{1+e^{0.92}}-\frac{e^{-2.45}}{1+e^{-2.45}} \\
+&\approx0.715-0.079\\
+&=0.636 
+\end{aligned}$$
+:::
+
+### Proportional Assumption $\bigstar$
+
+**ordered logit model = proportional odds model = parallel lines model = parallel regressions model**
+
+Why?
+
+\$\$ \log\left( \frac{\Pr(Y_i\le j)} {\Pr(Y_i\>j)} \right) = \tau\_j-X_i'\beta \quad
+
+\Longleftrightarrow
+
+\quad
+
+\log\frac{\Pr(Y_i>j)}{\Pr(Y_i\le j)}=X_i'\beta-\tau\_j. \$\$
+
+Then for each category $j$
+
+$$OR=e^{\beta_k}$$
+
+We can test whether the odds ratio is constant. If the assumption fails, use *partial proportional models* (`VGAM::vglm`,`ordinal::clm`), which frees the slope $\tau_j$.
 
 # Counts
 
@@ -605,7 +732,7 @@ $$\theta_i = e^{X_i'\beta}, \qquad \log{\theta_i} = X_i'\beta$$
 
 - $e^\hat{\beta}$ = rate
 
-- [Why not use]{.underline} $\log{y}$[:]{.underline} $\log{0}$ [is undefined.]{.underline}
+- Why not use $\log{y}$: $\log{0}$ [is undefined.]{.underline}
 
 ## Overdispersion $\bigstar$
 
@@ -617,7 +744,7 @@ Over dispersion has a larger variance than the mean
 
 - Use `AER::dispersiontest` to examine the overdispersion
 
-### Repairs for Overdispersion (adjust the SE)
+#### Repairs for Overdispersion (adjust the SE)
 
 $$\begin{array}{lll}
 \hline
@@ -730,9 +857,9 @@ $$Y_{ij} = \beta_0 + \beta_1X_{1ij} + \beta_2X_{2j} + u_{j} + e_{ij}$$
 
 Three ways to do with $u_j$
 
-- **Clustered OLS**: split $\epsilon_{ij} = v_g + \eta_{ig}$ , but does not estimating $u_j$ or its variance
+- **Clustered OLS**: split $\epsilon_{ij} = v_g + \eta_{ig}$ , [but does not estimating]{.underline} $u_j$ [or its variance]{.underline}
 
-- **Fixed effects:** estimate every $u_j$, but it is absorbed
+- **Fixed effects:** estimate every $u_j$, [but it is absorbed]{.underline}
 
 - **Multilevel Model:** treats $u_j$ as draws from a distribution and estimates the variance.
 
@@ -779,8 +906,7 @@ Otherwise, OLS is enough.
 ::: callout-note
 ## Why clustered SEs are unreliable with a small number of groups
 
-The estimator of clustered SEs is
-$$\widehat V_{CR}(\hat\beta)
+The estimator of clustered SEs is $$\widehat V_{CR}(\hat\beta)
 =
 c(X'X)^{-1}
 \left(
