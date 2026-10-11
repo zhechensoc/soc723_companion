@@ -1,0 +1,931 @@
+---
+title: "Week 6 Matching, Propensity Scores, and Weighting"
+format: html
+author: Zhe Chen
+embed-resources: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# What Regression Gives $\bigstar$
+
+Naive comparison:
+
+$$\begin{aligned}
+E[Y_i\mid D_i=1]-E[Y_i\mid D_i=0]
+&= \tau
++\underbrace{
+E[Y_i(0)\mid D_i=1]-E[Y_i(0)\mid D_i=0]
+}_{\text{selection on the baseline }Y_i(0)} \\[12pt]
+&\quad+
+\underbrace{
+(1-\pi)(\mathrm{ATT}-\mathrm{ATU})
+}_{\text{selection on the effect }\tau_i}.
+\end{aligned}$$
+
+Regress $Y$ on $D$ and \$X, under conditional ignorability
+
+$$E[Y_i\mid D_i=1,X_i=x]-E[Y_i\mid D_i=0,X_i=x]=\tau(x)
+\qquad \text{Week 5's }CATE(x)$$ **selection problem is removed within
+that cell, but the treatment effect can still differ across cells.**
+
+$$\tau(x_1)\neq \tau(x_2)$$
+
+## ATE, ATT, and ATU $\bigstar$
+
+$$\begin{aligned}
+ATE &= \sum_x \tau(x)\Pr(X_i=x) && \text{everyone: a universal policy}\\
+ATT &= \sum_x \tau(x)\Pr(X_i=x\mid D_i=1) && \text{the treated: what treatment did for them}\\
+ATU &= \sum_x \tau(x)\Pr(X_i=x\mid D_i=0) && \text{the untreated: what it would do for them}
+\end{aligned}$$
+
+::: callout-tip
+The ATE is the weighted average of those heterogeneous CATE(x).
+:::
+
+## Why OLS Fails $\bigstar$
+
+::: callout-tip
+A related paper on this problem
+
+Aronow, P.M. and Samii, C. (2016), Does Regression Produce
+Representative Estimates of Causal Effects?. *American Journal of
+Political Science*, 60: 250-267. https://doi.org/10.1111/ajps.12185
+:::
+
+OLS of $Y_i$ on $D_i$ and a saturated $X_i$ returns one coefficient. It
+too is an average of the $\tau(x)$, but with weights OLS picks, where
+$e(x)=\Pr(D_i=1\mid X_i=x)$:
+
+$$\tau_R=\frac{\sum_x \tau(x)e(x)(1-e(x))\Pr(X_i=x)}{\sum_x e(x)(1-e(x))\Pr(X_i=x)}
+\qquad \text{weight: the variance of treatment in the cell}$$
+
+::: callout-warning
+$\tau_R$ is none of the three targets unless $\tau(x)$ is constant
+:::
+
+::: callout-note
+## proof of $\tau_R$
+
+Set saturated controls as $f(X_i)$, the propensity of being treated as
+$e(x)=\Pr(D_i=1\mid X_i=x)$
+
+$$Y_i=\alpha+\tau_R D_i+f(X_i)+\varepsilon_i$$
+
+Based on FWL theorem
+
+$$\widetilde D_i=D_i-E[D_i\mid X_i]=D_i-e(X_i)$$
+
+$$\widetilde Y_i=Y_i-E[Y_i\mid X_i]$$
+
+$$\tau_R=\frac{E[\widetilde D_i\widetilde Y_i]}{E[\widetilde D_i^2]}=\frac{E[\widetilde D_iY_i]}{E[\widetilde D_i^2]}$$
+Denominator
+
+$$E[\widetilde D_i^2]=\sum_x E[(D_i-e(x))^2\mid X_i=x]\Pr(X_i=x)$$
+
+$$E[(D_i-e(x))^2\mid X_i=x]=e(x)(1-e(x))^2+(1-e(x))e(x)^2=e(x)(1-e(x))$$
+
+$$E[\widetilde D_i^2]=\sum_x e(x)(1-e(x))\Pr(X_i=x)$$
+
+Numerator:
+
+$$E[\widetilde D_iY_i]= E[(D_i - e(X_i)Y_i)]= \sum_x E[(D_i-e(x))Y_i\mid X_i=x]\Pr(X_i=x)$$
+
+$$\begin{aligned} &E[(D_i-e(x))Y_i\mid X_i=x]\\ &=e(x)(1-e(x))E[Y_i\mid D_i=1,X_i=x]\\ &\quad-e(x)(1-e(x))E[Y_i\mid D_i=0,X_i=x]\\ &=e(x)(1-e(x))\left(E[Y_i\mid D_i=1,X_i=x]-E[Y_i\mid D_i=0,X_i=x]\right) \end{aligned}$$
+
+Set $\tau(x)=E[Y_i\mid D_i=1,X_i=x]-E[Y_i\mid D_i=0,X_i=x]$
+
+Then
+
+$$E[\widetilde D_iY_i]=\sum_x\tau(x)e(x)(1-e(x))\Pr(X_i=x)$$
+
+Finally
+
+$$\tau_R=\frac{\sum_x\tau(x)e(x)(1-e(x))\Pr(X_i=x)}{\sum_x e(x)(1-e(x))\Pr(X_i=x)}$$
+Or
+
+$$\tau_R=\sum_x\tau(x)\frac{e(x)(1-e(x))\Pr(X_i=x)}{\sum_{x'}e(x')(1-e(x'))\Pr(X_i=x')}, \qquad w(x)=\frac{e(x)(1-e(x))\Pr(X_i=x)}{\sum_{x'}e(x')(1-e(x'))\Pr(X_i=x')}$$
+$w(x)$ is the variance of treatment in the cell
+
+$$\begin{aligned}
+\operatorname{Var}(D_i\mid X_i=x)
+&=E[D_i^2\mid X_i=x]-(E[D_i\mid X_i=x])^2\\
+&=e(x)-e(x)^2\\
+&=e(x)(1-e(x)).
+\end{aligned}$$
+
+$$\begin{aligned}
+w(x)
+&=\frac{e(x)(1-e(x))\Pr(X_i=x)}
+{\sum_{x'}e(x')(1-e(x'))\Pr(X_i=x')}\\
+&=\frac{\operatorname{Var}(D_i\mid X_i=x)\Pr(X_i=x)}
+{\sum_{x'}\operatorname{Var}(D_i\mid X_i=x')\Pr(X_i=x')}.
+\end{aligned}$$
+
+$$w(x)\propto\operatorname{Var}(D_i\mid X_i=x)\Pr(X_i=x)$$
+:::
+
+# Matching
+
+## Exact Matching $\bigstar$
+
+$$\hat{\tau}(x)=\bar{Y}_{1x}-\bar{Y}_{0x},\qquad \widehat{ATE}=\sum_x\frac{n_x}{n}\hat{\tau}(x)\qquad \text{where }n_x\text{ is the number of units in cell }x$$
+
+- Each treated unit is compared only with untreated units that share its
+  $X_i$. Under ignorability $\hat{\tau} (X_i)$ estimates $\tau(X_i)$
+- **Requirement: a cell needs both arms**
+
+### Responses to unmatched cells $\bigstar$
+
+1.  **Drop the cell**：The estimand becomes the ATE on the matched
+    population, $\sum_x \tau(x)\Pr(X_i=x\mid \mathrm{matched})$. Report
+    the share of units, and of treated units, that were dropped, and
+    what those cells look like.
+
+2.  **Coarsen**: Merge the cell with its neighbors. Merged cells hold
+    both arms more often, at the price of comparing units that differ
+    within a band: a bias you then check (two frames on).
+
+3.  **Model**: Predict $\bar{Y}_{0x}$ for the cell from nearby cells.
+    This is regression’s answer, and it is extrapolation: right only if
+    the model is, and untestable where the data are absent.
+
+## Checks for the ATE $\bigstar$
+
+- **Coverage**: How many treated and untreated units sit in matched
+  cells, and which cells were lost. This is the common-support check in
+  its most transparent form.
+
+- **Balance inside the cells**: Variables matched on exactly agree
+  within every cell by construction. Variables you coarsened do not. For
+  each such variable take the treated–untreated gap within each matched
+  cell, average the gaps over cells with the ATE weights $n_x/n$, and
+  divide by the pooled SD: the standardized mean difference, with 0.1
+  the usual bar. Do the same for variables you did not match on at all.
+
+- **Representativeness**: Compare the matched population’s cell shares
+  with the full sample’s. If dropping cells changed whom you describe,
+  say so.
+
+## Matching for the ATT $\bigstar$
+
+$$\widehat{ATT}=\sum_x\frac{n_{1x}}{n_1}\hat{\tau}(x)\qquad \text{where }n_{1x}\text{ is the number treated in cell }x,\text{ and }n_1\text{ is the number treated in matched cells}$$
+
+- Keep every treated unit. In each treated cell, weight the untreated
+  units so that, cell by cell, the untreated look like the treated. The
+  treated themselves are never reweighted.
+
+- **Asymmetry**. Untreated units in cells with no treated unit go unused
+  at no cost. Treated units in cells with no untreated unit are the
+  problem: dropping them makes it the effect on the matchable treated.
+
+- **Checks**:
+
+  - Coverage: share of treated dropped.
+  - Balance: reweighted untreated against the treated, the treated SD as
+    yardstick.
+  - Variance: how many untreated units each treated cell draws on.
+
+- Positivity is needed only where the treated are: $e(x) < 1$ suffices.
+
+## The Curse of Dimensionality $\bigstar$
+
+Exact matching becomes impossible when there are too many cells.
+
+Responses
+
+- **Coarsened exact matching (CEM)**: bin continuous covariates
+  coarsely, then match exactly on the bins.
+
+- **Nearest-neighbour matching** on a distance
+
+- **Propensity score matching**: collapse $X$ to a single number
+
+## Matching Is Preprocessing, Not Estimation $\bigstar$
+
+Matching is a *nonparametric preprocessing step* that reduces how much
+your final model has to do.
+
+**Steps for estimation**
+
+1.  Match, using no outcome data at all. This is the design stage; it
+    can be iterated freely without p-hacking, because you cannot see the
+    answer.
+
+2.  Check coverage and balance, as above: standardized mean differences
+    below 0.1, variance ratios near 1, density overlaps.
+
+3.  Then run your estimate on the matched sample.
+
+## Standard Error of a Matching Estimate
+
+### Cells
+
+$$\begin{aligned}
+\widehat{ATE} &= \sum_x \frac{n_x}{n}\hat{\tau}(x) && \text{each }\hat{\tau}(x)\text{ is a difference of two means}\\
+\widehat{\operatorname{Var}}(\widehat{ATE}) &= \sum_x\left(\frac{n_x}{n}\right)^2\left(\frac{s_{1x}^2}{n_{1x}}+\frac{s_{0x}^2}{n_{0x}}\right) && \text{ATT: weights }n_{1x}/n_1
+\end{aligned}$$ - **Bootstrap**. Resample units, rebuild the cells,
+recompute.
+
+- **The regression route**. Weighted regression of Y on D with the
+  matching weights gives the same estimate. **Do not cluster by cell:
+  cells are strata, not dependence.**
+
+### Nearest-Neighbor Matching
+
+With $K_j$ uses of control $j$,
+
+$$\operatorname{Var}(\widehat{ATT})=\frac{1}{n_1^2}\left[\sum_{\mathrm{treated}}\sigma_1^2(X_i)+\sum_{\mathrm{controls}}K_j^2\sigma_0^2(X_j)\right].$$
+
+- Ordinary bootsrap fails
+
+- `Matching::Match()` prints the formula above.
+
+### What to Actually Do
+
+| Estimator | Standard error |
+|:-----------------------------------|:-----------------------------------|
+| **Exact or coarsened cells** | Cell formula, or weighted regression of $Y$ on $D$ with matching weights and a robust sandwich (`vcovHC`). Not clustered by cell. |
+| **Nearest neighbour, without replacement** | Weighted regression on `match.data()`, sandwich clustered by matched pair (`cluster = ~subclass`). No bootstrap. |
+| **Nearest neighbor, with replacement** | `get_matches()`, so a reused control appears once per use; sandwich clustered by pair and person (`~subclass + id`), or `Matching::Match()` for the Abadie–Imbens variance. No bootstrap. |
+| **Weighting (ATE, ATT, ATO)** | Weighted regression with a robust sandwich, treating $\hat e$ as known; bootstrap the entire pipeline, including logit, to account for its estimation. |
+| **AIPW** | Influence function: SD of the $n$ terms divided by $\sqrt{n}$; the pipeline bootstrap agrees. |
+
+### Practical Lessons for Matching
+
+1.  Define the treatment before you match. “Ever lived with” and “born
+    to” are different populations with different answers; the first
+    mixes in the effect of separation.
+
+2.  Measure covariates before the treatment.
+
+3.  Show the selection, so the reader knows which way the raw gap is
+    biased.
+
+4.  Report what pruning did: cells kept, controls set aside, whether any
+    treated unit was lost.
+
+5.  Regression beside matching checks model dependence, not
+    ignorability. The causal claim rests on the bounds, and on saying
+    what they assume: that observed selection is informative about
+    unobserved selection.
+
+# Propensity Score
+
+## Definition $\bigstar$
+
+The propensity score
+
+$$e(x)\equiv\Pr(D_i=1\mid X_i=x).$$
+
+**Rosenbaum and Rubin (1983)**
+
+If
+
+$$(Y_i(0),Y_i(1))\perp\!\!\!\perp D_i\mid X_i,$$
+
+then
+
+$$(Y_i(0),Y_i(1))\perp\!\!\!\perp D_i\mid e(X_i).$$
+
+- A p-dimensional matching problem collapses to a one-dimensional one.
+
+- $e(X)$ is a balancing score: within strata of $e(X)$, the whole
+  covariate vector is distributed identically in the two groups.
+
+- **It does nothing about unobserved confounders.**
+
+## Estimation and Checks $\bigstar$
+
+- Usually a logit of $D$ on $X$. **This logit model is not judged by
+  fit.** A propensity model with a high AUC (Area Under the ROC Curve)
+  is often a bad sign, it means treated and control units are easy to
+  tell apart, i.e. poor overlap.
+
+- Judge it by balance: does weighting or matching on $\hat{e}$ equalize
+  the covariate distributions? Iterate on the specification until it
+  does, adding interactions and polynomials as needed.
+
+- Plot the two distributions of $\hat{e}$. Mass near 0 among the
+  treated, or near 1 among the controls, is a positivity failure staring
+  at you.
+
+::: callout-warning
+## The propensity score paradox
+
+The better your propensity model predicts treatment, the less common
+support you have, and the less the data can tell you. Prediction quality
+and identification pull in opposite directions.
+:::
+
+## Overlap: What to Do When It Fails $\bigstar$
+
+```{r}
+#| echo: false
+# Propensity score values
+x <- seq(0.01, 0.99, length.out = 1000)
+
+# Illustrative densities
+control <- dnorm(x, mean = 0.30, sd = 0.15)
+treated <- dnorm(x, mean = 0.70, sd = 0.15)
+
+# Plot
+plot(x, control, type = "n",
+     xlim = c(0, 1), ylim = c(0, 3.2),
+     xlab = "", ylab = "", axes = FALSE)
+
+# Common support
+rect(0.35, 0, 0.65, 3.0, col = "grey93", border = NA)
+
+# Density curves
+lines(x, control, col = "navy", lwd = 2.5)
+lines(x, treated, col = "orangered3", lwd = 2.5, lty = 2)
+
+# Axes
+axis(1, at = c(0, 0.5, 1), labels = c("0", "0.5", "1"))
+arrows(0, 0, 1.05, 0, length = 0.08, xpd = TRUE)
+arrows(0, 0, 0, 3.2, length = 0.08)
+
+# Labels
+text(0, 3.35, "density", xpd = TRUE, pos = 4)
+text(1.07, 0, expression(hat(e)(X)), xpd = TRUE, pos = 4)
+
+text(0.18, 2.8, "controls", col = "navy")
+text(0.82, 2.8, "treated", col = "orangered3")
+text(0.50, 0.7, "common support", font = 2, cex = 1.1)
+```
+
+- **Trim to a range of** $\hat{e}$ (say \[0.1, 0.9\]), and say so. You
+  have changed the estimand to that subpopulation.
+
+- **Redefine the population** to the region where comparison is
+  possible, often the honest and more interesting move
+
+- **Change the estimand**: the ATT needs overlap only for the treated;
+  the “overlap-weighted” estimand (Li, Morgan, and Zaslavsky 2018),
+  deliberately targets the region where comparison is best.
+
+# Weighting $\bigstar$
+
+## Why Weighting after Matching
+
+- **It is the same operation**. Matching’s ATT gave each untreated unit
+  in cell $x$ the weight $n_{1x}/n_{0x}$. Weighting gives it
+  $e(x)/(1 − e(x))$: the same ratio with a model in place of the count.
+  Both average $\tau (x)$ with the target’s weights.
+
+- **What weighting buys**: A one-armed or empty cell is not dropped.
+  Every unit is used, continuous X and many covariates are no obstacle,
+  one formula serves every target, and it plugs into the doubly robust
+  estimator.
+
+- **What weighting costs**: Thin overlap does not disappear; it moves.
+  Matching drops a treated unit with no comparison and says so.
+  Weighting keeps it at weight $1/\hat{e}$ = 100 and says so only
+  through the variance and the largest weights; and the weights are
+  right only where the model is, including where the data are too thin
+  to check.
+
+**The trade** - Matching narrows the target and says so - Weighting
+keeps the target and pays in variance and model dependence.
+
+## ATT in Weighting $\bigstar$
+
+In cell $x$, $n_{1x}/n_{0x}$ estimates
+$\Pr(D_i=1\mid x)/\Pr(D_i=0\mid x)=e(x)/(1-e(x))$, the *odds of
+treatment*. So matching's ATT weights were, in population terms:
+
+$$\text{treated: }1,\qquad \text{untreated: }\frac{e(X_i)}{1-e(X_i)}.$$
+
+::: callout-note
+Intuitively, ATT weighting makes untreated individuals resemble the
+treated population by giving more weight to controls from cells where
+treatment is more common.
+
+For the ATT, we want to estimate the counterfactual outcomes of the
+treated population.
+
+The matching weights are:
+
+$$w_i=\begin{cases}1,&D_i=1\\ \dfrac{n_{1x}}{n_{0x}},&D_i=0,\ X_i=x.\end{cases}$$
+
+Within a cell $x$, the treatment probability is
+$\hat{e}(x) = n_{1x}/(n_{1x}+n_{0x})$
+
+$$\frac{\hat e(x)}{1-\hat e(x)}=\frac{n_{1x}/(n_{1x}+n_{0x})}{n_{0x}/(n_{1x}+n_{0x})}=\frac{n_{1x}}{n_{0x}}$$
+Thus, in population terms, the ATT weights are
+
+$$\boxed{w_i^{ATT}=\begin{cases}1,&D_i=1\\ \dfrac{e(X_i)}{1-e(X_i)},&D_i=0.\end{cases}}$$
+:::
+
+::: callout-note
+## Check that the weighted untreated mean is the treated group's counterfactual:
+
+$$\begin{aligned}
+E\left[\frac{e(X_i)}{1-e(X_i)}(1-D_i)Y_i\right]
+&=E\left[\frac{e(X_i)}{1-e(X_i)}E[(1-D_i)Y_i(0)\mid X_i]\right] && \text{iterate on }X_i\\
+&=E\left[\frac{e(X_i)}{1-e(X_i)}(1-e(X_i))E[Y_i(0)\mid X_i]\right] && \text{ignorability}\\
+&=E\left[e(X_i)E[Y_i(0)\mid X_i]\right] && \text{cancel}\\
+&=E[D_iY_i(0)]=\pi E[Y_i(0)\mid D_i=1] && e(X_i)=E[D_i\mid X_i],\ \text{iterate}
+\end{aligned}$$
+
+Divide by $\pi=E[D_i]$, which is what the weights sum to. The treated
+need no weights: $E[D_iY_i]/\pi=E[Y_i(1)\mid D_i=1]$. Subtract: the ATT.
+:::
+
+## ATE in Weighting $\bigstar$
+
+Now the target is everyone. Cell $x$ holds $n_x$ units, of which
+$n_{1x}$ are treated; for the treated to stand in for the whole cell,
+each must count $n_x/n_{1x}$ times, which estimates $1/e(x)$. Likewise
+each untreated unit counts $1/(1-e(x))$:
+
+$$\boxed{\widehat{ATE}_{\mathrm{IPW}}=\frac{1}{n}\sum_{i=1}^{n}\left[\frac{D_iY_i}{\hat e(X_i)}-\frac{(1-D_i)Y_i}{1-\hat e(X_i)}\right]}$$
+
+Rare treated units in a cell count for more, because they stand in for
+everyone like them who was not treated.
+
+::: callout-note
+**1. Derivation from Covariate Cells**
+
+Define the estimated propensity score within cell $x$:
+
+$$\hat e(x)=\frac{n_{1x}}{n_x},\qquad 1-\hat e(x)=\frac{n_{0x}}{n_x}$$
+
+Therefore, the inverse probability weights are:
+
+$$\frac{1}{\hat e(x)}=\frac{n_x}{n_{1x}},\qquad \frac{1}{1-\hat e(x)}=\frac{n_x}{n_{0x}}$$
+
+**Step 1: Weighted treated outcomes**
+
+$$\begin{aligned}
+\frac{1}{n}\sum_{i:X_i=x}\frac{D_iY_i}{\hat e(x)}
+&=\frac{1}{n}\frac{n_x}{n_{1x}}\sum_{i:X_i=x,D_i=1}Y_i\\
+&=\frac{n_x}{n}\left(\frac{1}{n_{1x}}\sum_{i:X_i=x,D_i=1}Y_i\right)\\
+&=\frac{n_x}{n}\bar Y_{1x}
+\end{aligned}$$
+
+**Step 2: Weighted untreated outcomes**
+
+$$\begin{aligned}
+\frac{1}{n}\sum_{i:X_i=x}\frac{(1-D_i)Y_i}{1-\hat e(x)}
+&=\frac{1}{n}\frac{n_x}{n_{0x}}\sum_{i:X_i=x,D_i=0}Y_i\\
+&=\frac{n_x}{n}\left(\frac{1}{n_{0x}}\sum_{i:X_i=x,D_i=0}Y_i\right)\\
+&=\frac{n_x}{n}\bar Y_{0x}
+\end{aligned}$$
+
+**Step 3: Subtract and aggregate across cells**
+
+$$\begin{aligned}
+\widehat{ATE}_{IPW}
+&=\sum_x\frac{n_x}{n}\left(\bar Y_{1x}-\bar Y_{0x}\right)\\
+&=\frac{1}{n}\sum_{i=1}^n\left[\frac{D_iY_i}{\hat e(X_i)}-\frac{(1-D_i)Y_i}{1-\hat e(X_i)}\right]
+\end{aligned}$$
+
+**2. Population Identification Proof**
+
+Assume consistency, conditional ignorability, and positivity.
+
+**Step 1: Identify the treated potential outcome mean**
+
+$$\begin{aligned}
+E\left[\frac{D_iY_i}{e(X_i)}\right]
+&=E\left[\frac{D_iY_i(1)}{e(X_i)}\right] && \text{consistency}\\
+&=E\left[\frac{E[D_iY_i(1)\mid X_i]}{e(X_i)}\right] && \text{iterated expectations}\\
+&=E\left[\frac{E[D_i\mid X_i]E[Y_i(1)\mid X_i]}{e(X_i)}\right] && \text{ignorability}\\
+&=E\left[\frac{e(X_i)E[Y_i(1)\mid X_i]}{e(X_i)}\right] && \text{definition of propensity score}\\
+&=E[E[Y_i(1)\mid X_i]] && \text{cancel}\\
+&=E[Y_i(1)] && \text{iterated expectations}
+\end{aligned}$$
+
+**Step 2: Identify the untreated potential outcome mean**
+
+$$\begin{aligned}
+E\left[\frac{(1-D_i)Y_i}{1-e(X_i)}\right]
+&=E\left[\frac{(1-D_i)Y_i(0)}{1-e(X_i)}\right] && \text{consistency}\\
+&=E\left[\frac{E[(1-D_i)Y_i(0)\mid X_i]}{1-e(X_i)}\right] && \text{iterated expectations}\\
+&=E\left[\frac{E[1-D_i\mid X_i]E[Y_i(0)\mid X_i]}{1-e(X_i)}\right] && \text{ignorability}\\
+&=E\left[\frac{(1-e(X_i))E[Y_i(0)\mid X_i]}{1-e(X_i)}\right]\\
+&=E[E[Y_i(0)\mid X_i]]\\
+&=E[Y_i(0)]
+\end{aligned}$$
+
+**Step 3: Subtract to identify ATE**
+
+$$\begin{aligned}
+ATE
+&=E[Y_i(1)-Y_i(0)]\\
+&=E[Y_i(1)]-E[Y_i(0)]\\
+&=E\left[\frac{D_iY_i}{e(X_i)}\right]-E\left[\frac{(1-D_i)Y_i}{1-e(X_i)}\right]\\
+&=\boxed{E\left[\frac{D_iY_i}{e(X_i)}-\frac{(1-D_i)Y_i}{1-e(X_i)}\right]}
+\end{aligned}$$
+:::
+
+::: callout-note
+## Check that the weighted untreated mean is the treated group's counterfactual
+
+$$E\left[\frac{D_iY_i}{e(X_i)}\right]=E\left[\frac{E[D_i\mid X_i]E[Y_i(1)\mid X_i]}{e(X_i)}\right]=E\left[E[Y_i(1)\mid X_i]\right]=E[Y_i(1)],$$
+
+by ignorability given $X_i$ and then iterated expectations; the same for
+the untreated arm with $1-e$. $\blacksquare$
+
+This is the Horvitz–Thompson estimator of survey sampling, with
+treatment assignment as the sampling mechanism.
+:::
+
+## ATO in Weighting $\bigstar$
+
+Cell $x$ holds $n_{1x}=e(x)n_x$ treated and $n_{0x}=(1-e(x))n_x$
+untreated units. Give each treated unit the weight $1-e(x)=n_{0x}/n_x$,
+the share of its cell it can be compared with, and each untreated unit
+$e(x)=n_{1x}/n_x$. Then in every cell
+
+$$\underbrace{n_{1x}\frac{n_{0x}}{n_x}}_{\text{treated total}}=\frac{n_{1x}n_{0x}}{n_x}=\underbrace{n_{0x}\frac{n_{1x}}{n_x}}_{\text{untreated total}}.$$
+
+- **Balanced by construction:** both arms carry the same total weight in
+  every cell. Bounded: no weight exceeds 1.
+- **Whom it describes:** Cell $x$ counts in proportion to
+  $n_{1x}n_{0x}/n_x=n_xe(x)(1-e(x))$, the comparisons it affords: a
+  one-armed cell drops out on its own, a half-and-half cell counts most.
+  The target is “people for whom the data contain a comparison,” the
+  *overlap population*, ATO.
+- $n_xe(x)(1-e(x))$ is slide 6's regression weighting: ATO is what
+  saturated OLS targeted all along, now chosen deliberately.
+
+::: callout-note
+Let $D_i\in\{0,1\}$ and $e(x)=\Pr(D_i=1\mid X_i=x)$. In cell $x$, there
+are $n_{1x}=n_xe(x)$ treated and $n_{0x}=n_x(1-e(x))$ untreated
+observations.
+
+**Step 1. Construct overlap weights.**
+
+Assign each observation the weight
+
+$$\omega_i=
+\begin{cases}
+1-e(x), & D_i=1,\\
+e(x), & D_i=0.
+\end{cases}$$
+
+The total weight in each treatment arm is
+
+$$\begin{aligned}
+W_{1x}
+&=n_{1x}(1-e(x))\\
+&=\frac{n_{1x}n_{0x}}{n_x}\\
+&=n_{0x}e(x)=W_{0x}.
+\end{aligned}$$
+
+Thus, overlap weighting achieves exact within-cell balance.
+
+**Step 2. Derive the cell weights.**
+
+Because $D_i$ is binary,
+
+$$\begin{aligned}
+\operatorname{Var}(D_i\mid X_i=x)
+&=E[D_i^2\mid X_i=x]
+ -(E[D_i\mid X_i=x])^2\\
+&=e(x)-e(x)^2\\
+&=e(x)(1-e(x)).
+\end{aligned}$$
+
+Therefore, the total weight per arm in cell $x$ is
+
+$$\boxed{
+a_x=n_xe(x)(1-e(x))
+=n_x\operatorname{Var}(D_i\mid X_i=x).
+}$$
+
+**Step 3. Establish equivalence to saturated OLS.**
+
+Let $\widehat{\tau}(x)=\overline Y_{1x}-\overline Y_{0x}$. The
+overlap-weighted mean difference is
+
+$$\widehat{\tau}_{OW}
+=\frac{\sum_xa_x\widehat{\tau}(x)}{\sum_xa_x}.$$
+
+For the saturated regression
+
+$$Y_i=\alpha_{X_i}+\tau_R D_i+\varepsilon_i,$$
+
+the FWL theorem gives
+
+$$\widehat{\tau}_R
+=\frac{\sum_i(D_i-e(X_i))Y_i}
+{\sum_i(D_i-e(X_i))^2}.$$
+
+Within each cell,
+
+$$\begin{aligned}
+\sum_{i:X_i=x}(D_i-e(x))Y_i
+&=a_x\widehat{\tau}(x),\\
+\sum_{i:X_i=x}(D_i-e(x))^2
+&=a_x.
+\end{aligned}$$
+
+Hence,
+
+$$\boxed{
+\widehat{\tau}_R
+=\frac{\sum_xa_x\widehat{\tau}(x)}{\sum_xa_x}
+=\widehat{\tau}_{OW}.
+}$$
+
+This sample equality uses empirical within-cell propensity scores and
+requires positive total within-cell treatment variation.
+
+**Step 4. Identify the causal estimand.**
+
+Under consistency, conditional exchangeability, and positivity, the
+population coefficient is
+
+$$\begin{aligned}
+\tau_R
+&=\frac{\sum_x e(x)(1-e(x))\Pr(X_i=x)\tau(x)}
+{\sum_x e(x)(1-e(x))\Pr(X_i=x)}\\
+&=\boxed{ATO}.
+\end{aligned}$$
+
+Thus, saturated OLS implicitly targets the overlap population, while
+overlap weighting targets it explicitly.
+:::
+
+## Full Table $\bigstar$
+
+$$\begin{array}{llll}\hline
+\text{Target} & \text{Weight on treated} & \text{Weight on untreated} & \text{Who is reweighted}\\ \hline
+\text{ATE} & 1/e(X) & 1/(1-e(X)) & \text{both, to the population}\\
+\text{ATT} & 1 & e(X)/(1-e(X)) & \text{the untreated, to the treated}\\
+\text{ATU} & (1-e(X))/e(X) & 1 & \text{the treated, to the untreated}\\
+\text{Overlap (ATO)} & 1-e(X) & e(X) & \text{both, to where they overlap}\\ \hline
+\end{array}$$
+
+## IPW is a Weighted Regression
+
+Define the **Horvitz–Thompson transformation**:
+
+$$H_i=\frac{D_i}{e(X_i)}-\frac{1-D_i}{1-e(X_i)}.$$
+
+Then $E[H_iY_i]=E[Y_i(1)-Y_i(0)]$: **the ATE weights of the last frame
+in one term.**
+
+Equivalently: The coefficient on $D_i$ from a weighted least squares
+regression of $Y_i$ on $D_i$ (with an intercept), **using weights**
+$1/\hat e(X_i)$ **for the treated and** $1/(1-\hat e(X_i))$ **for the
+controls,** is a difference in weighted means with the weights
+normalized to sum to one in each arm (the Hájek form), rather than the
+raw average that divides by $n$.
+
+- **Practically convenient:** `lm(y ~ d, weights = w)` runs IPW, and
+  covariates can be added for extra protection.
+- **Conceptually important:** weighting and regression are one
+  continuum, and this is the bridge to the doubly robust estimator.
+
+## Stabilized Weights
+
+The ATE weights $1/e$ and $1/(1-e)$ sum to about $n$ per arm. The
+*stabilized weight* multiplies by the arm's share, $\pi=\Pr(D_i=1)$:
+
+$$w_i^S=\frac{\Pr(D_i=d)}{\Pr(D_i=d\mid X_i)}
+=\begin{cases}
+\pi/e(X_i), & D_i=1\\
+(1-\pi)/(1-e(X_i)), & D_i=0.
+\end{cases}$$
+
+From here on $w_i$ means $w_i^S$.
+
+- **What changes: the scale.** The weights now sum to about $n_1$ and
+  $n_0$ and average 1. A mean far from 1 says the model for $e$ is off.
+
+- **What does not change: everything relative.** Within an arm every
+  weight is multiplied by the same constant, so the weighted mean
+  $\sum_i w_iY_i/\sum_i w_i$ is the same, and the unit with
+  $\hat e=0.01$ still counts 100 times its neighbors.
+
+## Effective Sample Size
+
+A weighted mean is as noisy as an *unweighted* mean of $n = ESS$ units.\
+
+$$ESS=\frac{\left(\sum_i w_i\right)^2}{\sum_i w_i^2}$$
+
+**The direction:** the more unequal the weights, the smaller the ESS,
+from $n$ (all equal) down to $1$ (one unit has it all). The average
+inherits the heaviest unit's noise, and the others cannot average it
+away.
+
+$$\begin{array}{lc}\hline
+\text{Four units, weights} & ESS\\ \hline
+0.25,\ 0.25,\ 0.25,\ 0.25 & 4.0\\
+0.40,\ 0.20,\ 0.20,\ 0.20 & 3.6\\
+0.70,\ 0.10,\ 0.10,\ 0.10 & 1.9\\
+0.97,\ 0.01,\ 0.01,\ 0.01 & 1.1\\ \hline
+\end{array}$$
+
+- **Multiplying every weight by** $c$ leaves ESS alone ($c^2$ cancels):
+  stabilizing does not raise it.
+
+- **Flattening the weights raises it:** trim the largest, or use overlap
+  weights.
+
+- **What does raise the ESS**: trimming or capping the largest weights,
+  or overlap weights (bounded by 1).
+
+- **Where stabilizing matters**: weights multiplied over periods
+  (marginal structural models). With one treatment it is a convention.
+
+## When Weighing Works and When Does Not
+
+- **The mechanism.** Within cell $x$, ignorability makes the treated a
+  random sample of the cell. Weighting corrects only the *sizes* of
+  those samples so that each arm has the target's cell distribution.
+  Then a weighted mean of $Y$ in an arm is a mean of $Y(d)$ over the
+  target population. That is the whole proof, twice over on the last two
+  frames.
+
+- **It uses every unit.** No pairing, no discarding, and one formula for
+  every estimand; only $e(x)$ has to be estimated.
+
+- **It needs** $e(x)$ right. Matching on cells needed nothing modelled;
+  weighting needs $\Pr(D=1\mid X)$, usually a logit. A wrong model gives
+  wrong weights everywhere at once.
+
+- **It needs positivity, loudly.** A treated unit with $\hat e=0.01$
+  carries the weight of a hundred; the variance goes with it. Where
+  matching dropped a cell, weighting inflates it. Diagnose with the
+  largest weights and the effective sample size,
+  $(\sum_i w_i)^2/\sum_i w_i^2$; then trim, or change the estimand.
+
+# Doubly Robust
+
+## G-Computation $\bigstar$
+
+Back to the cells. Regress $Y$ on the cell dummies *in each arm
+separately*: a saturated model's fitted value in cell $x$ is
+$\bar Y_{1x}$ in the treated arm, $\bar Y_{0x}$ in the untreated.
+Predict *both* for every unit, the one it has and the one it does not,
+and average:
+
+$$\frac{1}{n}\sum_{i=1}^{n}\left[\hat m_1(X_i)-\hat m_0(X_i)\right]=\sum_x\frac{n_x}{n}\left(\bar Y_{1x}-\bar Y_{0x}\right),$$
+
+exact matching's ATE; average over the treated only and it is the ATT.
+
+- **So g-computation is:** model the outcome in each arm, impute the
+  missing potential outcome for everyone, average with the target's
+  weights. With a saturated model nothing is modelled: it is matching.
+
+- **One coefficient instead**, $Y$ on $D$ and the same dummies: the
+  anatomy's $\tau_R$ with its variance weights. Separate models per arm
+  restore the target's weights. **A one-armed cell has no**
+  $\bar Y_{0x}$**: no prediction, so no extrapolation.**
+
+::: callout-note
+## G-computation: ATE, ATT, and ATU
+
+**Step 1: Estimate conditional outcomes in each cell**
+
+$$\widehat m_1(x)= E[Y_i|D_i = 1, X_i = x] =\overline Y_{1x} 
+\qquad
+\widehat m_0(x)= E[Y_i|D_i = 0, X_i = x] = \overline Y_{0x}$$
+
+- $\widehat m_1(x)$: The average outcome of treated individuals in cell
+  $x$
+
+- $\widehat m_0(x)$: The average outcome of untreated individuals in
+  cell $x$
+
+Conditional treatment effect
+
+$$\widehat{\tau}(x)=\widehat m_1(x)-\widehat m_0(x)=\overline Y_{1x}-\overline Y_{0x}$$
+
+**Step 2: Aggregate treatment effects**
+
+ATE: Entire population
+
+$$\widehat{ATE}=\frac{1}{n}\sum_{i=1}^{n}[\widehat m_1(X_i)-\widehat m_0(X_i)]=\sum_x\frac{n_x}{n}\widehat{\tau}(x)$$
+
+ATT: Treated population
+
+$$\widehat{ATT}=\frac{1}{n_1}\sum_{i:D_i=1}[\widehat m_1(X_i)-\widehat m_0(X_i)]=\sum_x\frac{n_{1x}}{n_1}\widehat{\tau}(x)$$
+
+ATU: Untreated population
+
+$$\widehat{ATU}=\frac{1}{n_0}\sum_{i:D_i=0}[\widehat m_1(X_i)-\widehat m_0(X_i)]=\sum_x\frac{n_{0x}}{n_0}\widehat{\tau}(x)$$
+:::
+
+## When X Is Continuous
+
+The outcome model
+
+$$\widehat m_1(x)=\widehat\alpha_1+\widehat\beta_1x, \qquad
+\widehat m_0(x)=\widehat\alpha_0+\widehat\beta_0x$$
+
+- Every unit now gets a prediction. Where neighbours exist the model
+  interpolates between them. Where an arm is absent it extrapolates.
+
+- **The trade**: Matching dropped the one-armed cells and said so;
+  g-computation fills them and says nothing.
+
+## Augmented IPW $\bigstar$
+
+**Why use double robustness**: IPW is consistent only if $e(X_i)$ is
+right. G-computation is consistent only if $m_d(X_i)$ is right. Combine
+them so that *either* suffices.
+
+Given the two nuisance functions $m_d(x)=E[Y_i\mid D_i=d,X_i=x]$ and
+$e(x)=\Pr(D_i=1\mid X_i=x)$, the **augmented IPW** estimand is
+
+$$\tau_{\mathrm{AIPW}}=E\left[\underbrace{m_1(X_i)-m_0(X_i)}_{\text{g-computation}}+\underbrace{\frac{D_i(Y_i-m_1(X_i))}{e(X_i)}-\frac{(1-D_i)(Y_i-m_0(X_i))}{1-e(X_i)}}_{\text{IPW-weighted residuals}}\right].$$
+
+::: callout-important
+## Double robustness
+
+$$\tau_{\mathrm{AIPW}}=E[Y_i(1)-Y_i(0)]$$
+
+if *either* $m_d$ or $e$ is correctly specified, not necessarily both.
+And when both are right, AIPW attains the semiparametric efficiency
+bound under standard regularity conditions.
+:::
+
+::: callout-warning
+## Double robustness is often oversold
+
+- “Either model correct” is a low bar in theory and an unreachable one
+  in practice: both models are almost certainly wrong, and then AIPW is
+  inconsistent too.
+- What it really buys is second-order bias: the bias is the product of
+  the two models’ errors, so it is small when both are approximately
+  right. That is genuinely valuable, and it is the honest version of the
+  claim.
+- With extreme weights, AIPW can be more unstable than either component
+  alone.
+- None of this addresses unobserved confounding. Everything today
+  assumes conditional ignorability, and no diagnostic can test it.
+:::
+
+# More...
+
+## Sensitivity Analysis $\bigstar$
+
+**How strong would an unobserved confounder have to be to overturn my
+conclusion?**
+
+- **Rosenbaum bounds**: how much would two matched units have to differ
+  in their odds of treatment before the inference flips?
+
+- **Partial** $R^2$ / robustness value: express the required confounder
+  strength as the share of residual variation in $D$ and in $Y$ it would
+  have to explain, then benchmark it against an observed covariate, “the
+  confounder would need to be three times as strong as predictor $X$.”
+
+- **E-value**: the minimum risk ratio a confounder would need with both
+  treatment and outcome.
+
+## Choosing Among the Methods $\bigstar$
+
+$$\begin{array}{lll}\hline
+\text{Method} & \text{Models} & \text{Main weakness}\\ \hline
+\text{Exact / CEM matching} & \text{nothing} & \text{discards data; infeasible with many covariates}\\
+\text{NN / Mahalanobis matching} & \text{a distance} & \text{bias with continuous }X\text{; variance from reuse}\\
+\text{PS matching} & \Pr(D\mid X) & \text{sensitive to the PS model; discards controls}\\
+\text{IPW} & \Pr(D\mid X) & \text{extreme weights when overlap is poor}\\
+\text{Regression / g-computation} & E[Y\mid D,X] & \text{silent extrapolation; own weighting}\\
+\text{AIPW} & \text{both} & \text{unstable weights; still needs ignorability}\\ \hline
+\end{array}$$
+
+::: callout-warning
+If the answers differ a lot, that is worth chasing down.
+
+Systematic differences can mean the cell-level effects $\tau (x)$ are
+heterogeneous and the methods weight them differently, but they can
+equally reflect a misspecified model, poor overlap, or sampling noise.
+Distinguish these before concluding anything.
+
+**Report the primary estimator you pre-committed to, plus the others as
+robustness, never the reverse.**
+:::
+
+## A Workflow $\bigstar$
+
+1.  State the estimand (ATE? ATT? ATO? on which population?) before
+    touching data.
+
+2.  Draw the DAG. Decide what to condition on, and what not to.
+
+3.  Estimate the propensity score. Look at overlap. Trim or redefine if
+    needed and say so.
+
+4.  Match or weight. Check balance with standardized mean differences
+    and density plots, **never** with t-tests.
+
+5.  Estimate with a doubly robust estimator; report matching, weighting,
+    and regression alongside.
+
+6.  Get standard errors that respect the design: bootstrap the whole
+    estimation pipeline for weighting and regression estimators, and
+    cluster where treatment was assigned. **Do not bootstrap
+    nearest-neighbor matching**, the ordinary bootstrap is invalid for
+    it ; use their analytic variance instead.
+
+7.  Report a sensitivity analysis.
