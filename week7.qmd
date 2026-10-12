@@ -1,0 +1,480 @@
+---
+title: "week7"
+format: html
+author: Zhe Chen
+embed-resources: true
+---
+
+```{r}
+#| echo: false
+library(DiagrammeR)
+```
+
+# Instrument Variable
+
+## Why OLS Is Wrong $\bigstar$
+
+We want $\beta$ in $Y_i=\alpha+\beta D_i+\epsilon_i$, but $D_i$ is endogenous, $\operatorname{Cov}(D_i,\epsilon_i)\neq 0$. OLS gives
+
+$$\begin{aligned}
+\hat{\beta}
+&=\frac{\operatorname{Cov}_n(D_i,Y_i)}{\operatorname{Var}_n(D_i)}
+=\frac{\operatorname{Cov}_n(D_i,\alpha+\beta D_i+\epsilon_i)}{\operatorname{Var}_n(D_i)}
+&& \text{substitute the model for }Y_i\\
+&=\beta+\frac{\operatorname{Cov}_n(D_i,\epsilon_i)}{\operatorname{Var}_n(D_i)}
+&& \text{covariance is linear; the constant drops}\\
+&\xrightarrow{p}\beta+\frac{\operatorname{Cov}(D_i,\epsilon_i)}{\operatorname{Var}(D_i)}
+&& \text{LLN: sample moments to population moments}
+\end{aligned}$$
+
+The second term does not shrink with $n$: **OLS is biased and inconsistent.**
+
+Three sources of $Cov(D_i,\epsilon_i) \neq 0$:
+
+- omitted variables
+- simultaneity ($Y$ also causes $D$)
+- selection into the sample on a collider (Week 5).
+
+Measurement error in $D$: classical error in D shrinks the OLS slope toward zero, by the reliability ratio ${\operatorname{Var}(D^*)/{\operatorname{Var}(D)$.
+
+## An Instrument $\bigstar$
+
+**An instrument** $Z_i$ moves $D_i$ but is otherwise unrelated to $Y_i$
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.2]
+  node [shape=circle, fixedsize=true, width=0.65, fontsize=18]
+  edge [penwidth=1.5]
+
+  Z [label="Z", pos="0,0!"]
+  D [label="D", pos="2,0!"]
+  Y [label="Y", pos="4,0!"]
+  U [label="U", pos="3,1.4!", style=dashed, color=gray]
+
+  # Straight arrows
+  Z -> D [color=navy]
+  D -> Y [color=navy]
+  U -> D [color=gray, style=dashed]
+  U -> Y [color=gray, style=dashed]
+
+  # Invisible routing point below
+  H [shape=point, width=0.01, style=invis, pos="2,-1.0!"]
+
+  # Red dashed path below
+  Z:s -> H [color=orangered, style=dashed, arrowhead=none]
+  H -> Y:s [color=orangered, style=dashed]
+
+  # Labels
+  L1 [label="relevance", shape=plaintext, fontcolor=navy, pos="1,0.7!"]
+  L2 [label="must not exist", shape=plaintext, fontcolor=orangered, pos="2,-1.6!"]
+}
+)", width="100%", height=330)
+```
+
+**Three conditions**
+
+1.  **Relevance:** $\operatorname{Cov}(Z_i,D_i)\neq 0$. **Testable**.
+
+2.  **Independence:** $Z_i$ is as good as randomly assigned, with no arrow into $Z$ from anything that also causes $Y$. **Not testable**.
+
+3.  **Exclusion:** $Z$ affects $Y$ *only through* $D$. **Not testable**.
+
+## The Wald Estimator $\bigstar$
+
+Take covariances of $Y_i=\alpha+\beta D_i+\epsilon_i$ with $Z_i$:
+
+$$\operatorname{Cov}(Z_i,Y_i)=\beta\operatorname{Cov}(Z_i,D_i)+\underbrace{\operatorname{Cov}(Z_i,\epsilon_i)}_{=0}
+\quad\Longrightarrow\quad
+\boxed{\beta_{IV}=\frac{\operatorname{Cov}(Z_i,Y_i)}{\operatorname{Cov}(Z_i,D_i)}}$$
+
+With a **binary instrument**, this is a ratio of two differences in means:
+
+$$\beta_{IV}=\frac{E[Y_i\mid Z_i=1]-E[Y_i\mid Z_i=0]}{E[D_i\mid Z_i=1]-E[D_i\mid Z_i=0]}=\frac{\text{reduced form}}{\text{first stage}}.$$
+
+Read it as: *the effect of the instrument on the outcome, scaled up by how much the instrument moved the treatment.*
+
+## Intuition for the Ratio $\bigstar$
+
+Divide numerator and denominator by $\operatorname{Var}(Z_i)$:
+
+$$\beta_{IV}=\frac{\operatorname{Cov}(Z_i,Y_i)/\operatorname{Var}(Z_i)}{\operatorname{Cov}(Z_i,D_i)/\operatorname{Var}(Z_i)}=\frac{\text{coefficient from regressing }Y\text{ on }Z}{\text{coefficient from regressing }D\text{ on }Z}.$$
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]
+  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]
+  edge [fontsize=16]
+
+  Z [pos='0,0!', label='Z']
+  D [pos='2,0!', label='D']
+  Y [pos='4,0!', label='Y']
+
+  # invisible point below, used only to bend the red arrow downward
+  B [pos='2,-1.0!', label='', shape=point, width=0.01, style=invis]
+
+  # straight blue arrows
+  Z -> D [label='γ', color=navy]
+  D -> Y [label='β', color=navy]
+
+  # red arrow routed below
+  Z -> B [color=orangered, style=dashed, arrowhead=none]
+  B -> Y [label='γβ', color=orangered, style=dashed]
+}
+)", width = "100%", height = 260)
+```
+
+- **The instrument's total effect on** $Y$ travels along one path and equals $\gamma\beta$. The first stage recovers $\gamma$. Dividing isolates $\beta$.
+- **If** $\gamma$ is small, we are dividing by something close to zero. This is the weak-instrument problem.
+
+# LATE
+
+## Four Types of People $\bigstar$
+
+With a binary instrument and binary treatment, write $D_i(z)$ for the treatment unit $i$ would take if assigned $Z_i=z$. Every unit is one of four types:
+
+$$\begin{array}{lccl}\hline
+\text{Type} & D_i(0) & D_i(1) & \text{Interpretation}\\ \hline
+\text{Compliers} & 0 & 1 & \text{do what the instrument says}\\
+\text{Always-takers} & 1 & 1 & \text{treated regardless}\\
+\text{Never-takers} & 0 & 0 & \text{untreated regardless}\\
+\text{Defiers} & 1 & 0 & \text{do the opposite}\\ \hline
+\end{array}$$
+
+- We never observe anyone's type; we see $D_i(1)$ or $D_i(0)$, never both. Type is a latent variable, and this is the same fundamental problem as Week 5, one level up.
+- Only compliers have their treatment moved by the instrument.
+- **Monotonicity** assumes there are no defiers: the instrument pushes everyone in the same direction, or not at all.
+
+## Deriving the LATE
+
+### The LATE Theorem
+
+$$\frac{E[Y_i\mid Z_i=1]-E[Y_i\mid Z_i=0]}{E[D_i\mid Z_i=1]-E[D_i\mid Z_i=0]}
+=
+E\left[Y_i(1)-Y_i(0)\mid i\text{ is a complier}\right].$$
+
+IV does not estimate the ATE. It estimates the average effect for the subpopulation whose treatment status the instrument actually changed, a group you cannot identify by name, defined by the instrument you happened to choose.
+
+### The Numerator
+
+Write the reduced form using the switching equation $Y_i=Y_i(D_i(Z_i))$ and split by type. Because $Z$ is independent of potential outcomes and types,
+
+$$\begin{aligned}
+E[Y_i\mid Z_i=1]-E[Y_i\mid Z_i=0]
+&=\Pr(\mathrm{AT})\underbrace{\left(E[Y_i(1)\mid\mathrm{AT}]-E[Y_i(1)\mid\mathrm{AT}]\right)}_{=0}\\
+&\quad+\Pr(\mathrm{NT})\underbrace{\left(E[Y_i(0)\mid\mathrm{NT}]-E[Y_i(0)\mid\mathrm{NT}]\right)}_{=0}\\
+&\quad+\Pr(\mathrm{C})\left(E[Y_i(1)\mid\mathrm{C}]-E[Y_i(0)\mid\mathrm{C}]\right)\\
+&\quad-\Pr(\mathrm{D})\left(E[Y_i(1)\mid\mathrm{D}]-E[Y_i(0)\mid\mathrm{D}]\right).
+\end{aligned}$$
+
+Always- and never-takers take the *same treatment* under both values of $Z$, so by exclusion their outcomes are unchanged and they contribute zero. **Monotonicity** kills the last line by assuming $\Pr(\mathrm{D})=0$; note that defiers would enter with the *wrong sign*.
+
+### The Denominator $\bigstar$
+
+The first stage, $E[D_i\mid Z_i=1]-E[D_i\mid Z_i=0]$, recovers the complier share:
+
+$$\begin{aligned}
+\text{First stage} &= \Pr(\mathrm{C})+\Pr(\mathrm{AT})-\Pr(\mathrm{AT})-\Pr(\mathrm{D}) && \text{by type}\\
+&=\Pr(\mathrm{C})-\Pr(\mathrm{D})\\
+&=\Pr(\mathrm{C}) && \text{no defiers}
+\end{aligned}$$
+
+::: callout-note
+Assuming the instrument is independent of compliance types: - When $Z=1$, the people receiving treatment are compliers and always-takers. - When $Z=0$, the people receiving treatment are always-takers and defiers.
+
+Therefore
+
+$$\begin{aligned}
+E[D_i\mid Z_i=1]&=\Pr(C)+\Pr(AT)\\
+E[D_i\mid Z_i=0]&=\Pr(AT)+\Pr(D)\\
+\text{First stage}&=\Pr(C)+\Pr(AT)-\Pr(AT)-\Pr(D)\\
+&=\Pr(C)-\Pr(D)\\
+&=\Pr(C)\qquad\text{(no defiers)}
+\end{aligned}$$
+:::
+
+## Implications of LATE $\bigstar$
+
+- If effects are homogeneous, $LATE = ATE$ and none of this matters. **That is rarely a defensible assumption in sociology.**
+- Different instruments for the same treatment estimate different LATEs. When two IV papers disagree, that is not necessarily a contradiction; it may be two correct answers to two different questions.
+- **You can describe the compliers even though you cannot name them**: their share is the first stage, and their covariate means follow because always-takers and never-takers are observed groups (Abadie’s κ).
+- Compliers are often unusual: Whether that group is the policy-relevant one is a substantive questio you must answer, not a technicality.
+
+**Always characterize your compliers**: without that, a LATE is an average effect for a group nobody can describe.
+
+::: callout-note
+## Why Can't We Identify Individual Compliers?
+
+Compliance type depends on both potential treatment statuses, $D_i(0)$ and $D_i(1)$, but we observe only $D_i=D_i(Z_i)$.
+
+| Observed $Z_i$ | Observed $D_i$ | Possible types           |
+|:--------------:|:--------------:|:-------------------------|
+|       0        |       0        | Complier or never-taker  |
+|       0        |       1        | Always-taker or defier   |
+|       1        |       0        | Never-taker or defier    |
+|       1        |       1        | Complier or always-taker |
+
+**Under monotonicity (no defiers):**
+
+- $Z_i=0,D_i=1$: definitely an always-taker.
+- $Z_i=1,D_i=0$: definitely a never-taker.
+- $Z_i=0,D_i=0$: could be a complier or never-taker.
+- $Z_i=1,D_i=1$: could be a complier or always-taker.
+
+**Key insight:** Even after observing covariates $X_i$, we generally cannot identify individual compliers because their counterfactual treatment status remains unobserved. However, we can identify the complier share and characterize their average covariates under the IV assumptions.
+:::
+
+## Describing the Compliers (Abadie's k)
+
+Binary $Z$ and $D$, no defiers. Among $Z=0$ the treated are always-takers; among $Z=1$ the untreated are never-takers. So $\Pr(AT)$, $\Pr(NT)$, $E[X\mid AT]$, and $E[X\mid NT]$ are identified from observed data, $\Pr(C)$ is the first stage, and the complier mean is what is left of the population mean:
+
+$$E[X\mid C]=\frac{E[X]-\Pr(AT)E[X\mid AT]-\Pr(NT)E[X\mid NT]}{\Pr(C)}$$
+
+## Check Monotonicity
+
+**We cannot check monotonicity directly,** $D_i(1)$ and $D_i(0)$ are never both seenbut "no defiers" can be refuted.
+
+- **One sign everywhere.** If $Z$ only pushes $D$ up, then $\Pr(D=1\mid Z=1,X=x)\geq\Pr(D=1\mid Z=0,X=x)$ in every subgroup; a negative first stage somewhere is a rejection.
+
+<!-- -->
+
+- **Balke--Pearl inequalities** (binary $Z,D$). Switching $Z$ on can only *add* treated units, so for any outcome set $A$,
+
+$$\Pr(Y\in A,D=1\mid Z=1)\geq\Pr(Y\in A,D=1\mid Z=0)$$
+
+and
+
+$$\Pr(Y\in A,D=0\mid Z=0)\geq\Pr(Y\in A,D=0\mid Z=1).$$
+
+Kitagawa (2015) tests them; rejection means exclusion, independence, or monotonicity failed.
+
+- **Passing does not establish monotonicity;** for lotteries and distance the case is institutional.
+
+With defiers present and first stage $\Delta_D=\Pr(C)-\Pr(D)$:
+
+$$\begin{aligned}
+\mathrm{Wald}&=\frac{\Pr(C)\tau_C-\Pr(D)\tau_D}{\Delta_D} && \text{numerator and denominator by type}\\
+\tau_C&=\frac{\mathrm{Wald}\cdot\Delta_D+\Pr(D)\tau_D}{\Delta_D+\Pr(D)} && \text{solve for the complier effect}
+\end{aligned}$$
+
+Only $\Pr(D)$ and $\tau_D$ are unknown. Assume at most a share $\delta$ of defiers and a bounded outcome, $|\tau_D|\le M$; the worst cases bound $\tau_C$.
+
+- **The judge toy example:** $\mathrm{Wald}=-0.20$, $\Delta_D=0.10$, $M=1$, $\delta=0.20$ gives $\tau_C\in[-0.73,\,0.60]$: a first stage no larger than the defier share is fatal.
+- **Sharp version (Noack 2021):** sensitivity parameters for the defier share and the gap $\tau_D-\tau_C$; report how large they must be before the conclusion flips.
+- **Rescue without a bound (de Chaisemartin 2017):** if a subgroup of compliers matches the defiers in size and mean effect, Wald is the LATE of the remaining compliers. Untestable.
+
+# Strength
+
+## Weak Instruments Are Worse Than No Instrument $\bigstar$
+
+Recall $\hat{\beta}_{IV}=\operatorname{Cov}_n(Z,Y)/\operatorname{Cov}_n(Z,D)$. If the denominator is near zero, small violations of exclusion get *divided by a small number*:
+
+$$\operatorname{plim}\hat{\beta}_{IV}=\beta+\frac{\operatorname{Cov}(Z,\epsilon)}{\operatorname{Cov}(Z,D)}.$$
+
+- An instrument that is one-tenth as endogenous as $D$ but one-hundredth as strongly correlated with it produces **more bias** than plain OLS.
+- The IV standard error is roughly the OLS standard error divided by $|\rho_{ZD}|$, the correlation between instrument and treatment: $\rho_{ZD}=0.14$ costs a factor of 7.
+- Worse, under weak identification $\hat{\beta}_{IV}$ has no Gaussian limit: heavy tails, so the usual $t$-test fails under weak-instrument asymptotics, even as $n$ grows.
+- The problem *worsens with more instruments*, because many weak instruments overfit the first stage (Bound--Jaeger--Baker, in the Angrist--Krueger frames).
+
+## Diagnosing Instrument Strength $\bigstar$
+
+- **First-stage** $F$ on the excluded instruments. The traditional rule of thumb is $F>10$, derived so that IV bias is under 10% of OLS bias.
+
+- That rule is about **bias, not about test size**, and it is now known to be far too lax for inference. Lee, McCrary, Moreira, and Porter (2022) show that a conventional 5% $t$-test has correct size only when the first-stage $F$ exceeds roughly **104**.
+
+- Use a *robust* first-stage $F$ if you use robust or clustered standard errors in the second stage.
+
+- With several endogenous regressors, use the *Kleibergen--Paap rank statistic*; a strong $F$ on each instrument separately is not enough.
+
+# 2SLS
+
+## The Two Stages $\bigstar$
+
+With covariates and possibly several instruments:
+
+$$\begin{aligned}
+\text{Stage 1:}\quad D_i &= \pi_0+\pi_1 Z_i+\pi_2'W_i+v_i \quad\Longrightarrow\quad \hat D_i\\
+\text{Stage 2:}\quad Y_i &= \alpha+\beta\hat D_i+\gamma'W_i+u_i
+\end{aligned}$$
+
+- $\hat D_i$ is the part of $D_i$ explained by the instrument, which by assumption is uncorrelated with $\epsilon_i$. We regress on the clean part and discard the rest.
+- **The exogenous covariates** $W_i$ must appear in both stages. Omitting them from the first stage is a common and serious error.
+- **One excluded instrument per endogenous regressor** (*just identified*), the case this course uses throughout.
+- **Never run the two stages by hand.** The second-stage standard errors would treat $\hat D_i$ as data rather than as an estimate. Use `ivreg()` or `feols(y ~ w | d ~ z)`.
+
+## Why W Goes in Both Stages
+
+```{r}
+#| echo: false
+DiagrammeR::grViz(r"(
+digraph dag {
+  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]
+  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]
+  edge [penwidth=1.5]
+
+  W [label="W", pos="2,1.5!"]
+  Z [label="Z", pos="0,0!"]
+  D [label="D", pos="2,0!"]
+  Y [label="Y", pos="4,0!"]
+  U [label="U", pos="3,-1.2!", style=dashed, color=gray]
+
+  Z -> D [color=navy]
+  D -> Y [color=navy]
+
+  W -> Z [color=orangered]
+  W -> D [color=orangered]
+  W -> Y [color=orangered]
+
+  U -> D [color=gray, style=dashed]
+  U -> Y [color=gray, style=dashed]
+}
+)", width="100%", height=320)
+```
+
+$Z\leftarrow W\rightarrow Y$ is a back door from instrument to outcome: $Z$ is valid only *given* $W$. 2SLS with $W$ in both stages partials $W$ out of $Y$, $D$, and $Z$, then takes the one-$Z$ Wald ratio (FWL). $W$ belongs in the first stage when it affects $Z$, in the second when it affects $Y$.
+
+- **Second stage only.** $\hat D$ from $Z$ alone carries $W$'s variation, and $D-\hat D$ is correlated with $W$ in the second-stage error. Harmless only if $Z\perp W$ (a lottery).
+- **First stage only.** $\hat D$ contains $W$, and $W\rightarrow Y$ is in the error: exclusion fails for $\hat D$.
+
+## IV Standard Error
+
+One $Y$, one $D$, one $Z$. Substitute the model for $Y_i$ into the Wald ratio:
+
+$$\begin{aligned}
+\hat{\beta}_{IV}
+&=\frac{\operatorname{Cov}_n(Z_i,Y_i)}{\operatorname{Cov}_n(Z_i,D_i)}
+=\frac{\operatorname{Cov}_n(Z_i,\alpha+\beta D_i+\epsilon_i)}{\operatorname{Cov}_n(Z_i,D_i)}
+&& \text{substitute }Y_i=\alpha+\beta D_i+\epsilon_i\\
+&=\beta+\frac{\operatorname{Cov}_n(Z_i,\epsilon_i)}{\operatorname{Cov}_n(Z_i,D_i)}
+&& \text{covariance is linear; the constant drops}\\
+&=\beta+\frac{\sum_i\tilde z_i\epsilon_i}{\sum_i\tilde z_i\tilde d_i}
+&& \text{centered }Z\text{ and }D;\text{ the }1/n\text{ cancels}
+\end{aligned}$$
+
+- **The numerator is the random part:** independent terms $\tilde z_i\epsilon_i$ with mean zero and variance $\tilde z_i^2\sigma_i^2$; its variance is their sum.
+- **The denominator is nearly fixed:** $\frac{1}{n}\sum_i\tilde z_i\tilde d_i$ settles at $\operatorname{Cov}(Z,D)$ as $n$ grows (law of large numbers). If $\operatorname{Cov}(Z,D)$ is near zero, its small changes matter: the weak-IV problem.
+
+$$\operatorname{Var}(\hat{\beta}_{IV})\approx\frac{\sum_i\tilde z_i^2\sigma_i^2}{\left(\sum_i\tilde z_i\tilde d_i\right)^2}$$
+
+Take $\sigma_i^2=\sigma^2$ for every $i$ and divide top and bottom by $\sum_i\tilde z_i^2\sum_i\tilde d_i^2$; $\rho_{ZD}$ is the correlation of $Z$ and $D$:
+
+$$\begin{aligned}
+\operatorname{Var}(\hat\beta_{IV})
+&=\frac{\sigma^2\sum_i\tilde z_i^2}{\left(\sum_i\tilde z_i\tilde d_i\right)^2}\\
+&=\frac{\sigma^2}{\sum_i\tilde d_i^2}\cdot\frac{\sum_i\tilde z_i^2\sum_i\tilde d_i^2}{\left(\sum_i\tilde z_i\tilde d_i\right)^2}\\
+&=\underbrace{\frac{\sigma^2}{ns_D^2}}_{\text{OLS variance}}\cdot\frac{1}{\rho_{ZD}^2}
+\end{aligned}$$
+
+- **IV standard error = OLS standard error** $/|\rho_{ZD}|$, for the same $\sigma$. The instrument explains a fraction $\rho_{ZD}^2$ of the variance in $D$, and only that fraction is used: $\rho_{ZD}=0.14$ costs a factor of about 7.
+
+- **Which residual.** $\sigma^2$ is estimated from $\hat\epsilon_i=Y_i-\hat\alpha-\hat\beta_{IV}D_i$, with the *actual* $D_i$. A second stage run by hand uses $\hat D_i$ instead, gets a smaller residual, and prints too small a standard error.
+
+- **Robust version.** Keep $\sigma_i^2$ and plug in $\hat\epsilon_i^2$:
+
+$$\widehat{\operatorname{Var}}(\hat\beta_{IV})=\frac{\sum_i\tilde z_i^2\hat\epsilon_i^2}{\left(\sum_i\tilde z_i\tilde d_i\right)^2}.$$
+
+## Weak IV
+
+Problem: **Goal:** A weak first stage breaks the $t$-test: the usual 95% CI, $\hat{\beta}_{IV}\pm1.96\widehat{SE}$, though wide, covers the truth less than 95% of the time, and $\hat{\beta}_{IV}$ has no Gaussian limit.
+
+::: callout-note
+## Weak IV and non-Gaussian limiting distribution
+
+Recall the IV estimator:
+
+$$\hat\beta_{IV}=\beta+\frac{\operatorname{Cov}_n(Z,\epsilon)}{\operatorname{Cov}_n(Z,D)}$$
+
+When the instrument is strong, the denominator converges to a nonzero constant. The numerator follows the Central Limit Theorem (CLT), so the IV estimator is asymptotically normal. This justifies conventional t-tests and confidence intervals.
+
+$$\text{Strong IV:}\quad \sqrt n(\hat\beta_{IV}-\beta)\xrightarrow{d}N(0,V)$$
+When the instrument is weak,
+
+$$\operatorname{Cov}(Z,D)\approx0.$$
+
+The denominator becomes small and its sampling fluctuations matter. Consequently, the estimator behaves approximately like a ratio of two random normal variables:
+
+$$\text{Weak IV:}\quad \hat\beta_{IV}-\beta\xrightarrow{d}\frac{A}{c+B}\quad\text{(non-Gaussian)}$$
+
+where $A$ and $B$ are potentially correlated normal random variables. Unlike a normal variable, this ratio can have very heavy tails because the denominator can approach zero, producing extremely large estimates.
+
+Under weak-instrument asymptotics, where first-stage strength shrinks as sample size grows, the IV estimator therefore has a **non-Gaussian limiting distribution.**
+:::
+
+### Andersen-Rubin
+
+**Anderson--Rubin** tests a guessed $\beta_0$ without ever dividing by the first stage: it repairs *inference*; the estimate is unchanged.
+
+#### Step 1: The Equation to Test 
+
+The IV assumption: the instrument is unrelated to the error, $\operatorname{Cov}(Z_i,\epsilon_i)=0$. Substitute what the error is:
+
+$$
+\begin{aligned}
+\epsilon_i &= Y_i-\alpha-\beta D_i && \text{the structural equation, solved for }\epsilon_i\\
+0=\operatorname{Cov}(Z_i,\epsilon_i) &= \operatorname{Cov}(Z_i,Y_i-\beta D_i) && \alpha\text{ is a constant}\\
+&=\operatorname{Cov}(Z_i,Y_i)-\beta\operatorname{Cov}(Z_i,D_i) && \text{covariance is linear}
+\end{aligned}
+$$
+
+- **In words:** Strip the treatment's part, $\beta D$, out of $Y$; what remains must be unrelated to $Z$. The true $\beta$ satisfies this equation.
+- **Solve it for $\beta$** and you get the Wald estimator, $\operatorname{Cov}(Z,Y)/\operatorname{Cov}(Z,D)$. Nothing new is assumed.
+
+#### Step 2: Solve It or Check It
+
+**Solve it (Wald, 2SLS):** $\hat{\beta}_{IV}=\operatorname{Cov}_n(Z,Y)/\operatorname{Cov}_n(Z,D)$. Divides by the first stage; unreliable when that is small and noisy.
+
+**Check it (Anderson--Rubin):** Guess $\beta_0$, ask whether $\operatorname{Cov}_n(Z,Y-\beta_0D)=0$. Never divides.
+
+#### Step 3: the Statistic
+
+1. Guess $\beta_0$; build $U_i=Y_i-\beta_0D_i$.
+
+2. Regress $U_i$ on $Z_i$. Since $U_i=\alpha+(\beta-\beta_0)D_i+\epsilon_i$, the true slope is $(\beta-\beta_0)\pi$: zero if the guess is right.
+
+3. $C(\beta_0)=t^2$ of that slope; $\chi_1^2$ under $H_0:\beta=\beta_0$. Reject the guess if $C(\beta_0)>3.84$.
+
+#### Step 4: the Confidence Region
+
+Keep every guess the data cannot reject:
+
+$$
+CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.
+$$
+
+**"Works under a weak instrument"** means: covers the truth 95\% of the time whatever $F$ is.
+
+- **Why the usual CI fails:** It widens as the instrument weakens, but not enough (87% coverage); it misses the draws that lean toward OLS and look most precise.
+
+- **What AR does:** At $F\approx 6$, the confidence region is bounded in 69% of draws and unbounded otherwise; coverage stays at 95%.
+
+### When Is AR Useful?
+
+- **Hopeless instrument ($F$ below about 4):** AR is mostly unbounded. No method can do better; the usual 95% CI prints a finite interval that looks informative and is not. AR refuses.
+
+- **Weak instrument ($F$ about 5--20; Card 10, Derenoncourt 15):** AR is usually a bounded interval with correct coverage. In the simulation, bounded in 69% of draws at $F\approx6$ and 87% at $F\approx10$, coverage 95%; the usual CI covers 91--92%.
+
+- **It can be more informative.** Card's data with controls, $F\approx10$ (lab 7): usual CI $[-0.003,0.190]$ includes zero; AR $[0.004,0.256]$ excludes it. AR follows the data's shape instead of a symmetric interval around a biased estimate.
+
+# IV Checklist $\bigstar$
+
+Always report:
+1. The instrument, and an explicit argument for exclusion, not just a citation to a prior paper that used it.
+2. The first stage, its coefficient, and its robust $F$.
+3. The reduced form ($Y$ on $Z$), with its estimate and interval. It needs no instrument-strength assumption, so it is the most robust piece of evidence in the design, and if it is indistinguishable from zero the IV estimate rests on very little.
+4. The OLS estimate alongside, so the reader can see the direction and size of the correction, and whether it goes the way theory predicts.
+5. Who the compliers are, and their share.
+6. Weak-instrument-robust inference if $F$ is not comfortably large.
+7. Placebo checks: outcomes and subgroups Z should not affect.
+
+**If a paper reports only the 2SLS coefficient, that is a red flag.**
+
+# When IV Is the Wrong Tool $\bigstar$
+
+- No credible instrument exists. This is the normal state of affairs. An implausible instrument is worse than an honest selection-on-observables analysis with sensitivity bounds.
+- The LATE is not the quantity of interest. If your policy question concerns always-takers, the compliers’ effect does not answer it.
+- Interpretation drifts. Papers routinely estimate a LATE and then discuss it as if it were an ATE.
+- Monotonicity is doing hidden work. In judge-leniency and examiner designs, it must hold for every judge simultaneously, a much stronger claim than it first appears.
