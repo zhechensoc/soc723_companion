@@ -390,8 +390,7 @@ $$\hat\beta_{IV}=\beta+\frac{\operatorname{Cov}_n(Z,\epsilon)}{\operatorname{Cov
 
 When the instrument is strong, the denominator converges to a nonzero constant. The numerator follows the Central Limit Theorem (CLT), so the IV estimator is asymptotically normal. This justifies conventional t-tests and confidence intervals.
 
-$$\text{Strong IV:}\quad \sqrt n(\hat\beta_{IV}-\beta)\xrightarrow{d}N(0,V)$$
-When the instrument is weak,
+$$\text{Strong IV:}\quad \sqrt n(\hat\beta_{IV}-\beta)\xrightarrow{d}N(0,V)$$ When the instrument is weak,
 
 $$\operatorname{Cov}(Z,D)\approx0.$$
 
@@ -408,20 +407,18 @@ Under weak-instrument asymptotics, where first-stage strength shrinks as sample 
 
 **Anderson--Rubin** tests a guessed $\beta_0$ without ever dividing by the first stage: it repairs *inference*; the estimate is unchanged.
 
-#### Step 1: The Equation to Test 
+#### Step 1: The Equation to Test
 
 The IV assumption: the instrument is unrelated to the error, $\operatorname{Cov}(Z_i,\epsilon_i)=0$. Substitute what the error is:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 \epsilon_i &= Y_i-\alpha-\beta D_i && \text{the structural equation, solved for }\epsilon_i\\
 0=\operatorname{Cov}(Z_i,\epsilon_i) &= \operatorname{Cov}(Z_i,Y_i-\beta D_i) && \alpha\text{ is a constant}\\
 &=\operatorname{Cov}(Z_i,Y_i)-\beta\operatorname{Cov}(Z_i,D_i) && \text{covariance is linear}
-\end{aligned}
-$$
+\end{aligned}$$
 
 - **In words:** Strip the treatment's part, $\beta D$, out of $Y$; what remains must be unrelated to $Z$. The true $\beta$ satisfies this equation.
-- **Solve it for $\beta$** and you get the Wald estimator, $\operatorname{Cov}(Z,Y)/\operatorname{Cov}(Z,D)$. Nothing new is assumed.
+- **Solve it for** $\beta$ and you get the Wald estimator, $\operatorname{Cov}(Z,Y)/\operatorname{Cov}(Z,D)$. Nothing new is assumed.
 
 #### Step 2: Solve It or Check It
 
@@ -431,21 +428,19 @@ $$
 
 #### Step 3: the Statistic
 
-1. Guess $\beta_0$; build $U_i=Y_i-\beta_0D_i$.
+1.  Guess $\beta_0$; build $U_i=Y_i-\beta_0D_i$.
 
-2. Regress $U_i$ on $Z_i$. Since $U_i=\alpha+(\beta-\beta_0)D_i+\epsilon_i$, the true slope is $(\beta-\beta_0)\pi$: zero if the guess is right.
+2.  Regress $U_i$ on $Z_i$. Since $U_i=\alpha+(\beta-\beta_0)D_i+\epsilon_i$, the true slope is $(\beta-\beta_0)\pi$: zero if the guess is right.
 
-3. $C(\beta_0)=t^2$ of that slope; $\chi_1^2$ under $H_0:\beta=\beta_0$. Reject the guess if $C(\beta_0)>3.84$.
+3.  $C(\beta_0)=t^2$ of that slope; $\chi_1^2$ under $H_0:\beta=\beta_0$. Reject the guess if $C(\beta_0)>3.84$.
 
 #### Step 4: the Confidence Region
 
 Keep every guess the data cannot reject:
 
-$$
-CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.
-$$
+$$CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.$$
 
-**"Works under a weak instrument"** means: covers the truth 95\% of the time whatever $F$ is.
+**"Works under a weak instrument"** means: covers the truth 95% of the time whatever $F$ is.
 
 - **Why the usual CI fails:** It widens as the instrument weakens, but not enough (87% coverage); it misses the draws that lean toward OLS and look most precise.
 
@@ -453,22 +448,27 @@ $$
 
 ### When Is AR Useful?
 
-- **Hopeless instrument ($F$ below about 4):** AR is mostly unbounded. No method can do better; the usual 95% CI prints a finite interval that looks informative and is not. AR refuses.
+- **Hopeless instrument (**$F$ below about 4): AR is mostly unbounded. No method can do better; the usual 95% CI prints a finite interval that looks informative and is not. AR refuses.
 
-- **Weak instrument ($F$ about 5--20; Card 10, Derenoncourt 15):** AR is usually a bounded interval with correct coverage. In the simulation, bounded in 69% of draws at $F\approx6$ and 87% at $F\approx10$, coverage 95%; the usual CI covers 91--92%.
+- **Weak instrument (**$F$ about 5--20; Card 10, Derenoncourt 15): AR is usually a bounded interval with correct coverage. In the simulation, bounded in 69% of draws at $F\approx6$ and 87% at $F\approx10$, coverage 95%; the usual CI covers 91--92%.
 
 - **It can be more informative.** Card's data with controls, $F\approx10$ (lab 7): usual CI $[-0.003,0.190]$ includes zero; AR $[0.004,0.256]$ excludes it. AR follows the data's shape instead of a symmetric interval around a biased estimate.
 
 # IV Checklist $\bigstar$
 
-Always report:
-1. The instrument, and an explicit argument for exclusion, not just a citation to a prior paper that used it.
-2. The first stage, its coefficient, and its robust $F$.
-3. The reduced form ($Y$ on $Z$), with its estimate and interval. It needs no instrument-strength assumption, so it is the most robust piece of evidence in the design, and if it is indistinguishable from zero the IV estimate rests on very little.
-4. The OLS estimate alongside, so the reader can see the direction and size of the correction, and whether it goes the way theory predicts.
-5. Who the compliers are, and their share.
-6. Weak-instrument-robust inference if $F$ is not comfortably large.
-7. Placebo checks: outcomes and subgroups Z should not affect.
+**Always report:**
+
+1.  The instrument, and an explicit argument for exclusion, not just a citation to a prior paper that used it.
+
+2.  The first stage, its coefficient, and its robust $F$.
+
+3.  The reduced form ($Y$ on $Z$), with its estimate and interval. It needs no instrument-strength assumption, so it is the most robust piece of evidence in the design, and if it is indistinguishable from zero the IV estimate rests on very little.
+
+4.  The OLS estimate alongside, so the reader can see the direction and size of the correction, and whether it goes the way theory predicts.
+
+5.  Who the compliers are, and their share.
+
+6.  Weak-instrument-robust inference if $F$ is not comfortably large. 7. Placebo checks: outcomes and subgroups Z should not affect.
 
 **If a paper reports only the 2SLS coefficient, that is a red flag.**
 

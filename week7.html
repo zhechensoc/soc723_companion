@@ -3581,8 +3581,8 @@ window.Quarto = {
 <p><strong>An instrument</strong> <span class="math inline">\(Z_i\)</span> moves <span class="math inline">\(D_i\)</span> but is otherwise unrelated to <span class="math inline">\(Y_i\)</span></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-81d572f114196428051a" style="width:100%;height:330px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-81d572f114196428051a">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.65, fontsize=18]\n  edge [penwidth=1.5]\n\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,1.4!\", style=dashed, color=gray]\n\n  # Straight arrows\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n\n  # Invisible routing point below\n  H [shape=point, width=0.01, style=invis, pos=\"2,-1.0!\"]\n\n  # Red dashed path below\n  Z:s -> H [color=orangered, style=dashed, arrowhead=none]\n  H -> Y:s [color=orangered, style=dashed]\n\n  # Labels\n  L1 [label=\"relevance\", shape=plaintext, fontcolor=navy, pos=\"1,0.7!\"]\n  L2 [label=\"must not exist\", shape=plaintext, fontcolor=orangered, pos=\"2,-1.6!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b1aea90a834de2e6f74a" style="width:100%;height:330px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b1aea90a834de2e6f74a">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.65, fontsize=18]\n  edge [penwidth=1.5]\n\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,1.4!\", style=dashed, color=gray]\n\n  # Straight arrows\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n\n  # Invisible routing point below\n  H [shape=point, width=0.01, style=invis, pos=\"2,-1.0!\"]\n\n  # Red dashed path below\n  Z:s -> H [color=orangered, style=dashed, arrowhead=none]\n  H -> Y:s [color=orangered, style=dashed]\n\n  # Labels\n  L1 [label=\"relevance\", shape=plaintext, fontcolor=navy, pos=\"1,0.7!\"]\n  L2 [label=\"must not exist\", shape=plaintext, fontcolor=orangered, pos=\"2,-1.6!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><strong>Three conditions</strong></p>
@@ -3608,8 +3608,8 @@ window.Quarto = {
 <p><span class="math display">\[\beta_{IV}=\frac{\operatorname{Cov}(Z_i,Y_i)/\operatorname{Var}(Z_i)}{\operatorname{Cov}(Z_i,D_i)/\operatorname{Var}(Z_i)}=\frac{\text{coefficient from regressing }Y\text{ on }Z}{\text{coefficient from regressing }D\text{ on }Z}.\]</span></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-288a9a67be064266b6a8" style="width:100%;height:260px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-288a9a67be064266b6a8">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [fontsize=16]\n\n  Z [pos=\"0,0!\", label=\"Z\"]\n  D [pos=\"2,0!\", label=\"D\"]\n  Y [pos=\"4,0!\", label=\"Y\"]\n\n  # invisible point below, used only to bend the red arrow downward\n  B [pos=\"2,-1.0!\", label=\"\", shape=point, width=0.01, style=invis]\n\n  # straight blue arrows\n  Z -> D [label=\"γ\", color=navy]\n  D -> Y [label=\"β\", color=navy]\n\n  # red arrow routed below\n  Z -> B [color=orangered, style=dashed, arrowhead=none]\n  B -> Y [label=\"γβ\", color=orangered, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-68dd770471fc8af024f3" style="width:100%;height:260px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-68dd770471fc8af024f3">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [fontsize=16]\n\n  Z [pos=\"0,0!\", label=\"Z\"]\n  D [pos=\"2,0!\", label=\"D\"]\n  Y [pos=\"4,0!\", label=\"Y\"]\n\n  # invisible point below, used only to bend the red arrow downward\n  B [pos=\"2,-1.0!\", label=\"\", shape=point, width=0.01, style=invis]\n\n  # straight blue arrows\n  Z -> D [label=\"γ\", color=navy]\n  D -> Y [label=\"β\", color=navy]\n\n  # red arrow routed below\n  Z -> B [color=orangered, style=dashed, arrowhead=none]\n  B -> Y [label=\"γβ\", color=orangered, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <ul>
@@ -3828,8 +3828,8 @@ E[D_i\mid Z_i=0]&amp;=\Pr(AT)+\Pr(D)\\
 <h2 class="anchored" data-anchor-id="why-w-goes-in-both-stages">Why W Goes in Both Stages</h2>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-8a230b8cfe7536c3cff5" style="width:100%;height:320px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8a230b8cfe7536c3cff5">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [penwidth=1.5]\n\n  W [label=\"W\", pos=\"2,1.5!\"]\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,-1.2!\", style=dashed, color=gray]\n\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n\n  W -> Z [color=orangered]\n  W -> D [color=orangered]\n  W -> Y [color=orangered]\n\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4384b0dcb621f3e4f003" style="width:100%;height:320px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4384b0dcb621f3e4f003">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [penwidth=1.5]\n\n  W [label=\"W\", pos=\"2,1.5!\"]\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,-1.2!\", style=dashed, color=gray]\n\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n\n  W -> Z [color=orangered]\n  W -> D [color=orangered]\n  W -> Y [color=orangered]\n\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><span class="math inline">\(Z\leftarrow W\rightarrow Y\)</span> is a back door from instrument to outcome: <span class="math inline">\(Z\)</span> is valid only <em>given</em> <span class="math inline">\(W\)</span>. 2SLS with <span class="math inline">\(W\)</span> in both stages partials <span class="math inline">\(W\)</span> out of <span class="math inline">\(Y\)</span>, <span class="math inline">\(D\)</span>, and <span class="math inline">\(Z\)</span>, then takes the one-<span class="math inline">\(Z\)</span> Wald ratio (FWL). <span class="math inline">\(W\)</span> belongs in the first stage when it affects <span class="math inline">\(Z\)</span>, in the second when it affects <span class="math inline">\(Y\)</span>.</p>
@@ -3900,16 +3900,14 @@ E[D_i\mid Z_i=0]&amp;=\Pr(AT)+\Pr(D)\\
 <section id="step-1-the-equation-to-test" class="level4">
 <h4 class="anchored" data-anchor-id="step-1-the-equation-to-test">Step 1: The Equation to Test</h4>
 <p>The IV assumption: the instrument is unrelated to the error, <span class="math inline">\(\operatorname{Cov}(Z_i,\epsilon_i)=0\)</span>. Substitute what the error is:</p>
-<p><span class="math display">\[
-\begin{aligned}
+<p><span class="math display">\[\begin{aligned}
 \epsilon_i &amp;= Y_i-\alpha-\beta D_i &amp;&amp; \text{the structural equation, solved for }\epsilon_i\\
 0=\operatorname{Cov}(Z_i,\epsilon_i) &amp;= \operatorname{Cov}(Z_i,Y_i-\beta D_i) &amp;&amp; \alpha\text{ is a constant}\\
 &amp;=\operatorname{Cov}(Z_i,Y_i)-\beta\operatorname{Cov}(Z_i,D_i) &amp;&amp; \text{covariance is linear}
-\end{aligned}
-\]</span></p>
+\end{aligned}\]</span></p>
 <ul>
 <li><strong>In words:</strong> Strip the treatment’s part, <span class="math inline">\(\beta D\)</span>, out of <span class="math inline">\(Y\)</span>; what remains must be unrelated to <span class="math inline">\(Z\)</span>. The true <span class="math inline">\(\beta\)</span> satisfies this equation.</li>
-<li><strong>Solve it for <span class="math inline">\(\beta\)</span></strong> and you get the Wald estimator, <span class="math inline">\(\operatorname{Cov}(Z,Y)/\operatorname{Cov}(Z,D)\)</span>. Nothing new is assumed.</li>
+<li><strong>Solve it for</strong> <span class="math inline">\(\beta\)</span> and you get the Wald estimator, <span class="math inline">\(\operatorname{Cov}(Z,Y)/\operatorname{Cov}(Z,D)\)</span>. Nothing new is assumed.</li>
 </ul>
 </section>
 <section id="step-2-solve-it-or-check-it" class="level4">
@@ -3928,9 +3926,7 @@ E[D_i\mid Z_i=0]&amp;=\Pr(AT)+\Pr(D)\\
 <section id="step-4-the-confidence-region" class="level4">
 <h4 class="anchored" data-anchor-id="step-4-the-confidence-region">Step 4: the Confidence Region</h4>
 <p>Keep every guess the data cannot reject:</p>
-<p><span class="math display">\[
-CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.
-\]</span></p>
+<p><span class="math display">\[CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.\]</span></p>
 <p><strong>“Works under a weak instrument”</strong> means: covers the truth 95% of the time whatever <span class="math inline">\(F\)</span> is.</p>
 <ul>
 <li><p><strong>Why the usual CI fails:</strong> It widens as the instrument weakens, but not enough (87% coverage); it misses the draws that lean toward OLS and look most precise.</p></li>
@@ -3941,8 +3937,8 @@ CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.
 <section id="when-is-ar-useful" class="level3">
 <h3 class="anchored" data-anchor-id="when-is-ar-useful">When Is AR Useful?</h3>
 <ul>
-<li><p><strong>Hopeless instrument (<span class="math inline">\(F\)</span> below about 4):</strong> AR is mostly unbounded. No method can do better; the usual 95% CI prints a finite interval that looks informative and is not. AR refuses.</p></li>
-<li><p><strong>Weak instrument (<span class="math inline">\(F\)</span> about 5–20; Card 10, Derenoncourt 15):</strong> AR is usually a bounded interval with correct coverage. In the simulation, bounded in 69% of draws at <span class="math inline">\(F\approx6\)</span> and 87% at <span class="math inline">\(F\approx10\)</span>, coverage 95%; the usual CI covers 91–92%.</p></li>
+<li><p><strong>Hopeless instrument (</strong><span class="math inline">\(F\)</span> below about 4): AR is mostly unbounded. No method can do better; the usual 95% CI prints a finite interval that looks informative and is not. AR refuses.</p></li>
+<li><p><strong>Weak instrument (</strong><span class="math inline">\(F\)</span> about 5–20; Card 10, Derenoncourt 15): AR is usually a bounded interval with correct coverage. In the simulation, bounded in 69% of draws at <span class="math inline">\(F\approx6\)</span> and 87% at <span class="math inline">\(F\approx10\)</span>, coverage 95%; the usual CI covers 91–92%.</p></li>
 <li><p><strong>It can be more informative.</strong> Card’s data with controls, <span class="math inline">\(F\approx10\)</span> (lab 7): usual CI <span class="math inline">\([-0.003,0.190]\)</span> includes zero; AR <span class="math inline">\([0.004,0.256]\)</span> excludes it. AR follows the data’s shape instead of a symmetric interval around a biased estimate.</p></li>
 </ul>
 </section>
@@ -3950,7 +3946,15 @@ CR(\beta)=\left\{\beta_0:C(\beta_0)\le c_{1-\alpha}\right\}.
 </section>
 <section id="iv-checklist-bigstar" class="level1">
 <h1>IV Checklist <span class="math inline">\(\bigstar\)</span></h1>
-<p>Always report: 1. The instrument, and an explicit argument for exclusion, not just a citation to a prior paper that used it. 2. The first stage, its coefficient, and its robust <span class="math inline">\(F\)</span>. 3. The reduced form (<span class="math inline">\(Y\)</span> on <span class="math inline">\(Z\)</span>), with its estimate and interval. It needs no instrument-strength assumption, so it is the most robust piece of evidence in the design, and if it is indistinguishable from zero the IV estimate rests on very little. 4. The OLS estimate alongside, so the reader can see the direction and size of the correction, and whether it goes the way theory predicts. 5. Who the compliers are, and their share. 6. Weak-instrument-robust inference if <span class="math inline">\(F\)</span> is not comfortably large. 7. Placebo checks: outcomes and subgroups Z should not affect.</p>
+<p><strong>Always report:</strong></p>
+<ol type="1">
+<li><p>The instrument, and an explicit argument for exclusion, not just a citation to a prior paper that used it.</p></li>
+<li><p>The first stage, its coefficient, and its robust <span class="math inline">\(F\)</span>.</p></li>
+<li><p>The reduced form (<span class="math inline">\(Y\)</span> on <span class="math inline">\(Z\)</span>), with its estimate and interval. It needs no instrument-strength assumption, so it is the most robust piece of evidence in the design, and if it is indistinguishable from zero the IV estimate rests on very little.</p></li>
+<li><p>The OLS estimate alongside, so the reader can see the direction and size of the correction, and whether it goes the way theory predicts.</p></li>
+<li><p>Who the compliers are, and their share.</p></li>
+<li><p>Weak-instrument-robust inference if <span class="math inline">\(F\)</span> is not comfortably large. 7. Placebo checks: outcomes and subgroups Z should not affect.</p></li>
+</ol>
 <p><strong>If a paper reports only the 2SLS coefficient, that is a red flag.</strong></p>
 </section>
 <section id="when-iv-is-the-wrong-tool-bigstar" class="level1">
