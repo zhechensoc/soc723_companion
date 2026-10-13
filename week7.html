@@ -8,7 +8,7 @@
 
 <meta name="author" content="Zhe Chen">
 
-<title>week7</title>
+<title>Week 7 Instrumental Variables</title>
 <style>
 
 code{white-space: pre-wrap;}
@@ -3529,7 +3529,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">week7</h1>
+<h1 class="title">Week 7 Instrumental Variables</h1>
 </div>
 
 
@@ -3581,8 +3581,8 @@ window.Quarto = {
 <p><strong>An instrument</strong> <span class="math inline">\(Z_i\)</span> moves <span class="math inline">\(D_i\)</span> but is otherwise unrelated to <span class="math inline">\(Y_i\)</span></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-204eb854303062355d8b" style="width:100%;height:330px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-204eb854303062355d8b">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.65, fontsize=18]\n  edge [penwidth=1.5]\n\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,1.4!\", style=dashed, color=gray]\n\n  # Straight arrows\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n\n  # Invisible routing point below\n  H [shape=point, width=0.01, style=invis, pos=\"2,-1.0!\"]\n\n  # Red dashed path below\n  Z:s -> H [color=orangered, style=dashed, arrowhead=none]\n  H -> Y:s [color=orangered, style=dashed]\n\n  # Labels\n  L1 [label=\"relevance\", shape=plaintext, fontcolor=navy, pos=\"1,0.7!\"]\n  L2 [label=\"must not exist\", shape=plaintext, fontcolor=orangered, pos=\"2,-1.6!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-81d572f114196428051a" style="width:100%;height:330px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-81d572f114196428051a">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.65, fontsize=18]\n  edge [penwidth=1.5]\n\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,1.4!\", style=dashed, color=gray]\n\n  # Straight arrows\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n\n  # Invisible routing point below\n  H [shape=point, width=0.01, style=invis, pos=\"2,-1.0!\"]\n\n  # Red dashed path below\n  Z:s -> H [color=orangered, style=dashed, arrowhead=none]\n  H -> Y:s [color=orangered, style=dashed]\n\n  # Labels\n  L1 [label=\"relevance\", shape=plaintext, fontcolor=navy, pos=\"1,0.7!\"]\n  L2 [label=\"must not exist\", shape=plaintext, fontcolor=orangered, pos=\"2,-1.6!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><strong>Three conditions</strong></p>
@@ -3608,8 +3608,8 @@ window.Quarto = {
 <p><span class="math display">\[\beta_{IV}=\frac{\operatorname{Cov}(Z_i,Y_i)/\operatorname{Var}(Z_i)}{\operatorname{Cov}(Z_i,D_i)/\operatorname{Var}(Z_i)}=\frac{\text{coefficient from regressing }Y\text{ on }Z}{\text{coefficient from regressing }D\text{ on }Z}.\]</span></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-ca1e9cc7cef6a162f4af" style="width:100%;height:260px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ca1e9cc7cef6a162f4af">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [fontsize=16]\n\n  Z [pos=\"0,0!\", label=\"Z\"]\n  D [pos=\"2,0!\", label=\"D\"]\n  Y [pos=\"4,0!\", label=\"Y\"]\n\n  # invisible point below, used only to bend the red arrow downward\n  B [pos=\"2,-1.0!\", label=\"\", shape=point, width=0.01, style=invis]\n\n  # straight blue arrows\n  Z -> D [label=\"γ\", color=navy]\n  D -> Y [label=\"β\", color=navy]\n\n  # red arrow routed below\n  Z -> B [color=orangered, style=dashed, arrowhead=none]\n  B -> Y [label=\"γβ\", color=orangered, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-288a9a67be064266b6a8" style="width:100%;height:260px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-288a9a67be064266b6a8">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [fontsize=16]\n\n  Z [pos=\"0,0!\", label=\"Z\"]\n  D [pos=\"2,0!\", label=\"D\"]\n  Y [pos=\"4,0!\", label=\"Y\"]\n\n  # invisible point below, used only to bend the red arrow downward\n  B [pos=\"2,-1.0!\", label=\"\", shape=point, width=0.01, style=invis]\n\n  # straight blue arrows\n  Z -> D [label=\"γ\", color=navy]\n  D -> Y [label=\"β\", color=navy]\n\n  # red arrow routed below\n  Z -> B [color=orangered, style=dashed, arrowhead=none]\n  B -> Y [label=\"γβ\", color=orangered, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <ul>
@@ -3828,8 +3828,8 @@ E[D_i\mid Z_i=0]&amp;=\Pr(AT)+\Pr(D)\\
 <h2 class="anchored" data-anchor-id="why-w-goes-in-both-stages">Why W Goes in Both Stages</h2>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-7fb948299d68569b0633" style="width:100%;height:320px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7fb948299d68569b0633">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [penwidth=1.5]\n\n  W [label=\"W\", pos=\"2,1.5!\"]\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,-1.2!\", style=dashed, color=gray]\n\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n\n  W -> Z [color=orangered]\n  W -> D [color=orangered]\n  W -> Y [color=orangered]\n\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-8a230b8cfe7536c3cff5" style="width:100%;height:320px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8a230b8cfe7536c3cff5">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.6, fontsize=18]\n  edge [penwidth=1.5]\n\n  W [label=\"W\", pos=\"2,1.5!\"]\n  Z [label=\"Z\", pos=\"0,0!\"]\n  D [label=\"D\", pos=\"2,0!\"]\n  Y [label=\"Y\", pos=\"4,0!\"]\n  U [label=\"U\", pos=\"3,-1.2!\", style=dashed, color=gray]\n\n  Z -> D [color=navy]\n  D -> Y [color=navy]\n\n  W -> Z [color=orangered]\n  W -> D [color=orangered]\n  W -> Y [color=orangered]\n\n  U -> D [color=gray, style=dashed]\n  U -> Y [color=gray, style=dashed]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><span class="math inline">\(Z\leftarrow W\rightarrow Y\)</span> is a back door from instrument to outcome: <span class="math inline">\(Z\)</span> is valid only <em>given</em> <span class="math inline">\(W\)</span>. 2SLS with <span class="math inline">\(W\)</span> in both stages partials <span class="math inline">\(W\)</span> out of <span class="math inline">\(Y\)</span>, <span class="math inline">\(D\)</span>, and <span class="math inline">\(Z\)</span>, then takes the one-<span class="math inline">\(Z\)</span> Wald ratio (FWL). <span class="math inline">\(W\)</span> belongs in the first stage when it affects <span class="math inline">\(Z\)</span>, in the second when it affects <span class="math inline">\(Y\)</span>.</p>
