@@ -2442,7 +2442,7 @@ E[(X_i-\mu_X)\epsilon_i]
 <h2 class="anchored" data-anchor-id="whites-estimator-bigstar">White’s Estimator <span class="math inline">\(\bigstar\)</span></h2>
 <p>Let <span class="math inline">\(d_i \equiv X_i - \bar{X}\)</span></p>
 <p>For homoskedasticity</p>
-<p><span class="math display">\[\widehat{V}_{\text{classical}}(\hat{\beta}_1)=\frac{s^2}{\sum_i d_i^2}\]</span></p>
+<p><span class="math display">\[\widehat{V}_{\text{classical}}(\hat{\beta}_1)=\frac{s^2}{\sum_i d_i^2}, \qquad d_i=X_i-\bar X,\qquad s^2=\frac{\sum_i\hat\epsilon_i^2}{n-2}\]</span></p>
 <p><strong>(Eicker-)Huber-White estimator</strong> (bivariate model)</p>
 <p><span class="math display">\[\widehat{V}_{HC0}(\hat{\beta}_1)=\frac{\sum_i d_i^2\hat{e}_i^2}{\left(\sum_i d_i^2\right)^2}\]</span></p>
 <p>The classical formula pools one <span class="math inline">\(\sigma^2\)</span>; the robust one lets each observation carry its own <span class="math inline">\(\hat{e}^2_i\)</span></p>
@@ -2603,7 +2603,7 @@ Important
 </section>
 <section id="the-nonparametric-pairs-bootstrap-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="the-nonparametric-pairs-bootstrap-bigstar">The Nonparametric (Pairs) Bootstrap <span class="math inline">\(\bigstar\)</span></h2>
-<p>Notation: <span class="math inline">\(\theta\)</span> is any target, <span class="math inline">\(\hat{\theta}\)</span> its estimate,<span class="math inline">\(B\)</span> the number of resamples.</p>
+<p>Notation: <span class="math inline">\(\theta\)</span> is any target, <span class="math inline">\(\hat{\theta}\)</span> its estimate, <span class="math inline">\(B\)</span> the number of resamples.</p>
 <ol type="1">
 <li>For <span class="math inline">\(b=1,\ldots,B\)</span>: draw <span class="math inline">\(n\)</span> observations <span class="math inline">\((Y_i,X_i)\)</span> <u><strong>with replacement</strong></u> from the sample.</li>
 <li>Re-estimate on the resample to get <span class="math inline">\(\hat{\theta}^{(b)}\)</span>.</li>
@@ -2710,7 +2710,7 @@ Important
 <ul>
 <li><p>State the <u><strong>estimand</strong></u> and the design before choosing a standard error.</p></li>
 <li><p>Identify the independently sampled or independently assigned <u><strong>units</strong></u>, and cluster there. Use HC1 or HC3 only when observations are plausibly independent</p></li>
-<li><p>If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention ::::</p></li>
+<li><p>If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention.</p></li>
 </ul>
 </section>
 

@@ -121,7 +121,7 @@ Let $d_i \equiv X_i - \bar{X}$
 
 For homoskedasticity
 
-$$\widehat{V}_{\text{classical}}(\hat{\beta}_1)=\frac{s^2}{\sum_i d_i^2}$$
+$$\widehat{V}_{\text{classical}}(\hat{\beta}_1)=\frac{s^2}{\sum_i d_i^2}, \qquad d_i=X_i-\bar X,\qquad s^2=\frac{\sum_i\hat\epsilon_i^2}{n-2}$$
 
 **(Eicker-)Huber-White estimator** (bivariate model)
 
@@ -232,7 +232,7 @@ We want the sampling distribution of a statistic when samples are drawn from the
 
 ## The Nonparametric (Pairs) Bootstrap $\bigstar$
 
-Notation: $\theta$ is any target, $\hat{\theta}$ its estimate,$B$ the number of resamples.
+Notation: $\theta$ is any target, $\hat{\theta}$ its estimate, $B$ the number of resamples.
 
 1.  For $b=1,\ldots,B$: draw $n$ observations $(Y_i,X_i)$ [**with replacement**]{.underline} from the sample.
 2.  Re-estimate on the resample to get $\hat{\theta}^{(b)}$.
@@ -276,4 +276,4 @@ Draw G whole clusters with replacement (Resample at the level you would cluster 
 
 - Identify the independently sampled or independently assigned [**units**]{.underline}, and cluster there. Use HC1 or HC3 only when observations are plausibly independent
 
-- If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention ::::
+- If robust and classical standard errors differ dramatically, treat it as a diagnostic: something about the specification or the influence structure deserves attention.
