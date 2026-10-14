@@ -2485,6 +2485,10 @@ Tip
 <section id="binomial-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="binomial-bigstar">Binomial <span class="math inline">\(\bigstar\)</span></h2>
 <p><span class="math display">\[\Pr(Y=y \mid n,\theta)=\binom{n}{y}\theta^y(1-\theta)^{n-y},\qquad y=0,1,\ldots,n\]</span></p>
+<p><span class="math display">\[\begin{aligned}
+\mathcal{L}(\theta)&amp;=\binom{n}{y}\theta^y(1-\theta)^{n-y}\\
+\ell(\theta)&amp;=\log\binom{n}{y}+y\log\theta+(n-y)\log(1-\theta)
+\end{aligned}\]</span></p>
 </section>
 <section id="poisson-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="poisson-bigstar">Poisson <span class="math inline">\(\bigstar\)</span></h2>
@@ -2836,7 +2840,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>That is the “familiar 1/n1/n”:</p>
+<p>That is the “familiar 1/n”:</p>
 <p><span class="math display">\[\boxed{\operatorname{Var}(\hat\theta)\propto\frac{1}{n}}\]</span></p>
 <p>And therefore the standard error behaves like</p>
 <p><span class="math display">\[SE(\hat\theta)\propto\frac{1}{\sqrt n}\]</span></p>
@@ -3015,9 +3019,7 @@ W
 <h2 class="anchored" data-anchor-id="what-to-report-in-practice-bigstar">What to Report in Practice <span class="math inline">\(\bigstar\)</span></h2>
 <ul>
 <li><strong>One coefficient, large n, an ordinary variable:</strong> <code>summary()</code> the Wald z and p. At large n, Wald z equals LR.</li>
-</ul>
-<p><strong>A block:</strong> <code>anova(m0, m1, test = &quot;Chisq&quot;</code>. LR</p>
-<ul>
+<li><strong>A block:</strong> <code>anova(m0, m1, test = &quot;Chisq&quot;</code>. LR</li>
 <li><strong>A rare outcome, a small group, a huge standard error, a coefficient near a boundary:</strong> <u>never use Wald z</u></li>
 </ul>
 </section>

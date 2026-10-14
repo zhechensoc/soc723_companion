@@ -161,6 +161,11 @@ $$\ell(\theta)
 
 $$\Pr(Y=y \mid n,\theta)=\binom{n}{y}\theta^y(1-\theta)^{n-y},\qquad y=0,1,\ldots,n$$
 
+$$\begin{aligned}
+\mathcal{L}(\theta)&=\binom{n}{y}\theta^y(1-\theta)^{n-y}\\
+\ell(\theta)&=\log\binom{n}{y}+y\log\theta+(n-y)\log(1-\theta)
+\end{aligned}$$
+
 ## Poisson $\bigstar$
 
 $$\Pr(Y=y\mid\theta)=\frac{\theta^y e^{-\theta}}{y!},\qquad y=0,1,2,\ldots$$
@@ -532,7 +537,7 @@ $$\widehat{V}(\hat{\theta})
 \frac{1}{\text{observed information}}$$
 
 ::: callout-note
-That is the “familiar 1/n1/n”:
+That is the “familiar 1/n”:
 
 $$\boxed{\operatorname{Var}(\hat\theta)\propto\frac{1}{n}}$$
 
@@ -885,9 +890,7 @@ If $\ell$ is not parabola,$$\ell(\theta)\neq\ell(\hat{\theta})-
 ## What to Report in Practice $\bigstar$
 
 - **One coefficient, large n, an ordinary variable:** `summary()` the Wald z and p. At large n, Wald z equals LR.
-
-**A block:** `anova(m0, m1, test = "Chisq"`. LR
-
+- **A block:** `anova(m0, m1, test = "Chisq"`. LR
 - **A rare outcome, a small group, a huge standard error, a coefficient near a boundary:** [never use Wald z]{.underline}
 
 ## AIC and BIC $\bigstar$
