@@ -337,7 +337,7 @@ It means that for every value of $X_i$, the average value of the unobserved erro
 
 Given:
 
-$$Y_i=\beta_0+\beta_1X_i+\epsilon_i \\
+$$Y_i=\beta_0+\beta_1X_i+\epsilon_i, \qquad
 \bar Y=\beta_0+\beta_1\bar X+\bar\epsilon$$
 
 Therefore:
@@ -394,7 +394,7 @@ Therefore:
 
 $$\boxed{E[\hat{\beta}_1]=\beta_1}$$
 
-> *Logic:* **A4 makes the error term disappear on average conditional on XX, which gives conditional unbiasedness; then the law of iterated expectations gives unconditional unbiasedness.**
+> *Logic:* **A4 makes the error term disappear on average conditional on X, which gives conditional unbiasedness; then the law of iterated expectations gives unconditional unbiasedness.**
 
 ## The Variance of $\hat{\beta_1}$ $\bigstar$
 
@@ -492,7 +492,7 @@ $$s^2=\frac{1}{n-k}\sum_i \hat e_i^2, \qquad E[s^2]=\sigma^2$$
 
 If A6 also holds, then conditional on $X$
 
-$$hat{\beta}_1\sim\mathcal{N}\left(\beta_1,\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}\right),\qquad \frac{(n-k)s^2}{\sigma^2}\sim\chi^2_{n-k},\qquad \hat{\beta}_1\perp\!\!\!\perp s^2$$ So that
+$$\hat{\beta}_1\sim\mathcal{N}\left(\beta_1,\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}\right),\qquad \frac{(n-k)s^2}{\sigma^2}\sim\chi^2_{n-k},\qquad \hat{\beta}_1\perp\!\!\!\perp s^2$$ So that
 
 $$t=\frac{\hat{\beta}_1-\beta_1}{\operatorname{se}(\hat{\beta}_1)}\sim t_{n-k}$$
 
@@ -550,7 +550,7 @@ Among all functions of $X_i$, **the CEF is the best mean-squared-error predictor
 ## The Best Linear Predictor (BLP) $\bigstar$
 
 1.  If the CEF is linear, the population regression is the CEF.
-2.  If the CEF is nonlinear}, $X_i'\beta$ is the minimum-MSE linear approximation to it: $\beta=\underset{b}{\arg\min}\;E\left[\left(E[Y_i\mid X_i]-X_i'b\right)^2\right]$
+2.  If the CEF is nonlinear, $X_i'\beta$ is the minimum-MSE linear approximation to it: $\beta=\underset{b}{\arg\min}\;E\left[\left(E[Y_i\mid X_i]-X_i'b\right)^2\right]$
 3.  Regardless whether the CEF is linear, [$X_i'\beta$ is the minimum-MSE linear predictor of]{.underline} $Y_i$[.]{.underline}
 
 ## Good Controls, Bad Controls (come back in Week 5)

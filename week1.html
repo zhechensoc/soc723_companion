@@ -2698,7 +2698,7 @@ Note
 <section id="unbiasedness-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="unbiasedness-bigstar">Unbiasedness <span class="math inline">\(\bigstar\)</span></h2>
 <p>Given:</p>
-<p><span class="math display">\[Y_i=\beta_0+\beta_1X_i+\epsilon_i \\
+<p><span class="math display">\[Y_i=\beta_0+\beta_1X_i+\epsilon_i, \qquad
 \bar Y=\beta_0+\beta_1\bar X+\bar\epsilon\]</span></p>
 <p>Therefore:</p>
 <p><span class="math display">\[Y_i-\bar Y=\beta_1(X_i-\bar X)+(\epsilon_i-\bar\epsilon)\]</span></p>
@@ -2741,7 +2741,7 @@ Tip
 <p>Therefore:</p>
 <p><span class="math display">\[\boxed{E[\hat{\beta}_1]=\beta_1}\]</span></p>
 <blockquote class="blockquote">
-<p><em>Logic:</em> <strong>A4 makes the error term disappear on average conditional on XX, which gives conditional unbiasedness; then the law of iterated expectations gives unconditional unbiasedness.</strong></p>
+<p><em>Logic:</em> <strong>A4 makes the error term disappear on average conditional on X, which gives conditional unbiasedness; then the law of iterated expectations gives unconditional unbiasedness.</strong></p>
 </blockquote>
 </section>
 <section id="the-variance-of-hatbeta_1-bigstar" class="level2">
@@ -2828,7 +2828,7 @@ For more regressors:</p>
 <section id="finite-sample-distribution-under-normality" class="level3">
 <h3 class="anchored" data-anchor-id="finite-sample-distribution-under-normality">Finite-Sample Distribution Under Normality</h3>
 <p>If A6 also holds, then conditional on <span class="math inline">\(X\)</span></p>
-<p><span class="math display">\[hat{\beta}_1\sim\mathcal{N}\left(\beta_1,\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}\right),\qquad \frac{(n-k)s^2}{\sigma^2}\sim\chi^2_{n-k},\qquad \hat{\beta}_1\perp\!\!\!\perp s^2\]</span> So that</p>
+<p><span class="math display">\[\hat{\beta}_1\sim\mathcal{N}\left(\beta_1,\frac{\sigma^2}{\sum_i(X_i-\bar X)^2}\right),\qquad \frac{(n-k)s^2}{\sigma^2}\sim\chi^2_{n-k},\qquad \hat{\beta}_1\perp\!\!\!\perp s^2\]</span> So that</p>
 <p><span class="math display">\[t=\frac{\hat{\beta}_1-\beta_1}{\operatorname{se}(\hat{\beta}_1)}\sim t_{n-k}\]</span></p>
 <ul>
 <li><span class="math inline">\(\hat{\beta}_1\)</span> is a <u>linear</u> function of the errors, hence normal when they are.</li>
@@ -2898,7 +2898,7 @@ Important
 <h2 class="anchored" data-anchor-id="the-best-linear-predictor-blp-bigstar">The Best Linear Predictor (BLP) <span class="math inline">\(\bigstar\)</span></h2>
 <ol type="1">
 <li>If the CEF is linear, the population regression is the CEF.</li>
-<li>If the CEF is nonlinear}, <span class="math inline">\(X_i&#39;\beta\)</span> is the minimum-MSE linear approximation to it: <span class="math inline">\(\beta=\underset{b}{\arg\min}\;E\left[\left(E[Y_i\mid X_i]-X_i&#39;b\right)^2\right]\)</span></li>
+<li>If the CEF is nonlinear, <span class="math inline">\(X_i&#39;\beta\)</span> is the minimum-MSE linear approximation to it: <span class="math inline">\(\beta=\underset{b}{\arg\min}\;E\left[\left(E[Y_i\mid X_i]-X_i&#39;b\right)^2\right]\)</span></li>
 <li>Regardless whether the CEF is linear, <u><span class="math inline">\(X_i&#39;\beta\)</span> is the minimum-MSE linear predictor of</u> <span class="math inline">\(Y_i\)</span><u>.</u></li>
 </ol>
 </section>
