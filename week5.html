@@ -3756,8 +3756,8 @@ ATE &amp;= \sum_x CATE(x)\Pr(X_i=x) &amp;&amp; \text{iterated expectations}
 <h1>DAGS <span class="math inline">\(\bigstar\)</span></h1>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset">
-<div id="htmlwidget-3d262c8eda3674e9eb5d" style="width:100%;height:300px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3d262c8eda3674e9eb5d">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.25]\n  node [shape = circle, fixedsize = true, width = 0.5]\n\n  # Chain\n  A1 [label=\"A\", pos=\"0,1!\"]\n  B1 [label=\"B\", pos=\"1.2,1!\"]\n  C1 [label=\"C\", pos=\"2.4,1!\"]\n  A1 -> B1\n  B1 -> C1\n\n  # Fork\n  B2 [label=\"B\", pos=\"4.2,1.6!\"]\n  A2 [label=\"A\", pos=\"3.6,0.7!\"]\n  C2 [label=\"C\", pos=\"4.8,0.7!\"]\n  B2 -> A2\n  B2 -> C2\n\n  # Collider -- shifted left\n  A3 [label=\"A\", pos=\"6.2,1.6!\"]\n  C3 [label=\"C\", pos=\"7.4,1.6!\"]\n  B3 [label=\"B\", pos=\"6.8,0.7!\"]\n  A3 -> B3\n  C3 -> B3\n\n  # Labels\n  L1 [label=\"chain: B is a mediator\", shape=plaintext, pos=\"1.2,0!\"]\n  L2 [label=\"fork: B is a confounder\", shape=plaintext, pos=\"4.2,0!\"]\n  L3 [label=\"collider: B is a common effect\", shape=plaintext, pos=\"6.8,0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b75dc5c6d7d5227eae06" style="width:100%;height:300px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b75dc5c6d7d5227eae06">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.25]\n  node [shape = circle, fixedsize = true, width = 0.5]\n\n  # Chain\n  A1 [label=\"A\", pos=\"0,1!\"]\n  B1 [label=\"B\", pos=\"1.2,1!\"]\n  C1 [label=\"C\", pos=\"2.4,1!\"]\n  A1 -> B1\n  B1 -> C1\n\n  # Fork\n  B2 [label=\"B\", pos=\"4.2,1.6!\"]\n  A2 [label=\"A\", pos=\"3.6,0.7!\"]\n  C2 [label=\"C\", pos=\"4.8,0.7!\"]\n  B2 -> A2\n  B2 -> C2\n\n  # Collider -- shifted left\n  A3 [label=\"A\", pos=\"6.2,1.6!\"]\n  C3 [label=\"C\", pos=\"7.4,1.6!\"]\n  B3 [label=\"B\", pos=\"6.8,0.7!\"]\n  A3 -> B3\n  C3 -> B3\n\n  # Labels\n  L1 [label=\"chain: B is a mediator\", shape=plaintext, pos=\"1.2,0!\"]\n  L2 [label=\"fork: B is a confounder\", shape=plaintext, pos=\"4.2,0!\"]\n  L3 [label=\"collider: B is a common effect\", shape=plaintext, pos=\"6.8,0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><span class="math display">\[\begin{array}{lll}\hline
@@ -3815,15 +3815,20 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>In d-separation: - For a chain <span class="math inline">\(A\to B\to C\)</span>, conditioning on <span class="math inline">\(B\)</span> blocks the path. - For a fork <span class="math inline">\(A\leftarrow B\to C\)</span>, conditioning on <span class="math inline">\(B\)</span> blocks the path. - For a collider <span class="math inline">\(A\to B\leftarrow C\)</span>, conditioning on <span class="math inline">\(B\)</span> opens the path.</p>
+<p>In d-separation:</p>
+<ul>
+<li><p>For a chain <span class="math inline">\(A\to B\to C\)</span>, conditioning on <span class="math inline">\(B\)</span> blocks the path.</p></li>
+<li><p>For a fork <span class="math inline">\(A\leftarrow B\to C\)</span>, conditioning on <span class="math inline">\(B\)</span> blocks the path.</p></li>
+<li><p>For a collider <span class="math inline">\(A\to B\leftarrow C\)</span>, conditioning on <span class="math inline">\(B\)</span> opens the path.</p></li>
+</ul>
 </div>
 </div>
 <section id="d-separation-in-graphs" class="level3">
 <h3 class="anchored" data-anchor-id="d-separation-in-graphs">d-separation in graphs</h3>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-3848b3925b864f48a565" style="width:100%;height:300px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3848b3925b864f48a565">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.5]\n\n  X [label=\"X\", pos=\"1,2!\"]\n  D [label=\"D\", pos=\"0,1!\"]\n  Y [label=\"Y\", pos=\"2,1!\"]\n  C [label=\"C\", pos=\"1,0!\"]\n\n  X -> D\n  X -> Y\n  D -> Y\n  D -> C\n  Y -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-efff7405a09ec98480a8" style="width:100%;height:300px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-efff7405a09ec98480a8">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.5]\n\n  X [label=\"X\", pos=\"1,2!\"]\n  D [label=\"D\", pos=\"0,1!\"]\n  Y [label=\"Y\", pos=\"2,1!\"]\n  C [label=\"C\", pos=\"1,0!\"]\n\n  X -> D\n  X -> Y\n  D -> Y\n  D -> C\n  Y -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><span class="math display">\[\begin{array}{llll}\hline
@@ -3831,7 +3836,11 @@ Tip
 1:\ D\to Y &amp; \text{open} &amp; \text{open} &amp; \text{open}\\
 2:\ D\leftarrow X\to Y &amp; \text{open} &amp; \text{blocked} &amp; \text{blocked}\\
 3:\ D\to C\leftarrow Y &amp; \text{blocked} &amp; \text{blocked} &amp; \text{open}\\ \hline
-\end{array}\]</span> ## Back-door Criterion <span class="math inline">\(\bigstar\)</span></p>
+\end{array}\]</span></p>
+</section>
+</section>
+<section id="back-door-criterion-bigstar" class="level2">
+<h2 class="anchored" data-anchor-id="back-door-criterion-bigstar">Back-door Criterion <span class="math inline">\(\bigstar\)</span></h2>
 <p><span class="math inline">\(Z\)</span> satisfies the back-door criterion for the effect of <span class="math inline">\(D\)</span> on <span class="math inline">\(Y\)</span> if</p>
 <ol type="1">
 <li>no node in <span class="math inline">\(Z\)</span> is a descendant of <span class="math inline">\(D\)</span>, and</li>
@@ -3841,13 +3850,12 @@ Tip
 <li>In d-separation terms: delete every arrow out of <span class="math inline">\(D\)</span>; in what is left, <span class="math inline">\(Z\)</span> must d-separate <span class="math inline">\(D\)</span> from <span class="math inline">\(Y\)</span>.</li>
 <li>Potential-outcome reading: the causes of <span class="math inline">\(Y(d)=f_Y(d,\ldots)\)</span> are the arrows into <span class="math inline">\(Y\)</span> other than <span class="math inline">\(D\)</span>; <span class="math inline">\(Y(d)\perp\!\!\!\perp D\mid Z\)</span> holds when <span class="math inline">\(Z\)</span> blocks every path from <span class="math inline">\(D\)</span> to them.</li>
 </ul>
-</section>
 <section id="example" class="level3">
 <h3 class="anchored" data-anchor-id="example">Example</h3>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-e623bd06eda140feb83f" style="width:100%;height:420px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e623bd06eda140feb83f">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.20]\n  node [shape = circle, fixedsize = true, width = 0.55]\n\n  D [label=\"D\", pos=\"0,2!\"]\n  M [label=\"M\", pos=\"2,2.8!\"]\n  Y [label=\"Y\", pos=\"4,2!\"]\n  X [label=\"X\", pos=\"0.8,0.8!\"]\n  A [label=\"A\", pos=\"3.2,0.8!\"]\n  U [label=\"U\", pos=\"4.8,-0.2!\", style=\"dashed\"]\n\n  D -> M\n  M -> Y\n  D -> Y\n\n  X -> D\n  X -> Y\n\n  A -> D\n  A -> Y\n\n  U -> A [color=\"gray\"]\n  U -> Y [color=\"gray\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-c4923c3ec09d4ffafddc" style="width:100%;height:420px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c4923c3ec09d4ffafddc">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.20]\n  node [shape = circle, fixedsize = true, width = 0.55]\n\n  D [label=\"D\", pos=\"0,2!\"]\n  M [label=\"M\", pos=\"2,2.8!\"]\n  Y [label=\"Y\", pos=\"4,2!\"]\n  X [label=\"X\", pos=\"0.8,0.8!\"]\n  A [label=\"A\", pos=\"3.2,0.8!\"]\n  U [label=\"U\", pos=\"4.8,-0.2!\", style=\"dashed\"]\n\n  D -> M\n  M -> Y\n  D -> Y\n\n  X -> D\n  X -> Y\n\n  A -> D\n  A -> Y\n\n  U -> A [color=\"gray\"]\n  U -> Y [color=\"gray\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p>Back-door paths from <span class="math inline">\(D\)</span> to <span class="math inline">\(Y\)</span>:</p>
@@ -3866,8 +3874,8 @@ Tip
 <h2 class="anchored" data-anchor-id="example-berksons-paradox">Example: Berkson’s paradox</h2>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-06f1e28b19d9ec5eb77c" style="width:100%;height:320px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-06f1e28b19d9ec5eb77c">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.6]\n\n  T [label=\"T\", pos=\"0,1.8!\"]\n  A [label=\"A\", pos=\"2.8,1.8!\"]\n  C [label=\"C\", pos=\"1.4,0.3!\"]\n\n  LT [label=\"test score\", shape=plaintext, pos=\"0,2.55!\"]\n  LA [label=\"athletic talent\", shape=plaintext, pos=\"2.8,2.55!\"]\n  LC [label=\"admitted\", shape=plaintext, pos=\"1.4,-0.45!\"]\n\n  T -> C\n  A -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-1a2f62766abcb8359c64" style="width:100%;height:320px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1a2f62766abcb8359c64">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.6]\n\n  T [label=\"T\", pos=\"0,1.8!\"]\n  A [label=\"A\", pos=\"2.8,1.8!\"]\n  C [label=\"C\", pos=\"1.4,0.3!\"]\n\n  LT [label=\"test score\", shape=plaintext, pos=\"0,2.55!\"]\n  LA [label=\"athletic talent\", shape=plaintext, pos=\"2.8,2.55!\"]\n  LC [label=\"admitted\", shape=plaintext, pos=\"1.4,-0.45!\"]\n\n  T -> C\n  A -> C\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p>Admission to a selective college requires either a high test score or athletic talent; the two are independent among applicants.</p>
@@ -3878,8 +3886,8 @@ Tip
 <p>Conditioning on a collider opens associations among its parents and all of their ancestors.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-b0146694393b7d1ec1f2" style="width:100%;height:320px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b0146694393b7d1ec1f2">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = true, margin = 0.02]\n  node [shape = circle, fixedsize = true, width = 0.7, fontsize = 26]\n  edge [penwidth = 1.5]\n\n  # ---------------- left panel ----------------\n  T1 [label=\"T\", pos=\"0,1.3!\"]\n  A1 [label=\"A\", pos=\"2.4,1.3!\"]\n  C1 [label=\"C\", pos=\"1.2,0!\", color=\"orangered\"]\n  H1 [label=\"\", shape=point, width=0.01, pos=\"1.2,1.95!\"]\n\n  T1 -> C1\n  A1 -> C1\n\n  T1 -> H1 [style=dashed, color=\"orangered\", dir=back, arrowtail=normal, arrowhead=none, constraint=false]\n  H1 -> A1 [style=dashed, color=\"orangered\", arrowhead=normal, constraint=false]\n\n  # ---------------- right panel ----------------\n  X2 [label=\"X\", pos=\"4.6,1.3!\"]\n  T2 [label=\"T\", pos=\"6.1,1.3!\"]\n  A2 [label=\"A\", pos=\"9.0,1.3!\"]\n  Y2 [label=\"Y\", pos=\"10.8,1.3!\"]\n  C2 [label=\"C\", pos=\"7.55,0!\", color=\"orangered\"]\n\n  H2a [label=\"\", shape=point, width=0.01, pos=\"6.1,1.95!\"]\n  H2b [label=\"\", shape=point, width=0.01, pos=\"9.0,1.95!\"]\n\n  X2 -> T2\n  T2 -> C2\n  A2 -> C2\n  Y2 -> A2\n\n  X2 -> H2a [style=dashed, color=\"orangered\", dir=back, arrowtail=normal, arrowhead=none, constraint=false]\n  H2a -> H2b [style=dashed, color=\"orangered\", arrowhead=none, constraint=false]\n  H2b -> Y2 [style=dashed, color=\"orangered\", arrowhead=normal, constraint=false]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a466aa23006efad4e3f4" style="width:100%;height:320px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a466aa23006efad4e3f4">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = true, margin = 0.02]\n  node [shape = circle, fixedsize = true, width = 0.7, fontsize = 26]\n  edge [penwidth = 1.5]\n\n  # ---------------- left panel ----------------\n  T1 [label=\"T\", pos=\"0,1.3!\"]\n  A1 [label=\"A\", pos=\"2.4,1.3!\"]\n  C1 [label=\"C\", pos=\"1.2,0!\", color=\"orangered\"]\n  H1 [label=\"\", shape=point, width=0.01, pos=\"1.2,1.95!\"]\n\n  T1 -> C1\n  A1 -> C1\n\n  T1 -> H1 [style=dashed, color=\"orangered\", dir=back, arrowtail=normal, arrowhead=none, constraint=false]\n  H1 -> A1 [style=dashed, color=\"orangered\", arrowhead=normal, constraint=false]\n\n  # ---------------- right panel ----------------\n  X2 [label=\"X\", pos=\"4.6,1.3!\"]\n  T2 [label=\"T\", pos=\"6.1,1.3!\"]\n  A2 [label=\"A\", pos=\"9.0,1.3!\"]\n  Y2 [label=\"Y\", pos=\"10.8,1.3!\"]\n  C2 [label=\"C\", pos=\"7.55,0!\", color=\"orangered\"]\n\n  H2a [label=\"\", shape=point, width=0.01, pos=\"6.1,1.95!\"]\n  H2b [label=\"\", shape=point, width=0.01, pos=\"9.0,1.95!\"]\n\n  X2 -> T2\n  T2 -> C2\n  A2 -> C2\n  Y2 -> A2\n\n  X2 -> H2a [style=dashed, color=\"orangered\", dir=back, arrowtail=normal, arrowhead=none, constraint=false]\n  H2a -> H2b [style=dashed, color=\"orangered\", arrowhead=none, constraint=false]\n  H2b -> Y2 [style=dashed, color=\"orangered\", arrowhead=normal, constraint=false]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section>
@@ -3889,7 +3897,8 @@ Tip
 <p>Examples:</p>
 <ul>
 <li><p>Wage regressions on employed workers: employment is caused by schooling and by the unobserved determinants of wages. Restricting to the employed conditions on a collider.</p></li>
-<li><p>Studies of college students, surviving firms, intact marriages: each is a conditioning operation. - Panel attrition: staying in the sample is an outcome.</p></li>
+<li><p>Studies of college students, surviving firms, intact marriages: each is a conditioning operation.</p></li>
+<li><p>Panel attrition: staying in the sample is an outcome.</p></li>
 <li><p>“Among those who report X”: reporting is behavior.</p></li>
 </ul>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -3936,8 +3945,8 @@ Important
 <h2 class="anchored" data-anchor-id="causes-of-the-outcome-only-or-of-the-treatment-only">Causes of the Outcome Only, or of the Treatment Only</h2>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-042a7769d4bb6f8a2dff" style="width:100%;height:300px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-042a7769d4bb6f8a2dff">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, margin = 0, pad = 0.12]\n  node [shape = circle, fixedsize = true, width = 0.55]\n\n  # 1: Z -> Y only\n  Z1 [label=\"Z\", pos=\"0,1.2!\"]\n  D1 [label=\"D\", pos=\"1.4,1.2!\"]\n  Y1 [label=\"Y\", pos=\"2.7,1.2!\"]\n\n  D1 -> Y1\n  Z1 -> Y1\n\n  L1 [label=\"1: Z -> Y only\", shape=plaintext, pos=\"1.35,0.15!\"]\n\n  # 2: Z -> D only\n  Z2 [label=\"Z\", pos=\"4.0,1.2!\"]\n  D2 [label=\"D\", pos=\"5.4,1.2!\"]\n  Y2 [label=\"Y\", pos=\"6.7,1.2!\"]\n\n  Z2 -> D2\n  D2 -> Y2\n\n  L2 [label=\"2: Z -> D only\", shape=plaintext, pos=\"5.35,0.15!\"]\n\n  # 3: Z -> D only, U unmeasured\n  Z3 [label=\"Z\", pos=\"8.0,1.2!\"]\n  D3 [label=\"D\", pos=\"9.4,1.2!\"]\n  Y3 [label=\"Y\", pos=\"10.7,1.2!\"]\n  U3 [label=\"U\", pos=\"10.05,0.0!\", style=\"dashed\", color=\"gray\"]\n\n  Z3 -> D3\n  D3 -> Y3\n  U3 -> D3 [color=\"gray\"]\n  U3 -> Y3 [color=\"gray\"]\n\n  L3 [label=\"3: Z -> D only, U unmeasured\", shape=plaintext, pos=\"9.35,-0.85!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-c2ea6509ee46247ae659" style="width:100%;height:300px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c2ea6509ee46247ae659">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.2]\n  node [shape=circle, fixedsize=true, width=0.58, fontsize=18, color=navy]\n  edge [color=navy, penwidth=1.4, arrowsize=0.75]\n\n# 1: Z -> Y only\nZ1 [label=\"Z\", pos=\"0,1.7!\"]\nD1 [label=\"D\", pos=\"1.3,1.7!\"]\nY1 [label=\"Y\", pos=\"2.6,1.7!\"]\n\n# Invisible point below D\nH1 [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.3,0.65!\"]\n\n# Straight arrow\nD1 -> Y1\n\n# Curved path below the nodes\nZ1:s -> H1 [arrowhead=none]\nH1 -> Y1:s\n\n# Caption\nL1 [label=\"1: Z → Y only\", shape=plaintext, fixedsize=false, pos=\"1.3,-0.15!\"]\n\n  # 2: Z -> D only\n  Z2 [label=\"Z\", pos=\"4.1,1.7!\"]\n  D2 [label=\"D\", pos=\"5.4,1.7!\"]\n  Y2 [label=\"Y\", pos=\"6.7,1.7!\"]\n\n  Z2 -> D2\n  D2 -> Y2\n\n  L2 [label=\"2: Z → D only\", shape=plaintext, fixedsize=false, pos=\"5.4,0!\"]\n\n  # 3: Z -> D only, U unmeasured\n  Z3 [label=\"Z\", pos=\"8.2,1.7!\"]\n  D3 [label=\"D\", pos=\"9.5,1.7!\"]\n  Y3 [label=\"Y\", pos=\"10.8,1.7!\"]\n  U3 [label=\"U\", pos=\"10.15,0.65!\", style=dashed, color=gray, fontcolor=gray]\n\n  Z3 -> D3\n  D3 -> Y3\n  U3 -> D3 [color=gray, style=dashed]\n  U3 -> Y3 [color=gray, style=dashed]\n\n  L3 [label=\"3: Z → D only, U unmeasured\", shape=plaintext, fixedsize=false, pos=\"9.5,-0.5!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <ul>
@@ -3954,8 +3963,8 @@ Important
 <h2 class="anchored" data-anchor-id="mediators">Mediators</h2>
 <div class="cell">
 <div class="cell-output-display">
-<div class="grViz html-widget html-fill-item" id="htmlwidget-4e56c7fffe6999173afa" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-4e56c7fffe6999173afa">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = polyline, outputorder = edgesfirst, margin = 0, pad = 0.2]\n  node [shape = circle, fixedsize = true, width = 0.6]\n\n  # ---------------- Left ----------------\n  D1 [label=\"D\", pos=\"0,1.4!\"]\n  M1 [label=\"M\", pos=\"1.5,1.4!\", color=\"orangered\"]\n  Y1 [label=\"Y\", pos=\"3.0,1.4!\"]\n  H1 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"1.5,2.2!\"]\n\n  D1 -> M1\n  M1 -> Y1\n  D1 -> H1 [arrowhead=none]\n  H1 -> Y1\n\n  L1 [label=\"control M: bad\", shape=plaintext, pos=\"1.5,-0.1!\"]\n\n  # ---------------- Middle ----------------\n  D2 [label=\"D\", pos=\"4.5,1.4!\"]\n  M2 [label=\"M\", pos=\"6.0,1.4!\"]\n  Y2 [label=\"Y\", pos=\"7.5,1.4!\"]\n  Z2 [label=\"Z\", pos=\"6.0,0.0!\", color=\"orangered\"]\n  H2 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"6.0,2.2!\"]\n\n  D2 -> M2\n  M2 -> Y2\n  M2 -> Z2\n  D2 -> H2 [arrowhead=none]\n  H2 -> Y2\n\n  L2 [label=\"control Z <- M: bad\", shape=plaintext, pos=\"6.0,-1.0!\"]\n\n  # ---------------- Right ----------------\n  D3 [label=\"D\", pos=\"9.0,1.4!\"]\n  M3 [label=\"M\", pos=\"10.5,1.4!\"]\n  Y3 [label=\"Y\", pos=\"12.0,1.4!\"]\n  Z3 [label=\"Z\", pos=\"10.5,0.0!\", color=\"orangered\"]\n  H3 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"10.5,2.2!\"]\n\n  D3 -> M3\n  M3 -> Y3\n  Z3 -> M3\n  D3 -> H3 [arrowhead=none]\n  H3 -> Y3\n\n  L3 [label=\"control Z -> M: neutral\", shape=plaintext, pos=\"10.5,-1.0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-956cf782ac9d911d92c3" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-956cf782ac9d911d92c3">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = polyline, outputorder = edgesfirst, margin = 0, pad = 0.2]\n  node [shape = circle, fixedsize = true, width = 0.6]\n\n  # ---------------- Left ----------------\n  D1 [label=\"D\", pos=\"0,1.4!\"]\n  M1 [label=\"M\", pos=\"1.5,1.4!\", color=\"orangered\"]\n  Y1 [label=\"Y\", pos=\"3.0,1.4!\"]\n  H1 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"1.5,2.2!\"]\n\n  D1 -> M1\n  M1 -> Y1\n  D1 -> H1 [arrowhead=none]\n  H1 -> Y1\n\n  L1 [label=\"control M: bad\", shape=plaintext, pos=\"1.5,-0.1!\"]\n\n  # ---------------- Middle ----------------\n  D2 [label=\"D\", pos=\"4.5,1.4!\"]\n  M2 [label=\"M\", pos=\"6.0,1.4!\"]\n  Y2 [label=\"Y\", pos=\"7.5,1.4!\"]\n  Z2 [label=\"Z\", pos=\"6.0,0.0!\", color=\"orangered\"]\n  H2 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"6.0,2.2!\"]\n\n  D2 -> M2\n  M2 -> Y2\n  M2 -> Z2\n  D2 -> H2 [arrowhead=none]\n  H2 -> Y2\n\n  L2 [label=\"control Z <- M: bad\", shape=plaintext, pos=\"6.0,-1.0!\"]\n\n  # ---------------- Right ----------------\n  D3 [label=\"D\", pos=\"9.0,1.4!\"]\n  M3 [label=\"M\", pos=\"10.5,1.4!\"]\n  Y3 [label=\"Y\", pos=\"12.0,1.4!\"]\n  Z3 [label=\"Z\", pos=\"10.5,0.0!\", color=\"orangered\"]\n  H3 [label=\"\", shape=point, width=0.01, height=0.01, style=invis, pos=\"10.5,2.2!\"]\n\n  D3 -> M3\n  M3 -> Y3\n  Z3 -> M3\n  D3 -> H3 [arrowhead=none]\n  H3 -> Y3\n\n  L3 [label=\"control Z -> M: neutral\", shape=plaintext, pos=\"10.5,-1.0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <ul>
@@ -3965,8 +3974,8 @@ Important
 </ul>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-1a467ca1ecb29f07adca" style="width:100%;height:430px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1a467ca1ecb29f07adca">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = polyline, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.55]\n\n  # ---------------- Left: mediator ----------------\n  D1 [label=\"D\", pos=\"0,1.4!\"]\n  M1 [label=\"M\", pos=\"1.5,1.4!\", color=\"orangered\"]\n  Y1 [label=\"Y\", pos=\"3.0,1.4!\"]\n  U1 [label=\"U\", pos=\"2.2,0.1!\", style=\"dashed\", color=\"gray\"]\n  H1 [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,2.15!\"]\n\n  D1 -> M1\n  M1 -> Y1\n  D1 -> H1 [arrowhead=none]\n  H1 -> Y1\n  U1 -> M1 [color=\"gray\"]\n  U1 -> Y1 [color=\"gray\"]\n\n  T1 [label=\"Mediators and the direct effect\", shape=plaintext, fontsize=20, pos=\"1.5,2.9!\"]\n  L1 [label=\"M is a bad control even if you want the\\ndirect effect: conditioning on M opens\\nD -> M <- U -> Y. Direct effects need\\nstronger assumptions than total effects.\",\n      shape=plaintext, pos=\"1.5,-1.2!\"]\n\n  # ---------------- Right: consequence of outcome ----------------\n  D2 [label=\"D\", pos=\"5.1,1.7!\"]\n  Y2 [label=\"Y\", pos=\"6.5,1.7!\"]\n  Z2 [label=\"Z\", pos=\"7.9,1.7!\", color=\"orangered\"]\n\n  D2 -> Y2\n  Y2 -> Z2\n\n  T2 [label=\"Consequences of the outcome\", shape=plaintext, fontsize=20, pos=\"6.5,2.9!\"]\n  L2 [label=\"Z happens after Y and is caused by it.\\nControlling for it partials out variation in the\\noutcome itself. The direction of the bias\\ndepends on the rest of the graph; do not\\nassume it is conservative.\",\n      shape=plaintext, pos=\"6.7,0.0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f63bad9fae7140738b64" style="width:100%;height:430px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f63bad9fae7140738b64">{"x":{"diagram":"\ndigraph dag {\n  graph [layout = neato, overlap = false, splines = polyline, margin = 0, pad = 0.15]\n  node [shape = circle, fixedsize = true, width = 0.55]\n\n  # ---------------- Left: mediator ----------------\n  D1 [label=\"D\", pos=\"0,1.4!\"]\n  M1 [label=\"M\", pos=\"1.5,1.4!\", color=\"orangered\"]\n  Y1 [label=\"Y\", pos=\"3.0,1.4!\"]\n  U1 [label=\"U\", pos=\"2.2,0.1!\", style=\"dashed\", color=\"gray\"]\n  H1 [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,2.15!\"]\n\n  D1 -> M1\n  M1 -> Y1\n  D1 -> H1 [arrowhead=none]\n  H1 -> Y1\n  U1 -> M1 [color=\"gray\"]\n  U1 -> Y1 [color=\"gray\"]\n\n  T1 [label=\"Mediators and the direct effect\", shape=plaintext, fontsize=20, pos=\"1.5,2.9!\"]\n  L1 [label=\"M is a bad control even if you want the\\ndirect effect: conditioning on M opens\\nD -> M <- U -> Y. Direct effects need\\nstronger assumptions than total effects.\",\n      shape=plaintext, pos=\"1.5,-1.2!\"]\n\n  # ---------------- Right: consequence of outcome ----------------\n  D2 [label=\"D\", pos=\"5.1,1.7!\"]\n  Y2 [label=\"Y\", pos=\"6.5,1.7!\"]\n  Z2 [label=\"Z\", pos=\"7.9,1.7!\", color=\"orangered\"]\n\n  D2 -> Y2\n  Y2 -> Z2\n\n  T2 [label=\"Consequences of the outcome\", shape=plaintext, fontsize=20, pos=\"6.5,2.9!\"]\n  L2 [label=\"Z happens after Y and is caused by it.\\nControlling for it partials out variation in the\\noutcome itself. The direction of the bias\\ndepends on the rest of the graph; do not\\nassume it is conservative.\",\n      shape=plaintext, pos=\"6.7,0.0!\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -3993,8 +4002,8 @@ Important
 <h2 class="anchored" data-anchor-id="mechanism-test-bigstar">Mechanism Test <span class="math inline">\(\bigstar\)</span></h2>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-2d8802ef23aad65de144" style="width:100%;height:260px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2d8802ef23aad65de144">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.6]\n\n  D [label=\"D\", pos=\"0,1!\"]\n  M [label=\"M\", pos=\"1.5,1!\"]\n  Y [label=\"Y\", pos=\"3,1!\"]\n  H [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,1.8!\"]\n\n  D -> M [label=\"a\"]\n  M -> Y [label=\"b\"]\n\n  D -> H [arrowhead=none]\n  H -> Y [label=\"c′\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-64dbf5c6c7dccf97305d" style="width:100%;height:260px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-64dbf5c6c7dccf97305d">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.6]\n\n  D [label=\"D\", pos=\"0,1!\"]\n  M [label=\"M\", pos=\"1.5,1!\"]\n  Y [label=\"Y\", pos=\"3,1!\"]\n  H [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,1.8!\"]\n\n  D -> M [label=\"a\"]\n  M -> Y [label=\"b\"]\n\n  D -> H [arrowhead=none]\n  H -> Y [label=\"c′\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><span class="math display">\[\begin{aligned}
@@ -4012,8 +4021,8 @@ Y &amp;= c&#39;D + bM + e_3 &amp;&amp; \text{direct effect } c&#39;,\ \text{medi
 <p>No unmeasured cause of both <span class="math inline">\(M\)</span> and <span class="math inline">\(Y\)</span>. Randomizing D does not solve it. (also called <strong>sequential ignorability</strong>)</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-67ac478d03234747a9d7" style="width:100%;height:280px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-67ac478d03234747a9d7">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.55]\n\n  D [label=\"D\", pos=\"0,1.2!\"]\n  M [label=\"M\", pos=\"1.5,1.2!\", color=\"orangered\"]\n  Y [label=\"Y\", pos=\"3.0,1.2!\"]\n  U [label=\"U\", pos=\"2.2,0.0!\", style=dashed, color=gray]\n\n  H [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,2.0!\"]\n\n  D -> M\n  M -> Y\n\n  D -> H [arrowhead=none]\n  H -> Y\n\n  U -> M [color=gray]\n  U -> Y [color=gray]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-47010eee39ec236b9d52" style="width:100%;height:280px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-47010eee39ec236b9d52">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=polyline, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.55]\n\n  D [label=\"D\", pos=\"0,1.2!\"]\n  M [label=\"M\", pos=\"1.5,1.2!\", color=\"orangered\"]\n  Y [label=\"Y\", pos=\"3.0,1.2!\"]\n  U [label=\"U\", pos=\"2.2,0.0!\", style=dashed, color=gray]\n\n  H [label=\"\", shape=point, width=0.01, style=invis, pos=\"1.5,2.0!\"]\n\n  D -> M\n  M -> Y\n\n  D -> H [arrowhead=none]\n  H -> Y\n\n  U -> M [color=gray]\n  U -> Y [color=gray]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <p><strong>Solution</strong>: sensitivity analysis (<code>mediation::medsens</code>)</p>
@@ -4024,8 +4033,8 @@ Y &amp;= c&#39;D + bM + e_3 &amp;&amp; \text{direct effect } c&#39;,\ \text{medi
 <p>Sometimes no back door can be closed, but the mechanism can be measured <strong>without measuring the confounder</strong></p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="htmlwidget-0ad193ea4fe6a3b16069" style="width:100%;height:280px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0ad193ea4fe6a3b16069">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.6]\n\n  D [label=\"D\", pos=\"0,0!\"]\n  M [label=\"M\", pos=\"1.7,0!\"]\n  Y [label=\"Y\", pos=\"3.4,0!\"]\n  U [label=\"U\", pos=\"1.7,1.5!\", style=dashed, color=\"gray\"]\n\n  D -> M\n  M -> Y\n\n  U -> D [color=\"gray\"]\n  U -> Y [color=\"gray\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-74e1423453d9b5519cf8" style="width:100%;height:280px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-74e1423453d9b5519cf8">{"x":{"diagram":"\ndigraph dag {\n  graph [layout=neato, overlap=false, splines=true, margin=0, pad=0.15]\n  node [shape=circle, fixedsize=true, width=0.6]\n\n  D [label=\"D\", pos=\"0,0!\"]\n  M [label=\"M\", pos=\"1.7,0!\"]\n  Y [label=\"Y\", pos=\"3.4,0!\"]\n  U [label=\"U\", pos=\"1.7,1.5!\", style=dashed, color=\"gray\"]\n\n  D -> M\n  M -> Y\n\n  U -> D [color=\"gray\"]\n  U -> Y [color=\"gray\"]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <section id="three-conditions" class="level2">
