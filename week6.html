@@ -2520,9 +2520,10 @@ w(x)
 <p><span class="math display">\[\begin{aligned}
 \widehat{ATE} &amp;= \sum_x \frac{n_x}{n}\hat{\tau}(x) &amp;&amp; \text{each }\hat{\tau}(x)\text{ is a difference of two means}\\
 \widehat{\operatorname{Var}}(\widehat{ATE}) &amp;= \sum_x\left(\frac{n_x}{n}\right)^2\left(\frac{s_{1x}^2}{n_{1x}}+\frac{s_{0x}^2}{n_{0x}}\right) &amp;&amp; \text{ATT: weights }n_{1x}/n_1
-\end{aligned}\]</span> - <strong>Bootstrap</strong>. Resample units, rebuild the cells, recompute.</p>
+\end{aligned}\]</span></p>
 <ul>
-<li><strong>The regression route</strong>. Weighted regression of Y on D with the matching weights gives the same estimate. <strong>Do not cluster by cell: cells are strata, not dependence.</strong></li>
+<li><p><strong>Bootstrap</strong>. Resample units, rebuild the cells, recompute.</p></li>
+<li><p><strong>The regression route</strong>. Weighted regression of Y on D with the matching weights gives the same estimate. <strong>Do not cluster by cell: cells are strata, not dependence.</strong></p></li>
 </ul>
 </section>
 <section id="nearest-neighbor-matching" class="level3">
@@ -2648,7 +2649,10 @@ w(x)
 <li><p><strong>What weighting buys</strong>: A one-armed or empty cell is not dropped. Every unit is used, continuous X and many covariates are no obstacle, one formula serves every target, and it plugs into the doubly robust estimator.</p></li>
 <li><p><strong>What weighting costs</strong>: Thin overlap does not disappear; it moves. Matching drops a treated unit with no comparison and says so. Weighting keeps it at weight <span class="math inline">\(1/\hat{e}\)</span> = 100 and says so only through the variance and the largest weights; and the weights are right only where the model is, including where the data are too thin to check.</p></li>
 </ul>
-<p><strong>The trade</strong> - Matching narrows the target and says so - Weighting keeps the target and pays in variance and model dependence.</p>
+<p><strong>The trade</strong></p>
+<ul>
+<li>Matching narrows the target and says so - Weighting keeps the target and pays in variance and model dependence.</li>
+</ul>
 </section>
 <section id="att-in-weighting-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="att-in-weighting-bigstar">ATT in Weighting <span class="math inline">\(\bigstar\)</span></h2>
@@ -3068,7 +3072,7 @@ Warning
 <li><p>Estimate the propensity score. Look at overlap. Trim or redefine if needed and say so.</p></li>
 <li><p>Match or weight. Check balance with standardized mean differences and density plots, <strong>never</strong> with t-tests.</p></li>
 <li><p>Estimate with a doubly robust estimator; report matching, weighting, and regression alongside.</p></li>
-<li><p>Get standard errors that respect the design: bootstrap the whole estimation pipeline for weighting and regression estimators, and cluster where treatment was assigned. <strong>Do not bootstrap nearest-neighbour matching</strong>, the ordinary bootstrap is invalid for it ; use their analytic variance instead.</p></li>
+<li><p>Get standard errors that respect the design: bootstrap the whole estimation pipeline for weighting and regression estimators, and cluster where treatment was assigned. <strong>Do not bootstrap nearest-neighbor matching</strong>, the ordinary bootstrap is invalid for it ; use their analytic variance instead.</p></li>
 <li><p>Report a sensitivity analysis.</p></li>
 </ol>
 </section>
