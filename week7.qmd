@@ -35,7 +35,7 @@ Three sources of $Cov(D_i,\epsilon_i) \neq 0$:
 - simultaneity ($Y$ also causes $D$)
 - selection into the sample on a collider (Week 5).
 
-Measurement error in $D$: classical error in D shrinks the OLS slope toward zero, by the reliability ratio ${\operatorname{Var}(D^*)/{\operatorname{Var}(D)$.
+Measurement error in $D$: classical error in D shrinks the OLS slope toward zero, by the reliability ratio $\operatorname{Var}(D^*)/\operatorname{Var}(D)$.
 
 ## An Instrument $\bigstar$
 
