@@ -420,6 +420,100 @@ Clearly
 $$\text{logit}^{-1}(\eta_1-\eta_0)\neq\text{logit}^{-1}(\eta_1)-\text{logit}^{-1}(\eta_0)$$
 :::
 
+## Calculate AME: Example from the Mid-Term $\bigstar$
+
+Pager (2003, AJS) sent matched pairs of testers to apply for 350 entry-level jobs in Milwaukee. The outcome is a callback (0/1). Testers were white or Black, and in each pair one presented a criminal record.
+
+Pager reports callback rates of 34% (white, no record), 17% (white, record), 14% (Black, no record), and 5% (Black, record). Her Appendix Table B1 fits a logit of callback on $record$, $Black$, and their product (intercept rounded; the table also carries two controls, so the model's predictions sit slightly off the raw rates):
+
+| Variable              | $\hat{\beta}$ |
+|:----------------------|--------------:|
+| Intercept             |       $-0.66$ |
+| Criminal record       |       $-0.99$ |
+| Black                 |       $-1.25$ |
+| Record $\times$ Black |       $-0.29$ |
+
+### Answer 
+
+The estimated logistic regression model is
+
+$$
+\begin{equation}
+\operatorname{logit}(p_i)
+= -0.66 - 0.99 Record_i - 1.25 Black_i
+  - 0.29(Record_i \times Black_i),
+\end{equation}
+$$
+
+The predicted probability is calculated as
+
+$$
+\begin{equation}
+\hat{p}_i
+= \frac{\exp(\hat{\eta}_i)}
+{1+\exp(\hat{\eta}_i)}.
+\end{equation}
+$$
+For White testers without a criminal record:
+
+$$
+\begin{equation}
+\hat{p}_{W,0}
+= \frac{\exp(-0.66)}
+{1+\exp(-0.66)}
+= 0.3407.
+\end{equation}
+$$
+
+For White testers with a criminal record:
+
+$$
+\begin{equation}
+\hat{p}_{W,1}
+= \frac{\exp(-0.66-0.99)}
+{1+\exp(-0.66-0.99)}
+= 0.1611.
+\end{equation}
+$$
+
+For Black testers without a criminal record:
+
+$$
+\begin{equation}
+\hat{p}_{B,0}
+= \frac{\exp(-0.66-1.25)}
+{1+\exp(-0.66-1.25)}
+= 0.1290.
+\end{equation}
+$$
+
+For Black testers with a criminal record:
+
+$$
+\begin{equation}
+\hat{p}_{B,1}
+= \frac{\exp(-0.66-0.99-1.25-0.29)}
+{1+\exp(-0.66-0.99-1.25-0.29)}
+= 0.0395.
+\end{equation}
+$$
+
+Since half of the testers are White and half are Black, the average marginal effect of a criminal record is
+
+$$
+\begin{align}
+AME
+&= \frac{1}{2}
+   (\hat{p}_{W,1}-\hat{p}_{W,0})
+ + \frac{1}{2}
+   (\hat{p}_{B,1}-\hat{p}_{B,0}) \\
+&= \frac{1}{2}(0.1611-0.3407)
+ + \frac{1}{2}(0.0395-0.1290) \\
+&\approx \boxed{-0.1345}.
+\end{align}
+$$
+Based on the logistic regression model, having a criminal record is associated with a 13.45-percentage-point reduction in the predicted probability of receiving a callback, averaging equally across White and Black job applicants.
+
 ## Probit $\bigstar$
 
 $$p_i=\Phi(X_i'\beta)$$
@@ -710,19 +804,15 @@ P(A=\mathrm{HS})&=\Lambda(5.21-4.29)-\Lambda(1.84-4.29) \\
 
 Why?
 
-$$
-\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i > j)}\right)
+$$\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i > j)}\right)
 = \tau_j - X_i^\prime\beta
 \quad \Longleftrightarrow \quad
 \log\left(\frac{\Pr(Y_i > j)}{\Pr(Y_i \le j)}\right)
-= X_i^\prime\beta - \tau_j.
-$$
+= X_i^\prime\beta - \tau_j.$$
 
 Then for each category $j$
 
-$$
-OR=e^{\beta_k}
-$$
+$$OR=e^{\beta_k}$$
 
 We can test whether the odds ratio is constant. If the assumption fails, use *partial proportional models* (`VGAM::vglm`,`ordinal::clm`), which frees the slope $\tau_j$.
 

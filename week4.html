@@ -2675,6 +2675,104 @@ Note
 </section>
 </section>
 </section>
+<section id="calculate-ame-example-from-the-mid-term-bigstar" class="level2">
+<h2 class="anchored" data-anchor-id="calculate-ame-example-from-the-mid-term-bigstar">Calculate AME: Example from the Mid-Term <span class="math inline">\(\bigstar\)</span></h2>
+<p>Pager (2003, AJS) sent matched pairs of testers to apply for 350 entry-level jobs in Milwaukee. The outcome is a callback (0/1). Testers were white or Black, and in each pair one presented a criminal record.</p>
+<p>Pager reports callback rates of 34% (white, no record), 17% (white, record), 14% (Black, no record), and 5% (Black, record). Her Appendix Table B1 fits a logit of callback on <span class="math inline">\(record\)</span>, <span class="math inline">\(Black\)</span>, and their product (intercept rounded; the table also carries two controls, so the model’s predictions sit slightly off the raw rates):</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;"><span class="math inline">\(\hat{\beta}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept</td>
+<td style="text-align: right;"><span class="math inline">\(-0.66\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Criminal record</td>
+<td style="text-align: right;"><span class="math inline">\(-0.99\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Black</td>
+<td style="text-align: right;"><span class="math inline">\(-1.25\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Record <span class="math inline">\(\times\)</span> Black</td>
+<td style="text-align: right;"><span class="math inline">\(-0.29\)</span></td>
+</tr>
+</tbody>
+</table>
+<section id="answer" class="level3">
+<h3 class="anchored" data-anchor-id="answer">Answer</h3>
+<p>The estimated logistic regression model is</p>
+<p><span class="math display">\[
+\begin{equation}
+\operatorname{logit}(p_i)
+= -0.66 - 0.99 Record_i - 1.25 Black_i
+  - 0.29(Record_i \times Black_i),
+\end{equation}
+\]</span></p>
+<p>The predicted probability is calculated as</p>
+<p><span class="math display">\[
+\begin{equation}
+\hat{p}_i
+= \frac{\exp(\hat{\eta}_i)}
+{1+\exp(\hat{\eta}_i)}.
+\end{equation}
+\]</span> For White testers without a criminal record:</p>
+<p><span class="math display">\[
+\begin{equation}
+\hat{p}_{W,0}
+= \frac{\exp(-0.66)}
+{1+\exp(-0.66)}
+= 0.3407.
+\end{equation}
+\]</span></p>
+<p>For White testers with a criminal record:</p>
+<p><span class="math display">\[
+\begin{equation}
+\hat{p}_{W,1}
+= \frac{\exp(-0.66-0.99)}
+{1+\exp(-0.66-0.99)}
+= 0.1611.
+\end{equation}
+\]</span></p>
+<p>For Black testers without a criminal record:</p>
+<p><span class="math display">\[
+\begin{equation}
+\hat{p}_{B,0}
+= \frac{\exp(-0.66-1.25)}
+{1+\exp(-0.66-1.25)}
+= 0.1290.
+\end{equation}
+\]</span></p>
+<p>For Black testers with a criminal record:</p>
+<p><span class="math display">\[
+\begin{equation}
+\hat{p}_{B,1}
+= \frac{\exp(-0.66-0.99-1.25-0.29)}
+{1+\exp(-0.66-0.99-1.25-0.29)}
+= 0.0395.
+\end{equation}
+\]</span></p>
+<p>Since half of the testers are White and half are Black, the average marginal effect of a criminal record is</p>
+<p><span class="math display">\[
+\begin{align}
+AME
+&amp;= \frac{1}{2}
+   (\hat{p}_{W,1}-\hat{p}_{W,0})
++ \frac{1}{2}
+   (\hat{p}_{B,1}-\hat{p}_{B,0}) \\
+&amp;= \frac{1}{2}(0.1611-0.3407)
++ \frac{1}{2}(0.0395-0.1290) \\
+&amp;\approx \boxed{-0.1345}.
+\end{align}
+\]</span> Based on the logistic regression model, having a criminal record is associated with a 13.45-percentage-point reduction in the predicted probability of receiving a callback, averaging equally across White and Black job applicants.</p>
+</section>
+</section>
 <section id="probit-bigstar" class="level2">
 <h2 class="anchored" data-anchor-id="probit-bigstar">Probit <span class="math inline">\(\bigstar\)</span></h2>
 <p><span class="math display">\[p_i=\Phi(X_i&#39;\beta)\]</span></p>
@@ -2941,17 +3039,13 @@ P(A=\mathrm{HS})&amp;=\Lambda(5.21-4.29)-\Lambda(1.84-4.29) \\
 <h3 class="anchored" data-anchor-id="proportional-assumption-bigstar">Proportional Assumption <span class="math inline">\(\bigstar\)</span></h3>
 <p><strong>ordered logit model = proportional odds model = parallel lines model = parallel regressions model</strong></p>
 <p>Why?</p>
-<p><span class="math display">\[
-\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i &gt; j)}\right)
+<p><span class="math display">\[\log\left(\frac{\Pr(Y_i \le j)}{\Pr(Y_i &gt; j)}\right)
 = \tau_j - X_i^\prime\beta
 \quad \Longleftrightarrow \quad
 \log\left(\frac{\Pr(Y_i &gt; j)}{\Pr(Y_i \le j)}\right)
-= X_i^\prime\beta - \tau_j.
-\]</span></p>
+= X_i^\prime\beta - \tau_j.\]</span></p>
 <p>Then for each category <span class="math inline">\(j\)</span></p>
-<p><span class="math display">\[
-OR=e^{\beta_k}
-\]</span></p>
+<p><span class="math display">\[OR=e^{\beta_k}\]</span></p>
 <p>We can test whether the odds ratio is constant. If the assumption fails, use <em>partial proportional models</em> (<code>VGAM::vglm</code>,<code>ordinal::clm</code>), which frees the slope <span class="math inline">\(\tau_j\)</span>.</p>
 </section>
 </section>
