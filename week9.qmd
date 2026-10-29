@@ -1,0 +1,1311 @@
+---
+title: "Week 9 Regression Discontinuity Designs"
+format: html
+author: Zhe Chen 
+embed-resources: true 
+---
+
+# The Idea of RDD $\bigstar$
+
+```{r}
+#| echo: false
+set.seed(123)
+
+# Simulated data
+x <- seq(-5, 5, length.out = 40)
+treated <- as.integer(x >= 0)
+
+y <- 3 + 0.35*x + 1.5*treated +
+     0.15*x*treated + rnorm(length(x), sd = 0.3)
+
+# Fit local linear RDD model
+m <- lm(y ~ x * treated)
+
+# Separate fitted lines
+x0 <- seq(-5, 0, length.out = 100)
+x1 <- seq(0, 5, length.out = 100)
+
+y0 <- predict(m, newdata = data.frame(x = x0, treated = 0))
+y1 <- predict(m, newdata = data.frame(x = x1, treated = 1))
+
+# Plot
+plot(x, y, type = "n",
+     xlim = c(-5.5, 5.5), ylim = c(0.5, 8),
+     xlab = "", ylab = "", axes = FALSE)
+
+# Observations
+points(x[treated == 0], y[treated == 0],
+       pch = 16, col = "lightsteelblue", cex = 0.7)
+points(x[treated == 1], y[treated == 1],
+       pch = 16, col = "coral", cex = 0.7)
+
+# Regression lines
+lines(x0, y0, col = "navy", lwd = 2.5)
+lines(x1, y1, col = "orangered3", lwd = 2.5)
+
+# Cutoff
+segments(0, 0.5, 0, 7.5, lty = 2, col = "grey50")
+
+# Fitted outcomes at cutoff
+y_left  <- predict(m, data.frame(x = 0, treated = 0))
+y_right <- predict(m, data.frame(x = 0, treated = 1))
+
+points(0, y_left, pch = 16, col = "navy", cex = 1.2)
+points(0, y_right, pch = 16, col = "orangered3", cex = 1.2)
+
+# Discontinuity arrow
+arrows(0.3, y_left, 0.3, y_right,
+       code = 3, length = 0.08, angle = 25)
+
+text(0.65, (y_left + y_right)/2,
+     expression(tau), cex = 1.3)
+
+# Custom axes
+arrows(-5.5, 0.5, 5.5, 0.5, length = 0.08)
+arrows(-5.5, 0.5, -5.5, 8, length = 0.08)
+
+text(-5.5, 8.1, "Y", xpd = TRUE)
+text(5.5, 0.3, "running variable X", pos = 4, xpd = TRUE)
+text(0, 0.2, "cutoff c", col = "grey50")
+```
+
+**Just below and just above the cutoff, units are essentially identical**, except that one group got the treatment. The jump in the outcome at $c$ is the effect.
+
+$$\begin{array}{lll}\hline
+\text{Design} & \text{Comparable units} & \text{Needs}\\ \hline
+\text{Matching, weighting (Week 6)} & \text{same }X,\text{ both treatments observed} & \text{overlap, }0<e(x)<1\\
+\text{IV (Week 7)} & \text{moved by }Z,\text{ which moves only }D & \text{exclusion, monotonicity}\\
+\text{RD (today)} & \text{just either side of a cutoff in }X & \text{continuity at the cutoff}\\ \hline
+\end{array}$$ **Outline**
+
+1.  Sharp RD: why continuity identifies the effect at $c$, and only there.
+2.  Estimation as four choices: shape, weights, bandwidth, inference.
+3.  Covariates and power; validity checks; local randomization (with Dutch science grants).
+4.  Fuzzy RD as local IV; Dell and Querubín (2018): thresholds and a boundary.
+5.  Extensions: RD in time (police shootings), kinks, repeated cutoffs.
+
+# Sharp RD
+
+Examples:
+
+- Does winning a Senate seat help the party keep it six years later?
+  - $X_i$: Democratic margin of victory at $t$, in points ($c$ = 0);
+  - $Y_i$: Democratic vote share in the same seat at $t + 6$.
+- Turning 21: Does drinking kill young adults? U.S. alcohol becomes legal on the 21st birthday.
+  - Running variable: age in days
+  - Cutoff: 21.
+
+## Setup and Identification $\bigstar$
+
+A **running variable (or forcing variable)** $X_i$ determines treatment deterministically:
+
+$$D_i=\mathbf{1}\{X_i\ge c\}.$$
+
+::: callout-tip
+## Indicator Function
+
+$$D_i=\mathbb{1}\{X_i\ge c\}=
+\begin{cases}
+1, & X_i\ge c \quad \text{(treated)}\\
+0, & X_i<c \quad \text{(untreated)}
+\end{cases}$$
+:::
+
+Write $m_d(x)=E[Y_i(d)\mid X_i=x]$ for the two potential-outcome curves.
+
+**Continuity assumption (Hahn, Todd, and van der Klaauw 2001)**
+
+$m_1(x)$ and $m_0(x)$ are continuous in $x$ at $x=c$.
+
+Then
+
+$$\tau_{RD}=\lim_{x\downarrow c}E[Y_i\mid X_i=x]-\lim_{x\uparrow c}E[Y_i\mid X_i=x]=E[Y_i(1)-Y_i(0)\mid X_i=c].$$
+
+- **Not assumed:** anything about the shape of $E[Y\mid X]$ away from the cutoff, or ignorability anywhere else.
+- **Positivity fails at every** $x$: $\Pr(D=1\mid X=x)$ is 0 or 1. Identification comes from continuity, not overlap, which is why the estimand is local to $c$.
+
+## Two Curves, Each Seen on One Side
+
+```{r}
+#| echo: false
+# Running variable and cutoff
+x <- seq(-4, 4, length.out = 400)
+c <- 0
+
+# Potential-outcome curves
+m0 <- function(x) 3 + 0.55*x
+m1 <- function(x) 3.8 + 0.35*x
+
+# Plot
+plot(x, m0(x), type = "n",
+     xlim = c(-4.3, 4.5), ylim = c(0.5, 6.2),
+     xlab = "", ylab = "", axes = FALSE)
+
+# Unobserved counterfactual curves (dashed)
+lines(x[x >= c], m0(x[x >= c]), col = "navy", lty = 2, lwd = 1.5)
+lines(x[x < c], m1(x[x < c]), col = "orangered3", lty = 2, lwd = 1.5)
+
+# Observed curves (solid)
+lines(x[x < c], m0(x[x < c]), col = "navy", lwd = 2.5)
+lines(x[x >= c], m1(x[x >= c]), col = "orangered3", lwd = 2.5)
+
+# Cutoff
+segments(c, 0.5, c, 5.5, lty = 2, col = "grey60")
+
+# Outcomes at cutoff
+points(c, m0(c), pch = 16, col = "navy", cex = 1.2)
+points(c, m1(c), pch = 16, col = "orangered3", cex = 1.2)
+
+# Treatment effect at cutoff
+arrows(0.18, m0(c), 0.18, m1(c),
+       code = 3, length = 0.08, angle = 25)
+text(0.65, mean(c(m0(c), m1(c))), expression(tau[RD]), cex = 1.2)
+
+# Axes
+arrows(-4.3, 0.5, 4.5, 0.5, length = 0.08)
+arrows(-4.3, 0.5, -4.3, 6.2, length = 0.08)
+
+# Labels
+text(-4.3, 6.3, expression(E[Y[i](d) ~ "|" ~ X[i] == x]),
+     pos = 4, xpd = TRUE)
+text(4.6, 0.5, "x", xpd = TRUE)
+text(c, 0.15, "c", col = "grey50", xpd = TRUE)
+
+text(-2.7, 1.35, expression(m[0](x)*", seen for "*x < c),
+     col = "navy", cex = 1.1)
+text(2.1, 5.65, expression(m[1](x)*", seen for "*x >= c),
+     col = "orangered3", cex = 1.1)
+```
+
+
+The observed regression $E[Y_i\mid X_i=x]$ follows $m_0$ to the left of $c$ and $m_1$ to the right; it jumps at $c$ by $m_1(c)-m_0(c)$.
+
+The dashed halves are never observed. Away from $c$, the gap between the curves, $\tau(x)$, is not identified without further assumptions.
+
+## What Continuity Rules Out
+
+Continuity fails when something other than $D$ changes at $c$.
+
+- **A second treatment at the same cutoff.** An age threshold that grants a pension and also lowers a tax; a district boundary where schools, police, and taxes all change. The jump is the effect of the bundle.
+
+- **Sorting.** If people who would do well anyway can place themselves just above $c$, the units just above differ from those just below in $Y_i(0)$ itself, and $m_0$ jumps.
+
+- **Selection of the cutoff on outcomes.** An agency that sets $c$ where it expects a change, after seeing the data, builds the jump in.
+
+Continuity is a statement about $Y_i(0)$ and $Y_i(1)$, so it cannot be tested directly. It has **two testable implications**: the density of $X$ and the distribution of pre-determined covariates should not jump at $c$.
+
+## The Estimand Is Local $\bigstar$
+
+$\tau_{RD}$ is the average effect **for units at the cutoff**. Nothing more.
+
+- A scholarship RD tells you about students at the eligibility margin, not about the strongest or weakest applicants.
+- Extrapolating away from $c$ requires a functional-form assumption of exactly the kind RD was designed to avoid.
+- Compare with the LATE from Week 7: both are estimands you did not choose, determined by the design rather than by the question. State them plainly.
+- In exchange, RD is often the most credible observational design there is. The identifying variation is visible in a scatterplot.
+
+Lee (2008)'s reformulation is helpful: if agents cannot perfectly control $X_i$, then treatment near the cutoff is *as good as randomly assigned*, and the design is a local experiment.
+
+## Steps of RDD $\bigstar$
+
+**Target:** $\tau_{RD}=m_1(c)-m_0(c)$, the heights of the two curves *exactly* at the cutoff.
+
+**Problem:** No unit sits exactly at $c$. Each height must be **predicted from units near $c$**.
+
+| Choice | Question | What is at stake | Standard answer |
+|:---|:---|:---|:---|
+| Shape | Mean, line, or curve? | Mean: biased if the curve slopes; curve: more variance | A line on each side |
+| Weights | Closer units count more? | Far units add bias | Triangular kernel |
+| Bandwidth | How far from $c$? | Wider: less variance, more bias | Minimize MSE |
+| Inference | How sure? | Leftover bias: usual interval too short | Robust bias-corrected |
+
+# Estimation 
+
+## Two Ways to Use the Races Near the Cutoff $\bigstar$
+
+Keep the 683 races within h = 17.75 points of a tie (shaded)
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 4.5
+
+set.seed(123)
+
+# Simulated RDD data
+x <- seq(-30, 30, length.out = 36)
+y <- 45 + 0.25*x + 8*(x >= 0) + rnorm(length(x), sd = 2.5)
+
+# Bandwidth
+h <- 18
+left  <- x < 0 & x >= -h
+right <- x >= 0 & x <= h
+
+# Local linear regressions
+m0 <- lm(y ~ x, subset = left)
+m1 <- lm(y ~ x, subset = right)
+
+# Predictions at cutoff
+mu0 <- predict(m0, newdata = data.frame(x = 0))
+mu1 <- predict(m1, newdata = data.frame(x = 0))
+tau <- mu1 - mu0
+
+# Plot settings
+op <- par(mfrow = c(1, 2),
+          mar = c(4, 4, 3, 1),
+          mgp = c(2.4, 0.7, 0))
+
+# Helper function: common plotting elements
+draw_rdd <- function(title) {
+  plot(x, y, type = "n",
+       xlim = c(-30, 30), ylim = c(30, 70),
+       xlab = "Democratic margin at t",
+       ylab = "vote share at t + 6",
+       main = title)
+
+  # Bandwidth shading
+  rect(-h, 30, h, 70, col = "grey95", border = NA)
+
+  # Cutoff
+  abline(v = 0, lty = 2, col = "grey50")
+
+  # Observations
+  points(x[x < 0], y[x < 0],
+         col = "navy", pch = 16, cex = 0.8)
+  points(x[x >= 0], y[x >= 0],
+         col = "firebrick3", pch = 16, cex = 0.8)
+}
+
+# Panel 1: Compare means within h
+draw_rdd("Compare means within h")
+
+mean0 <- mean(y[left])
+mean1 <- mean(y[right])
+
+segments(-h, mean0, 0, mean0, col = "navy", lwd = 3)
+segments(0, mean1, h, mean1, col = "firebrick3", lwd = 3)
+
+points(mean(x[left]), mean0, pch = 4, lwd = 2, cex = 1.3)
+points(mean(x[right]), mean1, pch = 4, lwd = 2, cex = 1.3)
+
+# Panel 2: Fit separate lines within h
+draw_rdd("Fit a line within h")
+
+xx0 <- seq(-h, 0, length.out = 100)
+xx1 <- seq(0, h, length.out = 100)
+
+yy0 <- predict(m0, newdata = data.frame(x = xx0))
+yy1 <- predict(m1, newdata = data.frame(x = xx1))
+
+lines(xx0, yy0, col = "navy", lwd = 2.5)
+lines(xx1, yy1, col = "firebrick3", lwd = 2.5)
+
+# Intercepts at cutoff
+points(0, mu0, pch = 16, col = "navy", cex = 1.2)
+points(0, mu1, pch = 16, col = "firebrick3", cex = 1.2)
+
+# Restore graphics settings
+par(op)
+```
+
+- Left: average each side. 54.66 − 43.75 = 10.91.
+- Right: fit a line on each side and read off its height at margin 0 (black dots). 52.59 − 45.17 = 7.41.
+
+## Comparing Means Overstates
+
+**Goal:** Write the difference in means as the line estimate plus an error.
+
+**Fact:** An OLS line passes through the point of means $(\bar{x},\bar{Y})$. The normal equation for the intercept says the residuals sum to zero:
+
+$$
+\sum_i(Y_i-\hat{\mu}-\hat{\beta}x_i)=0\quad\Longrightarrow\quad \bar{Y}=\hat{\mu}+\hat{\beta}\bar{x}.
+$$
+
+Apply it on each side, with $x_i=X_i-c$ and $\bar{x}_{\pm}$ the mean distance (uniform kernel):
+
+$$
+\begin{aligned}
+\bar{Y}_+ &= \hat{\mu}_+ + \hat{\beta}_+\bar{x}_+ && \text{the line above passes through its means}\\
+\bar{Y}_- &= \hat{\mu}_- + \hat{\beta}_-\bar{x}_- && \text{the line below, likewise}\\
+\bar{Y}_+-\bar{Y}_- &= \underbrace{(\hat{\mu}_+-\hat{\mu}_-)}_{\hat{\tau}_{\mathrm{linear}}}+\hat{\beta}_+\bar{x}_+-\hat{\beta}_-\bar{x}_- && \text{subtract}\\
+&=\hat{\tau}_{\mathrm{linear}}+\hat{\beta}_+\bar{x}_++\hat{\beta}_-|\bar{x}_-| && \bar{x}_-<0\text{ below the cutoff}
+\end{aligned}
+$$
+
+With upward slopes, both extra terms are positive: the mean above is read to the *right* of $c$ (too high), the mean below to the *left* (too low).
+
+## A Line on Each Side $\bigstar$ (1st Framework)
+
+**In words:**
+
+1. Keep the units within $h$ of the cutoff.
+2. On each side, regress $Y$ on the distance to the cutoff, $X_i-c$.
+3. Each intercept is the predicted $Y$ *at the cutoff* on that side.
+4. $\hat{\tau}$ is the difference between the two intercepts.
+
+$$
+\hat{\tau}=\hat{\mu}_+-\hat{\mu}_-
+$$
+```{r}
+#| echo: false
+
+set.seed(123)
+
+# Simulated data
+x <- seq(-30, 30, length.out = 36)
+y <- 45 + 0.25*x + 8*(x >= 0) +
+     0.12*x*(x >= 0) + rnorm(length(x), sd = 2)
+
+h <- 18
+left  <- x < 0 & x >= -h
+right <- x >= 0 & x <= h
+
+# Fit separate regressions
+m0 <- lm(y ~ x, subset = left)
+m1 <- lm(y ~ x, subset = right)
+
+mu0 <- coef(m0)[1]
+mu1 <- coef(m1)[1]
+tau <- mu1 - mu0
+
+# Plot
+plot(x, y, type = "n",
+     xlim = c(-37, 37), ylim = c(30, 70),
+     xlab = "", ylab = "", axes = FALSE)
+
+# Bandwidth region
+rect(-h, 30, h, 70, col = "grey94", border = NA)
+
+# Observations
+points(x[x < 0], y[x < 0], pch = 16, col = "lightsteelblue")
+points(x[x >= 0], y[x >= 0], pch = 16, col = "coral")
+
+# Regression lines within bandwidth
+abline(v = 0, lty = 3, col = "grey65")
+
+segments(-h, predict(m0, data.frame(x = -h)),
+         0, mu0, col = "navy", lwd = 2.5)
+
+segments(0, mu1,
+         h, predict(m1, data.frame(x = h)),
+         col = "orangered3", lwd = 2.5)
+
+# Intercepts
+points(0, mu0, pch = 16, cex = 1.3)
+points(0, mu1, pch = 16, cex = 1.3)
+
+# Discontinuity
+arrows(2, mu0, 2, mu1, code = 3,
+       length = 0.08, angle = 25)
+
+text(4.5, (mu0 + mu1)/2, expression(hat(tau)), cex = 1.2)
+
+# Labels
+text(-3, mu0 - 2, expression(hat(mu)["-"]), cex = 1.2)
+text(-3, mu1 + 2, expression(hat(mu)["+"]), cex = 1.2)
+
+# Custom axes
+arrows(-37, 30, 37, 30, length = 0.08)
+text(38, 30, expression(X-c), xpd = TRUE, pos = 4)
+
+text(-h, 27.5, expression(-h), xpd = TRUE)
+text(0, 27.5, "0", xpd = TRUE)
+text(h, 27.5, expression(h), xpd = TRUE)
+```
+
+### In One Regression 
+
+On the units with $|X_i-c|\le h$ (same answer as two separate fits):
+
+$$
+Y_i=\mu+\tau D_i+\beta_-(X_i-c)(1-D_i)+\beta_+(X_i-c)D_i+\text{error}
+$$
+
+$$
+\begin{array}{ll}\hline
+\text{Coefficient} & \text{Meaning}\\ \hline
+\mu & \text{predicted }Y\text{ just below the cutoff}\\
+\mu+\tau & \text{predicted }Y\text{ just above the cutoff}\\
+\tau & \text{the jump at the cutoff: the RD estimate}\\
+\beta_-,\ \beta_+ & \text{slopes below and above, free to differ}\\ \hline
+\end{array}
+$$
+
+- **Centre the running variable** at $c$, so that $\tau$ is the gap at the cutoff rather than at $X=0$.
+- **Let the slopes differ:** a common slope lets data on one side shape the prediction on the other.
+
+### Shape: Why a Line and Not a Curve?
+
+More flexible fits follow the curve better near $c$ but are noisier.
+
+Example: 
+
+$$
+\begin{array}{lrrl}\hline
+\text{Fit on each side} & \text{Estimate} & \text{s.e.} & \text{Problem}\\ \hline
+\text{Mean (degree 0)} & 9.68 & 0.80 & \text{biased whenever the curve slopes}\\
+\text{Line (degree 1)} & 7.41 & 1.46 & \text{biased only where the curve bends}\\
+\text{Quadratic (degree 2)} & 8.32 & 2.06 & \text{s.e. 40\% larger}\\ \hline
+\end{array}
+$$
+
+- A line removes the slope bias of comparing means and costs a modest amount of precision. A quadratic buys little more and costs a lot.
+- The quadratic still has a job: **it is how the bias of the line is estimated (inference section)**.
+
+## Weights: Closer Races Count More 
+
+A race won by 2 points tells us more about a tie than one won by 16. The **triangular kernel** weights each unit by how close it is:
+
+$$
+K\left(\frac{X_i-c}{h}\right)=1-\frac{|X_i-c|}{h}
+$$
+
+```{r}
+#| echo: false
+
+h <- 1
+x <- seq(-1.3, 1.3, length.out = 500)
+triangular <- pmax(1 - abs(x)/h, 0)
+
+plot(x, triangular, type = "n",
+     xlim = c(-1.3, 1.4), ylim = c(-0.12, 1.3),
+     axes = FALSE, xlab = "", ylab = "")
+
+# Uniform kernel (lower than the triangular peak)
+segments(-h, 0.6, h, 0.6, col = "grey60", lwd = 2)
+segments(c(-h, h), 0, c(0.6, 0.6), col = "grey60", lwd = 2)
+
+# Triangular kernel
+lines(x, triangular, col = "navy", lwd = 2.5)
+
+# Axes and labels
+arrows(-1.3, 0, 1.4, 0, length = 0.08)
+arrows(0, 0, 0, 1.3, length = 0.08)
+
+text(c(-1, 0, 1), -0.08, c("-h", "0", "h"), xpd = TRUE)
+text(1.43, 0, "X - c", pos = 4, xpd = TRUE)
+text(0, 1.32, "weight", xpd = TRUE)
+text(-0.75, 0.69, "uniform", col = "grey60")
+text(0.48, 1.10, "triangular", col = "navy")
+```
+
+for $|X_i-c|\le h$, zero beyond. 
+
+- **Fitting the line becomes weighted least squares.**
+- Races within $h/2$ of a tie are 59\% of the races, 80\% of the weight.
+- Uniform weights give 7.09, triangular 7.41. **The kernel matters little; the bandwidth matters much more.**
+
+## Bandwidth: How Far From the Cutoff to Look?
+
+The same local linear fit with three bandwidths (shaded)
+
+```{r}
+#| echo: false
+
+set.seed(123)
+
+# Simulated data
+x <- seq(-60, 60, length.out = 65)
+y <- 45 + 0.30*x + 7*(x >= 0) +
+     0.002*x^2 + rnorm(length(x), sd = 3)
+
+bandwidths <- c(5, 17.8, 50)
+
+par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
+
+for (h in bandwidths) {
+
+  # Select observations within bandwidth
+  left  <- x < 0 & x >= -h
+  right <- x >= 0 & x <= h
+
+  # Separate local linear regressions
+  m0 <- lm(y ~ x, subset = left)
+  m1 <- lm(y ~ x, subset = right)
+
+  # Estimated jump at cutoff
+  tau <- coef(m1)[1] - coef(m0)[1]
+
+  # Empty plot
+  plot(x, y, type = "n",
+       xlim = c(-65, 65), ylim = c(20, 82),
+       xlab = "Democratic margin at t",
+       ylab = "vote share at t + 6",
+       main = sprintf("h = %.1f: estimate %.1f", h, tau),
+       axes = FALSE)
+
+  # Bandwidth shading
+  rect(-h, 20, h, 82, col = "grey95", border = NA)
+
+  # Cutoff
+  abline(v = 0, lty = 2, col = "grey60")
+
+  # Observed data
+  points(x[x < 0], y[x < 0],
+         pch = 16, col = "slateblue3", cex = 0.7)
+  points(x[x >= 0], y[x >= 0],
+         pch = 16, col = "indianred2", cex = 0.7)
+
+  # Fitted lines within bandwidth
+  xx0 <- seq(-h, 0, length.out = 100)
+  xx1 <- seq(0, h, length.out = 100)
+
+  lines(xx0, predict(m0, newdata = data.frame(x = xx0)),
+        col = "navy", lwd = 2.5)
+
+  lines(xx1, predict(m1, newdata = data.frame(x = xx1)),
+        col = "firebrick3", lwd = 2.5)
+
+  # Axes
+  axis(1, at = c(-60, -20, 0, 20, 60))
+  axis(2, at = c(20, 40, 60, 80))
+  box()
+}
+
+par(mfrow = c(1, 1))
+```
+
+
+- Narrow: only near-ties, so the line describes the right races, but few of them. The estimate is noisy.
+- Wide: many races and a small s.e., but one straight line must now cover landslides too. If the curve bends, the line misses at $c$.
+
+## Bias and Variance: Definitions $\bigstar$
+
+$\hat{\tau}_h$, the estimate at bandwidth $h$, varies from sample to sample:
+
+$$
+\begin{aligned}
+\operatorname{Bias}(\hat{\tau}_h)&=E[\hat{\tau}_h]-\tau && \text{average estimate minus the truth}\\
+\operatorname{Var}(\hat{\tau}_h)&=E\left[(\hat{\tau}_h-E[\hat{\tau}_h])^2\right] && \text{scatter around that average}\\
+\operatorname{MSE}(\hat{\tau}_h)&=E\left[(\hat{\tau}_h-\tau)^2\right] && \text{average squared distance from the truth}
+\end{aligned}
+$$
+
+**The decomposition:**
+
+$$
+\begin{aligned}
+\operatorname{MSE}(\hat{\tau}_h)
+&=E\left[\left((\hat{\tau}_h-E[\hat{\tau}_h])+(E[\hat{\tau}_h]-\tau)\right)^2\right]
+&& \text{add and subtract }E[\hat{\tau}_h]\\
+&=E\left[(\hat{\tau}_h-E[\hat{\tau}_h])^2\right]+(E[\hat{\tau}_h]-\tau)^2
+&& \text{expand the square}\\
+&\quad+2(E[\hat{\tau}_h]-\tau)\underbrace{E[\hat{\tau}_h-E[\hat{\tau}_h]]}_{=0}
+&& \text{the bias is a constant}\\
+&=\operatorname{Var}(\hat{\tau}_h)+\operatorname{Bias}(\hat{\tau}_h)^2
+\end{aligned}
+$$
+
+In RD, **bias grows with $h$** (the line misses the curve at $c$) and **variance falls with $h$** (more units): the bandwidth trades one for the other.
+
+### Bandwidth $\bigstar$
+
+```{r}
+#| echo: false
+# Bandwidth values
+h <- seq(0.2, 5, length.out = 1000)
+
+# Bias squared increases; variance decreases
+bias2 <- 0.012 * h^4
+variance <- 0.16 / h
+mse <- bias2 + variance
+
+# Optimal bandwidth
+h_opt <- h[which.min(mse)]
+mse_opt <- min(mse)
+
+# Plot
+plot(h, mse, type = "n",
+     xlim = c(0, 5.5), ylim = c(0, 1.2),
+     axes = FALSE, xlab = "", ylab = "")
+
+# Curves
+lines(h, bias2, col = "navy", lwd = 2.5)
+lines(h, variance, col = "orangered3", lwd = 2.5)
+lines(h, mse, col = "black", lwd = 2.5)
+
+# Optimal bandwidth
+segments(h_opt, 0, h_opt, mse_opt,
+         col = "grey50", lty = 2)
+points(h_opt, mse_opt, pch = 16, cex = 0.9)
+
+# Axes with arrows
+arrows(0, 0, 5.5, 0, length = 0.08)
+arrows(0, 0, 0, 1.2, length = 0.08)
+
+# Labels
+text(0, 1.25, "error", pos = 4, xpd = TRUE)
+text(5.55, 0, expression(paste("bandwidth ", h)),
+     pos = 4, xpd = TRUE)
+
+text(4.1, 0.72, expression(bias^2), col = "navy", cex = 1.1)
+text(4.4, 0.12, "variance", col = "orangered3", cex = 1.1)
+text(1.3, 0.40, "MSE", cex = 1.1)
+text(h_opt, -0.06, expression(h^"*"), xpd = TRUE)
+```
+
+- Wide $h$: more data, lower variance, but the linear approximation is worse far from $c$, more bias.
+- Narrow $h$: less bias, but few observations, less variance.
+- Choose $h$ by minimizing estimated MSE (Imbens–Kalyanaraman; the
+Calonico–Cattaneo–Titiunik version in `rdrobust`).
+- The derivations that follow make each curve precise: bias grows like $h^2$, variance falls like $1/(nh)$, and $h^*$ balances them.
+
+### Decomposition of the Bias 
+
+#### Step 1: the Picture $\bigstar$
+
+**Goal:** Compute $\operatorname{Bias}(\hat{\tau})=E[\hat{\tau}]-\tau$, where $\tau=m_1(c)-m_0(c)$ and $\hat{\tau}=\hat{\mu}_+-\hat{\mu}_-$:
+
+$$
+E[\hat{\tau}]-\tau=\left(E[\hat{\mu}_+]-m_1(c)\right)-\left(E[\hat{\mu}_-]-m_0(c)\right)
+$$
+
+Both sides work the same way; take the side above: uniform kernel, $X$ spread evenly, $u_i=(X_i-c)/h\in[0,1]$. OLS is linear in $Y$ and $E[Y_i\mid X_i]=m_1(X_i)$, so $E[\hat{\mu}_+]$ is the intercept of the line fitted to the curve $m_1$ itself.
+
+```{r}
+#| echo: false
+
+# True outcome curve
+m1 <- function(u) 1 + 0.25*u + 1.4*u^2
+u <- seq(0, 1, length.out = 500)
+y <- m1(u)
+
+# Linear approximation
+fit <- lm(y ~ u)
+y_fit <- predict(fit)
+
+# Values at the cutoff
+true_c <- m1(0)
+fitted_c <- coef(fit)[1]
+
+# Plot
+plot(u, y, type = "n",
+     xlim = c(-0.15, 1.15), ylim = c(0.5, 2.9),
+     axes = FALSE, xlab = "", ylab = "")
+
+# Shaded bandwidth region
+rect(0, 0.5, 1, 2.9, col = "grey94", border = NA)
+
+# True curve and fitted line
+lines(u, y, col = "black", lwd = 2.5)
+lines(u, y_fit, col = "orangered3", lwd = 2.5)
+
+# Values at cutoff
+points(0, true_c, pch = 16, cex = 1.2)
+points(0, fitted_c, pch = 16, col = "orangered3", cex = 1.2)
+
+# Bias arrow
+arrows(0.05, fitted_c, 0.05, true_c,
+       code = 3, length = 0.07, angle = 25)
+text(0.12, (true_c + fitted_c)/2, "bias", pos = 4)
+
+# Axes
+arrows(-0.15, 0.5, 1.15, 0.5, length = 0.08)
+arrows(0, 0.5, 0, 2.9, length = 0.08)
+
+# Labels
+text(0.65, 2.5, expression("curve " * m[1]))
+text(0.75, 1.65, "fitted line", col = "orangered3")
+
+text(-0.03, true_c, expression(m[1](c)),
+     pos = 2, xpd = TRUE)
+text(-0.03, fitted_c, expression(E[hat(mu)["+"]]),
+     pos = 2, col = "orangered3", xpd = TRUE)
+
+text(0, 0.37, "c", xpd = TRUE)
+text(1, 0.37, expression(c+h), xpd = TRUE)
+text(1.17, 0.5, "u", pos = 4, xpd = TRUE)
+```
+
+- **The bias** is the gap at $c$ between the curve and the line fitted to it.
+- **A straight curve:** the line lies on it, no gap. **A bent curve:** the line cuts across the bend and misses at the edge.
+- To compute the gap, we need a formula for $m_1$. We do not have one.
+
+#### Step 2: Use a Parabola
+
+**Taylor:** Near $c$, a smooth curve is close to a parabola built from its height, slope, and bend at $c$. With $X=c+hu$:
+
+$$
+m_1(c+hu)\approx\underbrace{m_1(c)}_{a}+\underbrace{m_1'(c)h}_{b}u+\underbrace{\frac{1}{2}m_1''(c)h^2}_{q}u^2
+$$
+
+- **Why this helps:** We cannot fit a line to an unknown curve by hand, but we can fit one to a parabola.
+- **Why expand at $c$:** The target then appears in the formula, $a=m_1(c)$.
+- **Left out:** $\frac{1}{6}m_1'''(c)h^3u^3+\cdots$. We assume this is negligible inside the window: on $[c,c+h]$ the curve is close to a parabola.
+
+#### Step 3: Plug the Parabola Into OLS
+
+**Goal:** $E[\hat{\mu}_+]-m_1(c)$. $E[\hat{\mu}_+]$ is the intercept of the OLS line of $a+bu+qu^2$ on $u$ (Steps 1--2), with $u$ spread evenly on $[0,1]$.
+
+$$
+\begin{aligned}
+\text{slope}
+&=\frac{\operatorname{Cov}(u,a+bu+qu^2)}{\operatorname{Var}(u)}
+&& \text{OLS slope}\\
+&=\frac{b\operatorname{Var}(u)+q\operatorname{Cov}(u,u^2)}{\operatorname{Var}(u)}
+=b+q
+&& a\text{ is constant; }\operatorname{Cov}(u,u^2)=\operatorname{Var}(u)\\[6pt]
+E[\hat{\mu}_+]
+&=E[a+bu+qu^2]-(b+q)E[u]
+&& \text{OLS line passes through the means}\\
+&=a+\frac12 b+\frac13 q-\frac12 b-\frac12 q
+=a-\frac16 q
+&& E[u]=\frac12,\ E[u^2]=\frac13\\[6pt]
+E[\hat{\mu}_+]-m_1(c)
+&=-\frac16 q=-\frac{1}{12}m_1''(c)h^2
+&& a=m_1(c),\ q=\frac12 m_1''(c)h^2
+\end{aligned}
+$$
+
+- **$b$ cancels:** the line gets the level and slope right. Only the bend $q$ leaves a gap at the cutoff.
+
+#### Step 4: Both Sides Together $\bigstar$
+
+Above the cutoff (Step 3): $E[\hat{\mu}_+]-m_1(c)=-\frac{1}{12}m_1''(c)h^2$.
+
+Below the cutoff, $u\in[-1,0]$: the same steps give $E[\hat{\mu}_-]-m_0(c)=-\frac{1}{12}m_0''(c)h^2$.
+
+$$
+\begin{aligned}
+\operatorname{Bias}(\hat{\tau})
+&=\left(E[\hat{\mu}_+]-m_1(c)\right)-\left(E[\hat{\mu}_-]-m_0(c)\right) && \text{Step 1}\\
+&=\underbrace{-\frac{1}{12}\left(m_1''(c)-m_0''(c)\right)}_{B}h^2
+\end{aligned}
+$$
+
+- **Bias $=Bh^2$:** doubling $h$ multiplies its magnitude by 4.
+- Straight curves ($m''=0$) give no bias; equal bends on the two sides cancel.
+- A triangular kernel or uneven $X$ changes the constant $\frac{1}{12}$, not the leading-order form $Bh^2$.
+
+### Decomposition of the Variance
+
+#### Step 1: The Mean and the Slope
+
+**Goal:** $\operatorname{Var}(\hat{\mu}_+)$, with $m$ units above $c$ and $u$ spread evenly on $[0,1]$. Assume $Y_i=m_1(X_i)+\epsilon_i$, independent errors, $\operatorname{Var}(Y_i\mid X_i)=\sigma_+^2$. Given $X=(X_1,\ldots,X_m)$, $m_1(X_i)$ and $u_i$ are fixed; only the $\epsilon_i$ are random.
+
+$$
+\begin{aligned}
+\operatorname{Var}(\bar Y\mid X)
+&=\operatorname{Var}\left(\frac{1}{m}\sum_i\epsilon_i\mid X\right)
+=\frac{\sigma_+^2}{m}
+&& \text{drop the fixed }m_1(X_i);\text{ independence}\\[8pt]
+\operatorname{Var}(\hat{\beta}\mid X)
+&=\operatorname{Var}\left(\frac{\sum_i(u_i-\bar u)\epsilon_i}{\sum_i(u_i-\bar u)^2}\mid X\right)
+&& \text{OLS slope; drop the fixed part}\\[8pt]
+&=\frac{\sigma_+^2\sum_i(u_i-\bar u)^2}{\left(\sum_i(u_i-\bar u)^2\right)^2}
+=\frac{\sigma_+^2}{m\operatorname{Var}(u)}
+&& \operatorname{Var}(u)=\frac{1}{m}\sum_i(u_i-\bar u)^2\\[8pt]
+\operatorname{Cov}(\bar Y,\hat{\beta}\mid X)&=0
+&& \text{see below}
+\end{aligned}
+$$
+
+- A high error always raises $\bar Y$, but raises the slope if the unit is right of $\bar u$ and lowers it if left. With independent, equal-variance errors, these cancel.
+
+#### Step 2: One Side
+
+The OLS intercept is $\hat{\mu}_+=\bar Y-\hat{\beta}\bar u$, so with Step 1:
+
+$$
+\begin{aligned}
+\operatorname{Var}(\hat{\mu}_+\mid X)
+&=\operatorname{Var}(\bar Y\mid X)+\bar u^2\operatorname{Var}(\hat{\beta}\mid X)-2\bar u\operatorname{Cov}(\bar Y,\hat{\beta}\mid X)
+&& \text{variance of a difference}\\[6pt]
+&=\frac{\sigma_+^2}{m}+\bar u^2\frac{\sigma_+^2}{m\operatorname{Var}(u)}
+&& \text{Step 1}\\[6pt]
+&=\frac{\sigma_+^2}{m}\left(1+\frac{1/4}{1/12}\right)
+=\frac{4\sigma_+^2}{m}
+&& \bar u=\frac12,\ \operatorname{Var}(u)=\frac1{12}
+\end{aligned}
+$$
+
+- **More noise $\sigma_+^2$:** larger variance. **More units $m$:** smaller variance.
+- A wider $h$ brings in more units, so $m$ grows; $\sigma_+^2$ is the noise around the curve and does not depend on $h$.
+
+#### Step 3: Both Sides Together
+
+How many units fall in $[c,c+h]$? With $f$ the density of $X$:
+
+$$
+\begin{aligned}
+m &\approx n\Pr(c\le X\le c+h)=n\int_c^{c+h}f(x)\,dx && \text{expected count = }n\times\text{probability}\\
+&\approx nf(c)h && f\approx f(c)\text{ on the window}\\[6pt]
+\operatorname{Var}(\hat{\mu}_+) &\approx \frac{4\sigma_+^2}{nf(c)h} && \text{Step 2, substitute }m\\[6pt]
+\operatorname{Var}(\hat{\tau}) &= \operatorname{Var}(\hat{\mu}_+)+\operatorname{Var}(\hat{\mu}_-) && \text{the two sides use different units}\\
+&\approx \underbrace{\frac{4(\sigma_+^2+\sigma_-^2)}{f(c)}}_{V}\cdot\frac{1}{nh}
+\end{aligned}
+$$
+
+- **Variance $=V/(nh)$:** doubling $h$ halves the variance.
+- More noise ($\sigma^2$) or fewer units near $c$ ($f(c)$ small): more variance.
+
+### MSE-Optimal Bandwidth
+
+#### Derivation 
+
+**Goal:** Find the bandwidth $h$ that minimizes
+
+$$
+\operatorname{MSE}(h)=\underbrace{B^2h^4}_{\text{bias}^2}+\underbrace{\frac{V}{nh}}_{\text{variance}}.
+$$
+
+Differentiate each term with respect to $h$:
+
+$$
+\begin{aligned}
+\frac{d}{dh}B^2h^4 &= 4B^2h^3 && \text{power rule}\\
+\frac{d}{dh}\frac{V}{nh} &= \frac{V}{n}\frac{d}{dh}h^{-1}=-\frac{V}{nh^2} && \frac{V}{n}\text{ is constant}
+\end{aligned}
+$$
+
+Set the first derivative of MSE equal to zero:
+
+$$
+\begin{aligned}
+0 &= 4B^2h^3-\frac{V}{nh^2} && \text{first-order condition}\\
+4B^2h^5 &= \frac{V}{n} && \text{multiply by }h^2\\
+h^* &= \left(\frac{V}{4B^2n}\right)^{1/5}
+=\left(\frac{V}{4B^2}\right)^{1/5}n^{-1/5}
+&& \text{take the fifth root}
+\end{aligned}
+$$
+
+#### Formula 
+
+$$
+h^*=\left(\frac{V}{4B^2}\right)^{1/5}n^{-1/5},\qquad V=\frac{4(\sigma_+^2+\sigma_-^2)}{f(c)},\qquad B=-\frac{1}{12}\left(m_1''(c)-m_0''(c)\right)
+$$
+
+- **Wider** when the noise $\sigma^2$ is large or few units sit near $c$ ($f(c)$ small): more data are needed to tame the variance.
+- **Narrower** when the curves bend sharply at $c$ ($B$ large): a line is only good close to $c$.
+- $B$ and $V$ are unknown: a pilot fit estimates $m''$, $\sigma^2$, and $f(c)$ and plugs them in (Imbens and Kalyanaraman 2012; Calonico, Cattaneo, and Titiunik 2014).
+- $h^*$ shrinks slowly: ten times the data narrows it by a factor of $10^{1/5}\approx1.6$.
+- **Senate:** $\hat h^*=17.75$ points on both sides.
+
+### Example: Bandwidth Sensitivity  
+
+Conventional estimate and robust bias-corrected 95\% interval:
+
+$$
+\begin{array}{lrrll}\hline
+h & \text{Estimate} & {\text{Robust 95\% interval}} & {\text{Effective }n\text{ (below, above)}}\\ \hline
+5 & 12.27 & [7.93,\ 19.77] & 128,\ 117\\
+10 & 7.98 & [4.39,\ 13.11] & 245,\ 206\\
+12.41\ (h_{CER}) & 7.63 & [4.07,\ 11.29] & 284,\ 248\\
+17.75\ (h_{MSE}) & 7.41 & [4.09,\ 10.92] & 360,\ 323\\
+30 & 7.28 & [5.13,\ 10.71] & 474,\ 457\\
+50 & 6.48 & [4.87,\ 9.70] & 565,\ 562\\ \hline
+\end{array}
+$$
+
+- **Stable between $h=10$ and $50$:** every interval excludes zero.
+- At $h=5$ the estimate rises, with 245 elections: noise, and the interval says so.
+- **$h_{MSE}$:** the MSE-optimal bandwidth. **$h_{CER}$:** the coverage-error-optimal bandwidth, narrower, chosen so the interval covers $\tau$ as close to 95\% of the time as possible (Calonico, Cattaneo, and Farrell 2020).
+
+## Inference 
+
+### Standard Error 
+
+**Goal:** $\operatorname{se}(\hat{\tau})$, for the usual 95\% interval $\hat{\tau}\pm1.96\,\operatorname{se}$. Revisit the variance:
+
+$$
+\begin{aligned}
+\operatorname{Var}(\hat{\tau}\mid X)
+&=\operatorname{Var}(\hat{\mu}_+\mid X)+\operatorname{Var}(\hat{\mu}_-\mid X)
+&& \text{the two sides use different units}\\
+&=\frac{4\sigma_+^2}{m_+}+\frac{4\sigma_-^2}{m_-}
+&& \text{variance, Step 2, on each side}\\[6pt]
+\widehat{\operatorname{se}}(\hat{\tau})
+&=\sqrt{\frac{4\hat{\sigma}_+^2}{m_+}+\frac{4\hat{\sigma}_-^2}{m_-}}
+&& \hat{\sigma}_\pm^2:\text{ residual variance of each side's line}
+\end{aligned}
+$$
+
+```{r}
+#| echo: false
+
+# Sampling distributions
+tau <- 0
+se <- 1
+bias <- 0.5 * se
+
+x <- seq(-3.5, 4, length.out = 1000)
+y0 <- dnorm(x, mean = tau, sd = se)
+y1 <- dnorm(x, mean = tau + bias, sd = se)
+
+plot(x, y0, type = "n",
+     xlim = c(-3.5, 4), ylim = c(-0.15, 0.48),
+     axes = FALSE, xlab = "", ylab = "")
+
+# Distributions
+lines(x, y0, col = "grey55", lty = 2, lwd = 2)
+lines(x, y1, col = "navy", lwd = 2.5)
+
+# Centers
+segments(tau, -0.12, tau, 0.42,
+         col = "grey65", lty = 3)
+
+segments(tau + bias, 0, tau + bias, 0.40,
+         col = "navy", lty = 3)
+
+# Confidence intervals below the distributions
+segments(tau - 1.96*se, -0.055,
+         tau + 1.96*se, -0.055,
+         col = "grey55", lwd = 3)
+
+segments(tau + bias - 1.96*se, -0.105,
+         tau + bias + 1.96*se, -0.105,
+         col = "navy", lwd = 3)
+
+# Interval end caps
+for (v in c(tau - 1.96*se, tau + 1.96*se))
+  segments(v, -0.07, v, -0.04, col = "grey55", lwd = 2)
+
+for (v in c(tau + bias - 1.96*se, tau + bias + 1.96*se))
+  segments(v, -0.12, v, -0.09, col = "navy", lwd = 2)
+
+# Bias arrow
+arrows(tau, 0.43, tau + bias, 0.43,
+       code = 3, length = 0.07)
+
+text(tau + bias/2, 0.465,
+     expression(frac(1, 2)~"s.e."), xpd = TRUE)
+
+# Labels
+text(-2.1, 0.28, "no bias", col = "grey55")
+text(2.0, 0.30, expression(at~h^"*"), col = "navy")
+
+text(-2.5, -0.055, "no bias", col = "grey55", pos = 2)
+text(2.6, -0.105, expression(at~h^"*"), col = "navy")
+
+# Axis
+arrows(-3.5, 0, 4, 0, length = 0.07)
+text(4.1, 0, expression(hat(tau)), xpd = TRUE)
+
+text(tau, -0.025, expression(tau), col = "grey50")
+text(tau + bias, -0.025,
+     expression(tau + bias), col = "navy")
+```
+
+- At $h^*$, the estimates average $\tau+\operatorname{Bias}$, where $\operatorname{Bias}=\frac{1}{2}\operatorname{se}$ (next frame). Thus, the interval is shifted upward: **both endpoints are too high**.
+- **A shifted interval misses $\tau$ more often:** it contains $\tau$ in about 92% of samples, rather than 95%.
+- Three repairs: undersmoothing, robust bias correction, and honest confidence intervals.
+
+### Three Repairs 
+
+Example: Senate data 
+
+| Method | What it does about the bias | $h$ | 95% interval |
+|:---|:---|---:|:---|
+| None (usual interval) | Ignores it; covers 92% at $h_{MSE}$ | 17.75 | [4.56, 10.27] |
+| **1. Undersmooth** | Shrinks it: smaller $h$, bias small relative to the SE | 10 | [4.38, 11.59] |
+| **2. Robust bias correction** | Estimates it, subtracts it, widens the SE | 17.75 | [4.09, 10.92] |
+| ... at $h_{CER}$ | Same repair, $h$ chosen for coverage, not MSE | 12.41 | [4.07, 11.29] |
+| **3. Honest interval** | Bounds it ($\lvert m''\rvert\le M$), widens by the worst case | 9.84 | [3.83, 12.23] |
+
+- `rdrobust`'s "robust" interval (and the sensitivity table) is **repair 2**. $h_{CER}$ is not a fourth repair: it is the bandwidth for repair 2.
+- **Undersmoothing** has no automatic rule in this illustration for how much smaller $h$ should be; repairs 2 and 3 provide more explicit procedures.
+
+#### Repair 2
+
+The bias of the line is $Bh^2$, and $B$ depends on how much the curves *bend* at $c$ (Calonico, Cattaneo, and Titiunik 2014). So:
+
+1. **Estimate the bend.** Fit a quadratic on each side (with a pilot bandwidth $b$, chosen to estimate the bend with minimum MSE; usually wider than $h$). Its curvature gives $\hat B$.
+
+2. **Subtract the estimated bias:**
+
+   $$
+   \hat{\tau}^{bc}=\hat{\tau}_h-\hat B h^2.
+   $$
+
+3. **Widen the interval.** $\hat B$ is itself estimated with noise, so $\hat{\tau}^{bc}$ is noisier than $\hat{\tau}_h$. The robust standard error counts that extra noise.
+
+- The **robust interval** is centred on $\hat{\tau}^{bc}$, not on $\hat{\tau}_h$. Senate: $\hat{\tau}_h=7.41$, $\hat{\tau}^{bc}=7.51$, robust interval $[4.09,10.92]$, whose midpoint is approximately $7.51$.
+- **Common practice** (Cattaneo, Idrobo, and Titiunik 2020): report $\hat{\tau}_h$ (smaller MSE, since estimating $\hat B$ adds noise) with the robust interval, and say so. `rdrobust` prints both rows.
+
+## Estimation Guide $\bigstar$
+
+1. **Plot binned means** of $Y$ against $X$, with the cutoff marked. The jump should be visible before any estimate.
+
+2. **Estimate with a line on each side**, triangular weights, $h_{MSE}$: $\hat{\tau}=7.41$ points, $h=17.75$.
+
+3. **Interval:** robust bias-corrected, $[4.09,10.92]$ (at $h_{CER}$: $[4.07,11.29]$).
+
+4. **Report the units used:** 360 races below, 323 above.
+
+5. **Show the choices do not drive the result:** $h$ from 10 to 50 gives 6.5 to 8.0; a quadratic gives 8.32.
+
+`rdrobust(y = vote, x = margin)` gives the estimate, interval, and units; `rdplot(vote, margin)` gives the plot.
+
+# Covariates 
+
+Same local regression (units within $h$, kernel weights), plus covariates $Z_i$:
+
+$$
+Y_i=\alpha+\tau D_i+\beta_-(X_i-c)(1-D_i)+\beta_+(X_i-c)D_i+Z_i'\gamma+\epsilon_i
+$$
+
+$Z_i$ must be **pre-determined**: fixed before the cutoff is crossed. Turning 21: sex, race, schooling.
+
+- If $Z$ is continuous at $c$, it is balanced across the cutoff, so $\hat{\tau}$ should barely change. What changes is the s.e.: $Z$ explains part of $Y$, so less noise is left.
+- If $\hat{\tau}$ does change a lot, $Z$ jumps at $c$: a sign of sorting, not an improvement. (Formal balance test: validity section.)
+- **Rules:** $Z$ enters on its own (no $D\times Z$ interaction); never a post-treatment $Z$.
+
+**Covariates are for precision only.** They must be *pre-determined*, they should enter additively (not interacted with $D$), and the estimate should barely move when you add them. If it moves a lot, the design is in trouble, not improved (Calonico et al. 2019).
+
+**Effective sample size:** Report the number of observations *inside the bandwidth* on each side. An RD with $n=100{,}000$ often has 400 observations doing the work, and the standard errors should be read accordingly. Senate: 1,297 races, 683 do the work.
+
+# Validity 
+
+## The Threat: Manipulation $\bigstar$
+
+Continuity fails if units can *precisely control* which side of the cutoff they land on: retaking a test until you pass, reporting income just under a threshold, or a firm holding hiring just below a regulatory headcount.
+
+- **Imprecise control is fine.** Lee (2008)'s insight is that if agents cannot control $X$ to the last decimal, assignment near the cutoff is as good as random even though agents influence $X$.
+
+- **Density test** (McCrary 2008; Cattaneo, Jansson, and Ma 2020): Is the density of $X$ continuous at $c$? A spike on the advantaged side is direct evidence of sorting.
+
+- **Covariate smoothness:** Run the RD with *pre-determined covariates as outcomes*. They should show no jump. This is the single most persuasive check, and it is the RD analogue of a balance table.
+
+- **Donut hole:** Drop observations immediately around $c$, where manipulation would concentrate, and see whether the estimate survives.
+
+## Density Test
+
+```{r}
+#| echo: false
+
+set.seed(123)
+
+# Generate running variable
+n <- 12000
+x_A <- rnorm(n, mean = 0, sd = 15)
+
+# Sorting: move some observations just below 0 to just above 0
+x_B <- x_A
+move <- x_B >= -4 & x_B < 0
+x_B[move] <- runif(sum(move), 0, 1)
+
+# Histogram settings
+brks <- seq(-60, 60, by = 1)
+titles <- c("A. no sorting",
+            "B. high-u units just below move just above")
+
+op <- par(mfrow = c(1, 2),
+          mar = c(4, 4, 3, 1),
+          oma = c(0, 0, 0, 0),
+          mgp = c(2.2, 0.6, 0),
+          tcl = -0.25,
+          cex.main = 0.95)
+
+for (j in 1:2) {
+
+  values <- if (j == 1) x_A else x_B
+  counts <- hist(values, breaks = brks, plot = FALSE)$counts
+  mids <- head(brks, -1) + diff(brks)/2
+
+  plot(NA, xlim = c(-60, 60), ylim = c(0, 350),
+       xlab = "running variable", ylab = "count",
+       main = titles[j], axes = FALSE)
+
+  # Thin histogram bars
+  cols <- ifelse(mids < 0, "navy", "firebrick3")
+
+  rect(mids - 0.38, 0, mids + 0.38, counts,
+       col = cols, border = NA)
+
+  # Cutoff
+  abline(v = 0, lty = 2, col = "black", lwd = 1)
+
+  axis(1, at = seq(-60, 60, 20))
+  axis(2, at = c(0, 50, 150, 250, 350),
+       las = 2)
+  box(bty = "l")
+}
+
+par(op)
+```
+
+- Two traces: a hole below 0 and a spike above it (**density test**); winners who differed before the race (**balance test**).
+
+**The test.** Estimate the density of $X$ at $c$ separately from each side and compare:
+
+$$
+T=\frac{\hat f_+(c)-\hat f_-(c)}{\widehat{\mathrm{se}}}\approx N(0,1)\qquad\text{under no sorting}.
+$$
+
+McCrary (2008) bins $X$ and runs local linear regressions on the bin counts; Cattaneo, Jansson, and Ma (2020) fit a local polynomial to the empirical distribution function, with no bins (`rddensity`).
+
+- A pass is **weak evidence**: sorting in *both directions* leaves the density smooth while changing who sits on each side.
+- A failure is **strong evidence**, unless the spike has a mechanical cause such as rounding (next frames).
+
+## Other Checks and Common Errors 
+
+**Placebo cutoffs:** Estimate at fake thresholds away from $c$, using only data on one side so the real discontinuity is not picked up. Significant ``effects'' there mean your procedure finds jumps everywhere.
+
+**Bandwidth sensitivity:** Plot $\hat{\tau}$ against $h$ over a wide range with robust intervals. A result that exists only at one bandwidth is not a result.
+
+**Do not use a high-order global polynomial** (Gelman and Imbens 2019). The implied weights on distant observations are large, oscillating, and indefensible; estimates wander with the degree.
+
+**Do not control for post-treatment covariates**, and do not interact covariates with $D$ unless you mean to estimate heterogeneity.
+
+**Do not report only the conventional interval** at an MSE-optimal bandwidth.
+
+## Local Randomization (2nd Framework)
+
+**Goal:** Treat a small window around $c$ as an experiment, and analyse it as one.
+
+**Assumption:** There is a window $W_0=[c-w,c+w]$ in which:
+
+1. Which units fall above $c$ is as if decided by a coin flip.
+2. $Y_i(d)$ does not depend on $X_i$ inside the window.
+
+- **Fisher randomization test:** The difference in means inside $W_0$ estimates the effect, and a Fisher randomization test gives exact $p$-values: reshuffle who is above $c$ among the window's units, recompute, and compare.
+- **Continuity vs. local randomization:** Continuity extrapolates two curves to one point; local randomization assumes a whole window is an experiment. Condition 2 is stronger, which is why $w$ must be small (Sekhon and Titiunik 2017).
+- **Discrete running variable:** This approach is natural when $X$ has few values near $c$ (ranks, ages in years), where curve fitting has little to work with.
+
+:::callout-tip
+## Fisher Randomization Test
+
+Under the sharp null $H_0:Y_i(1)=Y_i(0)$ for every unit, treatment assignment within the window is as good as random.
+
+1. Calculate the observed treated–control difference in means.
+2. Randomly reshuffle treatment labels, preserving the number treated.
+3. Recalculate the difference for each assignment.
+4. The $p$-value is the proportion of assignments with a difference at least as extreme as observed.
+
+$$
+p=\Pr\left(|\hat\tau_{\mathrm{perm}}|\geq|\hat\tau_{\mathrm{obs}}|\mid H_0\right)
+$$
+
+**Key idea:** An unusually large observed difference provides evidence against the sharp null.
+:::
+
+**Window**: in nested windows, test balance on pre-determined covariates; take the largest window in which the smallest p-value stays above 0.15 (`rdlocrand::rdwinselect`).
+
+# Fuzzy RD
+
+## Core of Fuzzy RD $\bigstar$
+
+Often crossing the cutoff changes the *probability* of treatment rather than determining it: eligibility is not take-up.
+
+$$
+\lim_{x\downarrow c}\Pr(D_i=1\mid X_i=x)-\lim_{x\uparrow c}\Pr(D_i=1\mid X_i=x)\in(0,1).
+$$
+
+**The fuzzy RD estimator is a ratio of two sharp RD estimates:**
+
+$$
+\tau_{FRD}=\frac{\text{jump in }Y\text{ at }c}{\text{jump in }D\text{ at }c}=\frac{\lim_{x\downarrow c}E[Y_i\mid X_i=x]-\lim_{x\uparrow c}E[Y_i\mid X_i=x]}{\lim_{x\downarrow c}E[D_i\mid X_i=x]-\lim_{x\uparrow c}E[D_i\mid X_i=x]}.
+$$
+
+- **This is exactly the Wald estimator of Week 7**, with $\mathbb{1}\{X_i\ge c\}$ as the instrument, estimated locally.
+- The numerator alone is the **intention-to-treat (ITT) effect** of crossing the cutoff, and it is worth reporting on its own. It needs no first-stage relevance assumption.
+
+## What the Ratio Estimates: Four Types at the Cutoff
+
+Write $D_i(1)$ for the treatment unit $i$ would take just above $c$ and $D_i(0)$ for the treatment just below. As in Week 7, every unit is one of four types:
+
+| Type | $D_i(0)$, just below | $D_i(1)$, just above | Interpretation |
+|:---|:---:|:---:|:---|
+| **Compliers** | 0 | 1 | Treated only if above $c$ |
+| Always-takers | 1 | 1 | Treated on both sides |
+| Never-takers | 0 | 0 | Untreated on both sides |
+| Defiers | 1 | 0 | Treated only if below $c$ |
+
+Three assumptions, each the RD version of a Week 7 assumption:
+
+- **Continuity (replaces independence):** The share of each type and each type's mean $Y_i(1)$ and $Y_i(0)$ do not jump at $c$: the same mix of people just below and just above.
+- **Exclusion:** Crossing $c$ changes $Y$ only through $D$.
+- **Monotonicity:** No defiers, i.e., no one is treated because they fell below the cutoff.
+
+### The Numerator 
+
+Split the jump in $Y$ by type. By continuity, both limits use the same shares and means, those at $X_i=c$, written $\Pr(C)$, $E[Y_i(1)\mid C]$, and so on:
+
+$$
+\begin{aligned}
+&\lim_{x\downarrow c}E[Y_i\mid X_i=x]-\lim_{x\uparrow c}E[Y_i\mid X_i=x]\\
+&=\Pr(AT)\underbrace{\left(E[Y_i(1)\mid AT]-E[Y_i(1)\mid AT]\right)}_{=0}\\
+&\quad+\Pr(NT)\underbrace{\left(E[Y_i(0)\mid NT]-E[Y_i(0)\mid NT]\right)}_{=0}\\
+&\quad+\Pr(C)\left(E[Y_i(1)\mid C]-E[Y_i(0)\mid C]\right)\\
+&\quad-\Pr(D)\left(E[Y_i(1)\mid D]-E[Y_i(0)\mid D]\right).
+\end{aligned}
+$$
+
+Always- and never-takers take the same treatment on both sides, so **by exclusion** they contribute zero. **Monotonicity** removes the last line.
+
+### The Denominator 
+
+Just above $c$, the treated are compliers and always-takers; just below, always-takers and defiers:
+
+$$
+\begin{aligned}
+\text{Jump in }D
+&=[\Pr(C)+\Pr(AT)]-[\Pr(AT)+\Pr(D)] && \text{by type}\\
+&=\Pr(C)-\Pr(D)\\
+&=\Pr(C) && \text{no defiers}
+\end{aligned}
+$$
+
+Dividing:
+
+**The fuzzy RD estimand** (Hahn, Todd, and van der Klaauw 2001)
+
+$$
+\boxed{\tau_{FRD}=\frac{\text{jump in }Y}{\text{jump in }D}=E\left[Y_i(1)-Y_i(0)\mid i\text{ is a complier},\,X_i=c\right]}
+$$
+
+The Week 7 LATE theorem with ``at the cutoff'' added: the effect for **compliers whose running variable is at $c$**.
+
+### Estimation, Route 1: Two Sharp RDs and Their Ratio
+
+Keep units with $|X_i-c|\le h$, weight them by the kernel, let $Z_i=\mathbb{1}\{X_i\ge c\}$, and run the *same sharp RD* twice:
+
+$$
+\begin{aligned}
+D_i&=\alpha_D+\beta_D Z_i+\gamma_D(X_i-c)+\eta_D Z_i(X_i-c)+v_i && \text{sharp RD on }D:\text{ jump }\hat{\beta}_D\\
+Y_i&=\alpha_Y+\beta_Y Z_i+\gamma_Y(X_i-c)+\eta_Y Z_i(X_i-c)+e_i && \text{sharp RD on }Y:\text{ jump }\hat{\beta}_Y\\
+\hat{\tau}&=\hat{\beta}_Y/\hat{\beta}_D && \text{Wald ratio, Week 7}
+\end{aligned}
+$$
+
+- **This is IV** with $Z_i$ as the instrument: $\hat{\beta}_D$ is the first stage, $\hat{\beta}_Y$ the reduced form.
+- Both regressions must use the **same $h$, kernel, and polynomial**; otherwise, the ratio is not the corresponding local IV estimator.
+
+### Estimation, Route 2: Local 2SLS
+
+Same window, same kernel, same instrument $Z_i$. As in Week 7:
+
+$$
+\begin{aligned}
+\text{Stage 1:}\quad D_i &= \alpha_D+\beta_D Z_i+\gamma_D(X_i-c)+\eta_D Z_i(X_i-c)+v_i \quad\Longrightarrow\quad \hat D_i\\
+\text{Stage 2:}\quad Y_i &= \alpha+\tau\hat D_i+\gamma(X_i-c)+\eta Z_i(X_i-c)+u_i
+\end{aligned}
+$$
+
+- **Stage 1** is Route 1's sharp RD on $D$. The two slope terms are controls and enter *both stages*; $Z_i$ is the only excluded instrument.
+- **One instrument, one endogenous $D$:** 2SLS equals the Route 1 ratio exactly. 
+- **Do not take the standard error from the second stage by hand** (Week 7); use `rdrobust(y, x, fuzzy = d)`. Report $\hat{\beta}_D$ in the main table.
+- `rdrobust` picks one MSE-optimal $h$ for the ratio $\hat{\tau}$ and uses the *same $h$* in both stages, so ratio = 2SLS still holds.
+
+## Fuzzy RD Inherits Everything From IV $\bigstar$
+
+- **Exclusion**: crossing the cutoff must affect $Y$ only through $D$. If the threshold also triggers something else, a different school, a different caseworker, a label, exclusion fails.
+- **Monotonicity**: no one is treated because they fell below the cutoff. 
+- **The estimand is doubly local**: the effect for compliers at the cutoff. Not the ATE, not the ATT, and not the effect for everyone near the cutoff.
+- **Weak first stage is a real risk**: if take-up jumps by only a few percentage points, you are dividing by a small noisy number and all the Week 7 pathologies return. Check strength with the same first-stage $F$ as in Week 7: the jump in $D$ and its $F$ statistic.
+
+# Extensions (detailed in slides)
+
+- RD in time (time is the forcing variable)
+- Regression Kink (the slope not the outcome jumps at $c$)
+- Repeated Cutoffs 
+
+# Reading and Reporting an RD $\bigstar$
+
+1. The picture first. Binned means of $Y$ against $X$, with the fitted local polynomials and the cutoff. If the jump is not visible, be sceptical of the number.
+2. The bandwidth, how it was chosen, and the effective n on each side.
+3. Robust bias-corrected confidence intervals.
+4. The density test and the covariate-smoothness checks.
+5. A bandwidth-sensitivity plot and placebo cutoffs.
+6. For fuzzy designs, the size of the jump in treatment take-up, and the intention-to-treat effect alongside.
+7. An explicit statement that the estimand is local to the cutoff.
