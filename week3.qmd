@@ -29,7 +29,7 @@ Pros of maximum likelihood:
 ## Probability vs. Likelihood $\bigstar$
 
 | Probability | Likelihood |
-|------------------------------------|------------------------------------|
+|----|----|
 | $f(y\mid\theta)$ | $\mathcal{L}(\theta;y)\equiv f(y\mid\theta)$ |
 | $\theta$ is fixed and know, $y$ varies | $y$ is fixed (your data), $\theta$ varies |
 | If the parameter were $\theta$, how likely are different possible data values $y$? | Given the data we actually observed, which values of $\theta$ make those data more plausible? |
