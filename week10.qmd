@@ -1,0 +1,1765 @@
+---
+title: "Week 10 Panel Data and Difference-in-Differences"
+format: html
+author: Zhe Chen
+embed-resources: true
+---
+
+# The Core Idea
+
+Observe the same unit before and after treatment.
+
+- What is stable about the unit (ability, upbringing) is the same in both periods, so the before–after change removes it, measured or not: fixed effects.
+- What changes for everyone (a recession, getting older) does not cancel, but units that were not treated went through it too, so their change measures it: difference-in-differences.
+
+# Panel Data
+
+## Example: Does Marriage Raise Men’s Wages
+
+**Question**: Married men earn more than unmarried men. Is it marriage (specialization at home, employers’ favour), or do men with high earning potential marry?
+
+**Data**: NLSY men observed every year 1980–87; 545 men; 4,360 person-years; $Y_{it}$: log hourly wage of man $i$ in year $t$; $D_{it} = 1$ if married that year.
+
+|                                |             |
+|:-------------------------------|------------:|
+| men never married in the panel |         162 |
+| men married in all eight years |          73 |
+| men whose status changes       |         310 |
+| share married, 1980 → 1987     | 0.19 → 0.61 |
+| mean log wage, 1980 → 1987     | 1.39 → 1.87 |
+
+## Pooled OLS $\bigstar$
+
+Treat the 1,056 person-years (528 men, 1980 and 1987) as if they were 1,056 different men:
+
+$$Y_{it} = a + \beta D_{it} + u_{it},
+\qquad
+\hat{\beta} = 0.358 (0.031)$$
+
+Married men earn about 43% more.
+
+$$\operatorname{plim}\hat{\beta}
+= \beta + \frac{\operatorname{Cov}(D_{it},u_{it})}
+{\operatorname{Var}(D_{it})}$$
+
+Now we do not consider the omitted variables $u_{it}$ (Week 2)
+
+- $u_{it}$ holds everything else that sets man $i$'s wage in year $t$:
+  - *stable* traits: ability, ambition, schooling, family background;
+  - what *changes over time*: experience, seniority, prices, the economy.
+- Both can move with marriage: men with high-wage traits may marry more, and men marry as they age while every man's wage grows. Either way $\operatorname{Cov}(D_{it},u_{it}) > 0$ and 0.358 is too big.
+- We cannot measure all of them. But we see each man more than once.
+
+# Fixed Effects
+
+## Two-wave Case $\bigstar$
+
+### Split the error in three
+
+$u_{it}=\alpha_i+\lambda_t+\epsilon_{it}$.
+
+- $\alpha_i$: the combined effect on his wage of *everything stable* about man $i$ (ability, ambition, schooling, family background), measured or not.
+- $\lambda_t$: what changes for *every* man in year $t$ (experience, prices).
+- $\epsilon_{it}$: the rest.
+
+### Take 1987 and 1980
+
+$$\begin{aligned}
+Y_{i,87} &= \alpha_i+\lambda_{87}+\beta D_{i,87}+\epsilon_{i,87}
+&& \text{1987}\\
+Y_{i,80} &= \alpha_i+\lambda_{80}+\beta D_{i,80}+\epsilon_{i,80}
+&& \text{1980}\\
+Y_{i,87}-Y_{i,80}
+&= \underbrace{(\lambda_{87}-\lambda_{80})}_{\text{intercept}}
++\beta(D_{i,87}-D_{i,80})
++(\epsilon_{i,87}-\epsilon_{i,80})
+&& \text{subtract: }\alpha_i\text{ cancels}
+\end{aligned}$$
+
+**First differences:** regress each man's wage growth on his change in marital status, with an intercept. **Idea 1: compare each man with himself.** Every stable trait is gone, measured or not.
+
+### Men Who Did Not Change Are the Control Group
+
+| Change in married, 1980 $\rightarrow$ 1987 | Men | Mean wage growth |
+|--------------------------------------------|----:|-----------------:|
+| Married ($\Delta D=1$)                     | 251 |            0.488 |
+| No change ($\Delta D=0$)                   | 277 |            0.476 |
+
+OLS: $\hat{\lambda}_{87}-\hat{\lambda}_{80}=0.476\ (0.037),\quad \hat{\beta}=0.012\ (0.053).$
+
+- The intercept is the year effect, $\lambda_{87}-\lambda_{80}$, estimated from the 277 men whose status did not change. **Idea 2: the year fixed effect makes them the control group.**
+- $\hat{\beta}=0.488-0.476$ is the *extra growth* of men who married: difference-in-differences. If the timing of marriage were random, this is the comparison an experiment would make.
+- Pooled OLS said 0.358. Most of it was stable traits and common growth.
+
+### All Men, All Years: The Model
+
+Now all 545 men (the 17 who left marriage too) and every year, $t=1980,\ldots,1987$:
+
+$$Y_{it}
+=
+\underbrace{\alpha_i}_{\text{who he is}}
++
+\underbrace{\lambda_t}_{\text{what year it is}}
++
+\underbrace{\beta D_{it}}_{\text{marriage}}
++
+\underbrace{\epsilon_{it}}_{\text{everything else}}.$$
+
+- $\alpha_i$: one number per man, for everything stable about him (ability, ambition, family background), measured or not: **man fixed effects**.
+- $\lambda_t$: one number per year, for what happens to every man that year (the economy, a year more experience): **year fixed effects**.
+- With both sets of fixed effects in the model, people call it **two-way fixed effects (TWFE)**.
+
+## Visual Illustrations
+
+### Man Fixed Effects: Each Man His Own Line
+
+```{r}
+#| echo: false
+
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+set.seed(723)
+
+# Four men observed over 8 years
+years <- 1980:1987
+men <- c("married all 8 years", "marries in 1984",
+         "marries in 1983", "never married")
+
+colors <- c("firebrick3", "darkorange", "darkgreen", "navy")
+
+# Marriage status for each man
+D <- rbind(
+  rep(1, 8),             # Married throughout
+  as.integer(years >= 1984),
+  as.integer(years >= 1983),
+  rep(0, 8)              # Never married
+)
+
+# Individual-specific wage levels
+alpha <- c(1.85, 1.60, 1.48, 1.14)
+
+# Generate wages around individual-specific lines
+Y <- matrix(NA, nrow = 4, ncol = 8)
+
+for (i in 1:4) {
+  Y[i, ] <- alpha[i] + 0.31 * D[i, ] +
+    rnorm(8, sd = 0.08)
+}
+
+# Horizontal jitter for visibility
+x <- D + matrix(runif(32, -0.09, 0.09), 4, 8)
+
+# Plot
+par(mar = c(5, 5, 2, 1))
+
+plot(NA,
+     xlim = c(-0.3, 1.3),
+     ylim = c(0.9, 2.8),
+     xaxt = "n",
+     xlab = "married",
+     ylab = "log hourly wage",
+     cex.lab = 1.3)
+
+axis(1, at = c(0, 1), labels = c("no", "yes"), cex.axis = 1.2)
+
+# Individual observations and fixed-effect lines
+for (i in 1:4) {
+
+  points(x[i, ], Y[i, ],
+         pch = 16, col = colors[i], cex = 1.2)
+
+  # Individual intercepts with common slope
+  segments(-0.2, alpha[i],
+           1.2, alpha[i] + 0.31,
+           col = colors[i], lwd = 2.5)
+}
+
+# Pooled OLS regression
+df <- data.frame(
+  wage = as.vector(t(Y)),
+  married = as.vector(t(D))
+)
+
+pooled <- lm(wage ~ married, data = df)
+
+# Dashed pooled regression line
+abline(pooled, col = "black", lty = 2, lwd = 2.5)
+
+# Legend
+legend("topleft",
+       legend = c(men, "pooled line"),
+       col = c(colors, "black"),
+       lty = c(1, 1, 1, 1, 2),
+       lwd = 2.5,
+       bty = "n",
+       cex = 0.9,
+       ncol = 2)
+```
+
+$Y_{it}=\alpha_i+\beta D_{it}+\epsilon_{it}$: one dummy per man, one common slope. Four of the men:
+
+- The pooled line (slope 0.66 for these four) mostly compares *different men*: the high-wage men are the married ones.
+- Each colored line is one man at his own height $\hat{\alpha}_i$. Its slope (0.31 for these four) compares him only with himself: married years vs. unmarried years.
+- All 545 men: $\hat{\beta}=0.243\ (0.022)$. But a man's married years are also his later years, when every wage is higher.
+
+#### Year Fixed Effects: One Common Year Path
+
+$Y_{it}=a+\lambda_t+\beta D_{it}+\epsilon_{it}$: one dummy per year, the same for every man.
+
+```{r}
+#| echo: false
+
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+set.seed(723)
+
+years <- 1980:1987
+
+# Four men
+men <- c("married all 8 years",
+         "marries in 1984",
+         "marries in 1983",
+         "never married")
+
+cols <- c("firebrick3", "darkorange",
+          "darkgreen", "navy")
+
+# Marriage status by year
+D <- rbind(
+  rep(1, 8),
+  as.integer(years >= 1984),
+  as.integer(years >= 1983),
+  rep(0, 8)
+)
+
+# Common year effects: increase of 0.41
+lambda <- c(0, 0.08, 0.13, 0.17,
+            0.24, 0.30, 0.35, 0.41)
+
+# Simulated wages for four men
+alpha <- c(1.95, 1.55, 1.45, 1.05)
+
+Y <- matrix(NA, nrow = 4, ncol = 8)
+
+for (i in 1:4) {
+  Y[i, ] <- alpha[i] + lambda +
+    0.15 * D[i, ] + rnorm(8, sd = 0.08)
+}
+
+# Plot
+par(mar = c(5, 5, 2, 1))
+
+plot(NA,
+     xlim = c(1979.7, 1987.9),
+     ylim = c(0.9, 2.8),
+     xaxt = "n",
+     xlab = "year",
+     ylab = "log hourly wage",
+     cex.lab = 1.3)
+
+axis(1, at = years, labels = years)
+
+# Observations
+for (i in 1:4) {
+  points(years, Y[i, ],
+         pch = ifelse(D[i, ] == 1, 16, 1),
+         col = cols[i],
+         cex = 1.2,
+         lwd = 1.5)
+}
+
+# Estimated common year path
+unmarried_path <- 1.37 + lambda
+married_path <- unmarried_path + 0.15
+
+lines(years, unmarried_path,
+      lty = 2, lwd = 2.5, col = "black")
+
+lines(years, married_path,
+      lty = 1, lwd = 2.5, col = "black")
+
+# Common growth annotation
+segments(1980, unmarried_path[1],
+         1987.45, unmarried_path[1],
+         lty = 3, col = "grey50")
+
+arrows(1987.45, unmarried_path[1],
+       1987.45, unmarried_path[8],
+       length = 0.1, lwd = 1.5)
+
+text(1986.5, 1.45,
+     "common growth\n1980-87: +0.41",
+     cex = 0.85)
+
+# Legend
+legend("topleft",
+       legend = c(men,
+                  "every man, married",
+                  "every man, unmarried"),
+       col = c(cols, "black", "black"),
+       pch = c(rep(16, 4), NA, NA),
+       lty = c(rep(NA, 4), 1, 2),
+       lwd = c(rep(NA, 4), 2.5, 2.5),
+       ncol = 2,
+       bty = "n",
+       cex = 0.9)
+```
+
+- **Dashed:** $\hat{a}+\hat{\lambda}_t$, the wage of an unmarried man in year $t$. It rises 0.41 from 1980 to 1987: growth *every* man gets, married or not.
+- **Solid:** the same path plus $\hat{\beta}=0.150\ (0.028)$ in married years.
+- But every man shares one line: the red man is high in every year, married or not, so $\hat{\beta}$ still compares *different men*.
+
+### Two-Way FE: Own Level, Common Year Path
+
+$Y_{it}=\alpha_i+\lambda_t+\beta D_{it}+\epsilon_{it}$. Fitted on all 545 men; four of them shown:
+
+```{r}
+#| echo: false
+
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+set.seed(723)
+
+years <- 1980:1987
+
+# Marriage status: four men
+D <- rbind(
+  rep(1, 8),                    # Married all 8 years
+  as.integer(years >= 1984),   # Marries in 1984
+  as.integer(years >= 1983),   # Marries in 1983
+  rep(0, 8)                    # Never married
+)
+
+cols <- c("firebrick3", "darkorange", "darkgreen", "navy")
+
+# Common year fixed effects
+lambda <- c(0, 0.11, 0.16, 0.20,
+            0.28, 0.33, 0.39, 0.44)
+
+# Individual fixed effects
+alpha <- c(1.98, 1.58, 1.46, 0.97)
+
+# Marriage effect
+beta <- 0.061
+
+# Simulated observed wages
+Y <- matrix(NA, nrow = 4, ncol = 8)
+
+for (i in 1:4) {
+  Y[i, ] <- alpha[i] + lambda +
+    beta * D[i, ] + rnorm(8, sd = 0.08)
+}
+
+# Plot
+par(mar = c(5, 5, 2, 1))
+
+plot(NA,
+     xlim = c(1979.7, 1987.9),
+     ylim = c(0.9, 2.8),
+     xaxt = "n",
+     xlab = "year",
+     ylab = "log hourly wage",
+     cex.lab = 1.3)
+
+axis(1, at = years, labels = years)
+
+# Individual wage trajectories
+for (i in 1:4) {
+
+  # Unmarried potential outcome
+  y0 <- alpha[i] + lambda
+
+  # Married potential outcome
+  y1 <- y0 + beta
+
+  # Observed fitted trajectory
+  fitted <- y0 + beta * D[i, ]
+
+  # Observed data points
+  points(years, Y[i, ],
+         pch = ifelse(D[i, ] == 1, 16, 1),
+         col = cols[i],
+         cex = 1.2,
+         lwd = 1.5)
+
+  # Unmarried reference trajectory for switchers
+  if (i %in% c(2, 3)) {
+    lines(years, y0,
+          col = cols[i], lty = 2, lwd = 1.5)
+  }
+
+  # Fitted trajectory
+  lines(years, fitted,
+        col = cols[i], lwd = 2.5)
+}
+
+# Legend
+legend("topleft",
+       legend = c("married all 8 years",
+                  "marries in 1984",
+                  "marries in 1983",
+                  "never married",
+                  "dashed: same man, unmarried"),
+       col = c(cols, "grey40"),
+       lty = c(1, 1, 1, 1, 2),
+       lwd = c(2.5, 2.5, 2.5, 2.5, 1.5),
+       ncol = 2,
+       bty = "n",
+       cex = 0.85)
+```
+
+- Every man follows the same year path, shifted to his own level.
+- Marriage lifts him off his own path: the gap between solid and dashed.
+- $\hat{\beta}=0.061\ (0.022)$. Filled points: married years.
+
+## Two-Way FE Can Be Demeaned
+
+### The Algebra (not evaluated)
+
+Subtract the man's mean and the year's mean. In a balanced panel:
+
+$$\begin{aligned}
+Y_{it}
+&= \alpha_i+\lambda_t+\beta D_{it}+\epsilon_{it}
+&& \text{the model}\\[4pt]
+\bar{Y}_{i\cdot}
+&= \alpha_i+\bar{\lambda}+\beta\bar{D}_{i\cdot}+\bar{\epsilon}_{i\cdot}
+&& \text{average over }t:\text{ man's mean}\\[4pt]
+\bar{Y}_{\cdot t}
+&= \bar{\alpha}+\lambda_t+\beta\bar{D}_{\cdot t}+\bar{\epsilon}_{\cdot t}
+&& \text{average over }i:\text{ year }t\text{'s mean}\\[4pt]
+\bar{Y}
+&= \bar{\alpha}+\bar{\lambda}+\beta\bar{D}+\bar{\epsilon}
+&& \text{average over both}\\[6pt]
+Y_{it}-\bar{Y}_{i\cdot}-\bar{Y}_{\cdot t}+\bar{Y}
+&= \beta\left(D_{it}-\bar{D}_{i\cdot}-\bar{D}_{\cdot t}+\bar{D}\right)
++\ddot{\epsilon}_{it}
+&& \text{line }1-2-3+4:\ \alpha_i\text{ and }\lambda_t\text{ cancel}
+\end{aligned}$$
+
+- **Double demeaning:** subtract the man's mean and the year's mean, add back the grand mean (subtracted twice). Same $\hat{\beta}$ as man and year dummies: **0.0606** both ways.
+- With only 1980 and 1987 (528 men) it gives **0.012**, the same as first differences.
+
+### In Software
+
+Man 1 marries in 1982; man 2 never does. Omitted dummies: man 2 and 1980.
+
+**The data**
+
+| Man | Year | $Y$ | $D$ | Man 1 | 1981 | 1982 |
+|-----|------|----:|----:|------:|-----:|-----:|
+| 1   | 1980 | 1.5 |   0 |     1 |    0 |    0 |
+| 1   | 1981 | 1.8 |   0 |     1 |    1 |    0 |
+| 1   | 1982 | 2.4 |   1 |     1 |    0 |    1 |
+| 2   | 1980 | 1.2 |   0 |     0 |    0 |    0 |
+| 2   | 1981 | 1.5 |   0 |     0 |    1 |    0 |
+| 2   | 1982 | 1.8 |   0 |     0 |    0 |    1 |
+
+**The man's mean of each column**
+
+| $\bar{Y}$ |     $\bar{D}$ | Man 1 |          1981 |          1982 |
+|----------:|--------------:|------:|--------------:|--------------:|
+|       1.9 | $\frac{1}{3}$ |     1 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+|       1.9 | $\frac{1}{3}$ |     1 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+|       1.9 | $\frac{1}{3}$ |     1 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+|       1.5 |             0 |     0 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+|       1.5 |             0 |     0 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+|       1.5 |             0 |     0 | $\frac{1}{3}$ | $\frac{1}{3}$ |
+
+- Subtract right from left, row by row: the man 1 column becomes all 0, so subtracting means does the man dummies' job.
+- What is left of $Y$ is each man's distance from his own average: **TWFE compares each man with himself over time.**
+- Man 2 gives the year path $(+0.3,+0.6)$; man 1 grew $0.9$: $\hat{\beta}=0.3$.
+
+Man effects only, binary $D$. Run the within regression for *one* man:
+
+$$b_i=(\text{his mean wage in married years})-(\text{his mean wage in unmarried years}),$$
+
+because a regression on one 0/1 variable with an intercept is a difference in means (Week 1). **Example** (hypothetical): married in 3 of 8 years.
+
+|                   | Log wages                    |             Mean |
+|-------------------|------------------------------|-----------------:|
+| 5 unmarried years | 1.50, 1.55, 1.60, 1.62, 1.63 |             1.58 |
+| 3 married years   | 1.70, 1.75, 1.80             |             1.75 |
+| $b_i$             |                              | $1.75-1.58=0.17$ |
+
+- A man who never changes status has no $b_i$: he adds nothing.
+- Fixed effects combines the 310 men's $b_i$ into one number. The question is how it weights them.
+
+### Weights
+
+#### Step 1: Fixed Effects Is an Average of the $b_i$
+
+Tilde: minus the man's own mean. Write man $i$'s piece of the fixed-effects formula as $N_i=\sum_t\widetilde{D}_{it}\widetilde{Y}_{it}$ (numerator) and $S_i=\sum_t\widetilde{D}_{it}^2$ (denominator):
+
+$$\begin{aligned}
+\hat{\beta}_{FE}
+&=\frac{\sum_i\sum_t\widetilde{D}_{it}\widetilde{Y}_{it}}
+{\sum_i\sum_t\widetilde{D}_{it}^2}
+=\frac{N_1+N_2+\cdots}{S_1+S_2+\cdots}
+&& \text{add up man by man}\\[6pt]
+b_i&=N_i/S_i,\qquad \text{so }N_i=S_i b_i
+&& \text{man }i\text{'s own regression}\\[6pt]
+\hat{\beta}_{FE}
+&=\frac{S_1b_1+S_2b_2+\cdots}{S_1+S_2+\cdots}
+=\sum_i w_i b_i,\qquad
+w_i=\frac{S_i}{S_1+S_2+\cdots}
+&& \text{substitute}
+\end{aligned}$$
+
+- Fixed effects is a **weighted average** of the men's own estimates $b_i$.
+- Man $i$'s weight is his $S_i$, the variation in his own marriage status, as a share of everyone's.
+
+#### Step 2: What a Man’s $S_i$ Is
+
+Man $i$ is married in $m_i$ of $T$ years, so $\bar{D}_i=m_i/T=p_i$. His demeaned 0/1 values:
+
+$$\begin{aligned}
+\widetilde{D}_{it}
+&=1-p_i
+&& \text{in his }m_i\text{ married years}\\
+\widetilde{D}_{it}
+&=-p_i
+&& \text{in his }T-m_i\text{ unmarried years}\\[4pt]
+S_i
+&=m_i(1-p_i)^2+(T-m_i)p_i^2
+&& \text{square and add}\\
+&=Tp_i(1-p_i)^2+T(1-p_i)p_i^2
+=Tp_i(1-p_i)
+&& m_i=Tp_i;\text{ factor out }Tp_i(1-p_i)
+\end{aligned}$$
+
+**Check:** $T=8$, married 2 years, $p=0.25$:
+
+$$2(0.75)^2+6(0.25)^2=1.125+0.375=1.5=8(0.25)(0.75).$$
+
+| Years married, of 8       |    1 |    2 |    3 |    4 |    5 |    6 |    7 |
+|---------------------------|-----:|-----:|-----:|-----:|-----:|-----:|-----:|
+| Weight per man, $8p(1-p)$ | 0.88 | 1.50 | 1.88 | 2.00 | 1.88 | 1.50 | 0.88 |
+| Share of total weight     |  .08 |  .11 |  .19 |  .15 |  .22 |  .14 |  .12 |
+
+Largest for men married half the time; a man married 1 of 8 years counts less than half as much.
+
+#### Step 3: Two Men
+
+|       | Married      | Own estimate $b_i$ | Weight $S_i=8p(1-p)$ |
+|-------|--------------|-------------------:|---------------------:|
+| Man A | 4 of 8 years |               0.10 |                2.000 |
+| Man B | 1 of 8 years |               0.40 |                0.875 |
+
+$$\begin{aligned}
+\hat{\beta}_{FE}
+&=\frac{2.000\times0.10+0.875\times0.40}{2.000+0.875}
+=\frac{0.55}{2.875}=0.19\\[6pt]
+\text{Plain average}
+&=\frac{0.10+0.40}{2}=0.25
+\end{aligned}$$
+
+- Fixed effects leans toward man A, whose status varies more, not toward the typical man. If effects differ across men, **FE is not the average effect**.
+
+## Two-Way FE Assumptions $\bigstar$
+
+$$Y_{it}
+=
+\beta D_{it}
++
+\underbrace{\alpha_i}_{\text{stable: the man}}
++
+\underbrace{\lambda_t}_{\text{common: the year}}
++
+\underbrace{\epsilon_{it}}_{\text{the rest}}.$$
+
+|   | Assumption | Needed for | Marriage data |
+|------------------|------------------|------------------|------------------|
+| FE.1 | **Strict exogeneity:** $E[\epsilon_{it}\mid D_{i1},\ldots,D_{iT},\alpha_i]=0$, all $t$ | Unbiased, consistent | Tested below |
+| FE.2 | $D_{it}$ varies over time within some units | Identification | 310 of 545 men |
+| FE.3 | $\operatorname{Var}(\epsilon_{it}\mid D_{i1},\ldots,D_{iT},\alpha_i)=\sigma^2$ and $\operatorname{Cov}(\epsilon_{it},\epsilon_{is}\mid D_{i1},\ldots,D_{iT},\alpha_i)=0$, $t\neq s$ | Usual s.e. | False: cluster by man |
+
+- Nothing is assumed about $\alpha_i$: it may correlate with $D_{it}$ in any way.
+- Random effects adds $\operatorname{Cov}(\alpha_i,D_{it})=0$, all $t$: men who marry, early or late, have the same stable traits on average as men who do not.
+
+::: callout-note
+The random effects model assumes that time-invariant unobserved individual characteristics are uncorrelated with the explanatory variables at every time point.
+:::
+
+### Strict Exogeneity $\bigstar$
+
+Two-way FE compares each man's married years with his *own average over all years*. So FE.1 asks: is a man's marriage in *any* year unrelated to his wage shocks in *every* year, past, present, and future?
+
+- **Feedback breaks it.** A raise in 1983 ($\epsilon_{i,83}$ high) makes a man more likely to marry in 1984. The raise sits in his *unmarried* years and lifts his own baseline, so FE understates the effect; if men marry after a bad year, FE overstates it.
+- **Something else changing at the same time breaks it.** A man who moves for a better job and marries that year: FE credits marriage with the new job.
+- What it does *not* require: anything about $\alpha_i$. Stable traits may be related to marriage in any way.
+
+Feedback leaves a trace we can test: future marriage predicting today's wage.
+
+```{r}
+#| echo: false
+#| fig-width: 11
+#| fig-height: 5.5
+
+# DAGs: Violations of Strict Exogeneity
+# Base R only
+
+op <- par(
+  mfrow = c(1, 2),
+  mar = c(2, 1, 3, 1),
+  xpd = NA
+)
+
+# Draw circular nodes
+node <- function(x, y, label, r = 0.085,
+                 fill = "white") {
+  symbols(x, y, circles = r,
+          inches = FALSE, add = TRUE,
+          bg = fill, fg = "grey25",
+          lwd = 1.7)
+  text(x, y, label, cex = 1.15)
+}
+
+# Draw straight arrows
+arrow <- function(x0, y0, x1, y1,
+                  col = "grey25", lwd = 1.8,
+                  lty = 1) {
+  arrows(x0, y0, x1, y1,
+         length = 0.09,
+         col = col, lwd = lwd,
+         lty = lty)
+}
+
+# ====================================
+# Panel A: Feedback
+# ====================================
+
+plot.new()
+plot.window(xlim = c(0, 1), ylim = c(0, 1))
+
+title("A. Feedback / Dynamic Selection",
+      cex.main = 1.15, line = 1)
+
+# Nodes
+node(0.17, 0.70, expression(epsilon[i*",83"]))
+node(0.50, 0.70, expression(D[i*",84"]))
+node(0.83, 0.70, expression(Y[i*",84"]))
+
+node(0.17, 0.30, expression(Y[i*",83"]))
+node(0.50, 0.30, expression(alpha[i]),
+     fill = "grey95")
+
+# Feedback: past wage shock -> future marriage
+arrow(0.26, 0.70, 0.41, 0.70,
+      col = "firebrick3", lwd = 2.5)
+
+# Marriage -> current wage
+arrow(0.59, 0.70, 0.74, 0.70)
+
+# Past wage shock -> past wage
+arrow(0.17, 0.61, 0.17, 0.39)
+
+# Stable traits -> marriage
+arrow(0.50, 0.39, 0.50, 0.61,
+      col = "grey55", lty = 2)
+
+# Stable traits -> wage
+arrow(0.58, 0.34, 0.77, 0.64,
+      col = "grey55", lty = 2)
+
+text(0.50, 0.08,
+     "Past wage shocks influence future marriage",
+     cex = 0.9, col = "firebrick3")
+
+# ====================================
+# Panel B: Time-Varying Confounding
+# ====================================
+
+plot.new()
+plot.window(xlim = c(0, 1), ylim = c(0, 1))
+
+title("B. Time-Varying Confounding",
+      cex.main = 1.15, line = 1)
+
+# Nodes
+node(0.25, 0.72, expression(D[it]))
+node(0.75, 0.72, expression(Y[it]))
+
+node(0.50, 0.38, expression(C[it]),
+     fill = "mistyrose")
+
+node(0.13, 0.30, expression(alpha[i]),
+     fill = "grey95")
+
+node(0.87, 0.30, expression(lambda[t]),
+     fill = "grey95")
+
+# Marriage -> wage
+arrow(0.34, 0.72, 0.66, 0.72)
+
+# Confounder -> marriage
+arrow(0.44, 0.45, 0.30, 0.65,
+      col = "firebrick3", lwd = 2.5)
+
+# Confounder -> wage
+arrow(0.56, 0.45, 0.70, 0.65,
+      col = "firebrick3", lwd = 2.5)
+
+# Stable traits -> marriage
+arrow(0.17, 0.37, 0.23, 0.63,
+      col = "grey55", lty = 2)
+
+# Common year effect -> wage
+arrow(0.83, 0.37, 0.77, 0.63,
+      col = "grey55", lty = 2)
+
+text(0.50, 0.08,
+     "Job changes affect both marriage and wages",
+     cex = 0.9, col = "firebrick3")
+
+par(op)
+```
+
+#### Testing Strict Exogeneity: Add the Lead
+
+Under FE.1, next year’s treatment cannot predict this year’s outcome once $\alpha_i$ and this year’s treatment are held fixed
+
+### FE.3 assumes homoskedasticity and no serial correlation.
+
+1.  **Homoskedasticity**: The conditional variance of the error term is constant across individuals and time periods.
+
+2.  **No Serial Correlation**: The error terms for the same individual are uncorrelated across different time periods, conditional on the explanatory variables and individual fixed effects.
+
+Violating FE.3 does not necessarily bias FE coefficient estimates or make them inconsistent, provided the other required assumptions hold. However, it can invalidate conventional standard errors and statistical inference. Cluster-robust standard errors can address these violations.
+
+## Random Trends
+
+### Example: When Men on Steeper Paths Marry
+
+Hypothetical, no noise, and **marriage has no effect at all**. Fitted by two-way FE:
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+# Hypothetical example: true marriage effect = 0
+
+years <- 1980:1987
+t <- 0:7
+
+# Four men: two steep, two flat
+id <- rep(1:4, each = 8)
+year <- rep(years, times = 4)
+time <- rep(t, times = 4)
+
+# Man-specific wage intercepts
+alpha <- c(1.90, 1.60, 1.45, 1.05)
+
+# Man-specific wage growth
+slope <- c(0.08, 0.08, 0.02, 0.02)
+
+# Marriage status
+D <- rbind(
+  as.integer(years >= 1983),
+  as.integer(years >= 1984),
+  rep(0, 8),
+  rep(0, 8)
+)
+
+# True wages: marriage has NO effect
+Y <- sapply(1:4, function(i) alpha[i] + slope[i] * t)
+
+df <- data.frame(
+  id = factor(id),
+  year = factor(year),
+  time = time,
+  married = as.vector(D),
+  wage = as.vector(Y)
+)
+
+# Two-way fixed-effects regression
+fit <- lm(wage ~ married + id + year, data = df)
+
+# Model with individual-specific slopes
+fit_slopes <- lm(wage ~ married + id + id:time, data = df)
+
+cat("TWFE estimate:", round(coef(fit)["married"], 3), "\n")
+cat("With individual slopes:",
+    round(coef(fit_slopes)["married"], 3), "\n")
+
+# Fitted values under TWFE
+df$twfe <- fitted(fit)
+
+# Individual-specific no-marriage baseline
+beta_hat <- coef(fit)["married"]
+df$unmarried_fit <- df$twfe - beta_hat * df$married
+
+# Colors
+cols <- c("darkorange", "firebrick3", "navy", "steelblue3")
+
+# Plot
+op <- par(mar = c(4.5, 4.5, 2, 1))
+
+plot(NA,
+     xlim = c(1979.7, 1987.3),
+     ylim = c(0.9, 3.0),
+     xaxt = "n",
+     xlab = "year",
+     ylab = "log hourly wage")
+
+axis(1, at = years)
+
+for (i in 1:4) {
+
+  z <- df[df$id == as.character(i), ]
+
+  # True wage path: dotted
+  lines(years, z$wage,
+        col = cols[i], lty = 3, lwd = 1.3)
+
+  # Counterfactual unmarried path: dashed
+  if (i <= 2) {
+    lines(years, z$unmarried_fit,
+          col = cols[i], lty = 2, lwd = 1.3)
+  }
+
+  # TWFE fitted path: solid
+  lines(years, z$twfe,
+        col = cols[i], lwd = 2.2)
+
+  # Observed wages
+  points(years, z$wage,
+         col = cols[i],
+         pch = ifelse(z$married == 1, 16, 1),
+         cex = 0.85)
+}
+
+legend("topleft",
+       legend = c(
+         "steep, marries in 1983",
+         "steep, marries in 1984",
+         "flat, never married",
+         "flat, never married",
+         "solid: two-way FE fit",
+         "dashed: FE unmarried path",
+         "dotted: true wage path"
+       ),
+       col = c(cols, "black", "black", "black"),
+       lty = c(rep(1, 4), 1, 2, 3),
+       lwd = c(rep(2, 4), 2, 1.3, 1.3),
+       bty = "n",
+       cex = 0.72,
+       ncol = 2)
+
+par(op)
+```
+
+- Steep wage paths (0.08 a year) marry; flat paths (0.02) never do.
+- $\alpha_i$: each man his own *level*. $\lambda_t$: one *common* year path. No man gets his own growth.
+- The common path is too flat for the steep men: after marriage they run above it, and FE calls the gap marriage, $\hat{\beta}=0.22$.
+- **Parallel trends fails.** Own slopes: $\hat{\beta}=0$.
+
+### Each Man His Own Slope
+
+FE allows men to differ in wage *levels*. If men on steeper wage paths marry, FE still mistakes their growth for a marriage effect.
+
+The **random trend model**/**FEIS** (fixed effects with individual slopes) gives each man his own line:
+
+$$Y_{it}=\alpha_i+\gamma_i x_{it}+\lambda_t+\beta D_{it}+\epsilon_{it}$$
+
+Own intercept $\alpha_i$, own slope $\gamma_i$ in experience $x$.
+
+Year effects stay: own lines absorb differences in *growth* between men; $\lambda_t$ absorbs shocks common to a year (a recession), which lie on no one's line.
+
+Estimate $\beta$ in three steps:
+
+1.  For each man, regress his wages on $(1,x_{it})$ using only his own years. Keep the residuals $\ddot{Y}_{it}$: his departures from his own line.
+2.  Do the same for marriage, giving $\ddot{D}_{it}$, and for each year dummy.
+3.  Pool all men and regress $\ddot{Y}_{it}$ on $\ddot{D}_{it}$ and the detrended year dummies.
+
+Fixed effects is the same recipe with a line of slope zero: step 1 subtracts only his mean.
+
+- It detrends each unit separately, then pool
+- Needs at least three observations per unit.
+- Identifies $\beta$ from departures from each man’s own trajectory at marriage: a jump, not a steeper path.
+
+::: callout-warning
+an FE impact function that keeps rising after the event is a warning sign of selection on slopes
+:::
+
+## Two-Way Fixed Effects: Strengths and Weaknesses $\bigstar$
+
+**Strengths**
+
+- Removes every stable trait of the unit, *measured or not*.
+- Removes everything common to a year.
+- Simple and transparent: a difference-in-differences with many units and periods.
+- Testable in part: leads (no feedback), event studies.
+
+**Weaknesses**
+
+- Needs strict exogeneity: no feedback, nothing else changing at the same time.
+- Misses differences in *growth*: men on steeper paths (FEIS).
+- Only units whose treatment changes identify $\beta$, weighted by how much it varies.
+- Less precise; measurement error grows. **Cluster by unit.**
+- With a lagged outcome: Nickell bias (below).
+
+### Put Last Year’s Outcome in a Fixed-Effects Model
+
+Marriage can follow wages, not only the other way round: a good year makes a man more likely to marry next year, and wages persist. So control for last year's wage:
+
+$$Y_{it}=\rho Y_{i,t-1}+\beta D_{it}+\alpha_i+\epsilon_{it}$$
+
+This compares men who start the year at the same wage, one who marries and one who does not; $\alpha_i$ still removes everything stable about the man.
+
+**Other questions where the outcome feeds back into the treatment:**
+
+- **Health and employment:** illness leads to job loss; job loss worsens health.
+- **Parental help and test scores:** parents step in after a bad report card.
+- **Policing and crime:** cities hire police after a crime spike; crime persists.
+
+The catch: with $\alpha_i$ in the model, a lagged outcome breaks strict exogeneity.
+
+Sociologists often control for last year's outcome, to absorb differences between units that are *changing* rather than fixed. Combining it with unit fixed effects creates a new bias (Nickell).
+
+::: callout-note
+# Nickell Bias
+
+The outcome depends on its own past:
+
+$$Y_{it}=\rho Y_{i,t-1}+X_{it}'\beta+\alpha_i+\epsilon_{it}.$$
+
+FE.1 fails by construction: $Y_{i,t-1}$ contains $\epsilon_{i,t-1}$, which is in $\bar{\epsilon}_{i\cdot}$. Demeaned lag and demeaned error are correlated (Nickell 1981):
+
+$$\operatorname{plim}_{N\to\infty}\hat{\rho}_{FE}-\rho
+\approx -\frac{1+\rho}{T-1}
+\qquad \text{large-}T\text{ approximation; exact formula in the script}$$
+
+| Simulation, $\rho=0.5$, $N=500$, 200 draws |   $T=4$ |  $T=8$ | $T=16$ |
+|--------------------------------------------|--------:|-------:|-------:|
+| Mean of $\hat{\rho}_{FE}$                  | $-0.04$ | $0.27$ | $0.40$ |
+| Nickell's exact fixed-$T$ value            | $-0.04$ | $0.27$ | $0.39$ |
+
+Large $N$ does not help; only large $T$ does.
+:::
+
+**Solutions**
+
+- Anderson–Hsiao: Difference, Then Instrument
+
+- Arellano–Bond: Use Every Valid Lag
+
+# Random Effects
+
+## Question
+
+**Goal:** the same model whenever members share a group (students in a school, siblings in a family, workers in a firm, the years of one life):
+
+$$Y_{ij}=\alpha_j+\beta X_{ij}+\epsilon_{ij}.$$
+
+|   | Assumption on $\alpha_j$ | Uses |
+|------------------------|------------------------|------------------------|
+| Fixed effects | None: $\alpha_j$ may covary with $X$ | Within groups only |
+| Random effects | $\operatorname{Cov}(\alpha_j,X_{ij})=0$, all $i$: unrelated to $X$ | Within and between |
+
+- Both let $\alpha_j$ vary across groups. The names mislead: the key difference is whether $\alpha_j$ may covary with $X$ (Wooldridge 2010, ch. 10).
+- If it may not, random effects is more precise and estimates group-level variables.
+
+## Visualization
+
+Six groups, $\beta=1$; same $\operatorname{Var}(\alpha_j)$ in both worlds, only its covariance with $X$ differs:
+
+- **A:** High-$X$ groups are no higher; pooled and within slopes agree (1.04 vs. 0.99).
+- **B:** High-$X$ groups have high intercepts; the pooled slope adds that gap (1.83 vs. 1.01).
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+
+set.seed(723)
+
+# Six groups, 25 observations per group
+G <- 6
+n <- 25
+N <- G * n
+beta <- 1
+
+cols <- c(
+  "firebrick3", "darkorange", "darkgreen",
+  "navy", "darkorchid", "grey50"
+)
+
+# Common helper: fit and plot one world
+draw_panel <- function(x, y, group, main) {
+
+  pooled <- lm(y ~ x)
+  within <- lm(y ~ x + factor(group))
+
+  plot(x, y,
+       col = adjustcolor(cols[group], alpha.f = 0.65),
+       pch = 16, cex = 0.65,
+       xlim = c(-3.8, 3.8),
+       ylim = c(-9, 10),
+       xlab = "X", ylab = "Y",
+       main = main)
+
+  # Individual group regression lines
+  for (j in 1:G) {
+    sel <- group == j
+    fit_j <- lm(y[sel] ~ x[sel])
+
+    xx <- seq(min(x[sel]), max(x[sel]), length.out = 100)
+    yy <- coef(fit_j)[1] + coef(fit_j)[2] * xx
+
+    lines(xx, yy, col = cols[j], lwd = 2)
+  }
+
+  # Overall within-group slope, centered at grand means
+  xx <- seq(-3.8, 3.8, length.out = 100)
+  b_fe <- coef(within)["x"]
+  yy_fe <- mean(y) + b_fe * (xx - mean(x))
+
+  lines(xx, yy_fe, col = "grey35", lwd = 2)
+
+  # Pooled OLS slope
+  abline(pooled, col = "black", lty = 2, lwd = 2)
+
+  legend("bottomright",
+         legend = c(
+           paste0("within groups: slope ",
+                  round(b_fe, 2)),
+           paste0("pooled: slope ",
+                  round(coef(pooled)["x"], 2))
+         ),
+         col = c("grey35", "black"),
+         lty = c(1, 2),
+         lwd = 2,
+         bty = "n",
+         cex = 0.75)
+}
+
+# -----------------------------------------
+# Panel A: Group intercepts unrelated to X
+# -----------------------------------------
+
+group <- rep(1:G, each = n)
+
+# Group intercepts
+alpha_A <- c(4, 2, 0, -4, -2, 1)
+
+# Group-specific X means, unrelated to intercepts
+mu_A <- c(0.2, -0.5, 0.5, -0.2, 0.1, -0.1)
+
+x_A <- rnorm(N, mean = rep(mu_A, each = n), sd = 1.1)
+
+y_A <- rep(alpha_A, each = n) +
+  beta * x_A + rnorm(N, sd = 0.65)
+
+# -----------------------------------------
+# Panel B: Group intercepts correlated with X
+# -----------------------------------------
+
+# Same intercept values, different group ordering
+alpha_B <- c(-4, -2, 0, 1, 2, 4)
+
+# High-X groups have high intercepts
+mu_B <- c(-1.4, -0.9, -0.3, 0.3, 0.9, 1.4)
+
+x_B <- rnorm(N, mean = rep(mu_B, each = n), sd = 1)
+
+y_B <- rep(alpha_B, each = n) +
+  beta * x_B + rnorm(N, sd = 0.65)
+
+# -----------------------------------------
+# Plot two panels
+# -----------------------------------------
+
+op <- par(
+  mfrow = c(1, 2),
+  mar = c(4, 4, 3, 1),
+  mgp = c(2.2, 0.7, 0)
+)
+
+draw_panel(
+  x_A, y_A, group,
+  "A: Intercepts unrelated to X"
+)
+
+draw_panel(
+  x_B, y_B, group,
+  "B: Intercepts rise with X"
+)
+
+par(op)
+```
+
+## Formula
+
+Start from the model, average it over the group's members, and subtract a share $\theta$ of that average:
+
+$$\begin{aligned}
+Y_{ij}
+&=\beta X_{ij}+\alpha_j+\epsilon_{ij}
+&& \text{the model}\\[4pt]
+\bar{Y}_j
+&=\beta\bar{X}_j+\alpha_j+\bar{\epsilon}_j
+&& \text{average over group }j\text{'s members}\\[4pt]
+Y_{ij}-\theta\bar{Y}_j
+&=\beta(X_{ij}-\theta\bar{X}_j)
++(1-\theta)\alpha_j+(\epsilon_{ij}-\theta\bar{\epsilon}_j)
+&& \text{line 1 minus }\theta\times\text{ line 2}
+\end{aligned}$$
+
+| $\theta$            | Estimator      | Share of $\alpha_j$ left in the error |
+|--------------------|-------------------|---------------------------------|
+| $0$                 | Pooled OLS     | All                                   |
+| Between $0$ and $1$ | Random effects | $1-\theta$                            |
+| $1$                 | Fixed effects  | None                                  |
+
+- For $\theta<1$, a share $(1-\theta)$ of $\alpha_j$ stays in the error. That is harmless only if $\alpha_j$ is unrelated to $X$: the **random-effects assumption**.
+
+Random effects picks $\theta$ from two variances, $\tau^2=\operatorname{Var}(\alpha_j)$ and $\sigma^2=\operatorname{Var}(\epsilon_{ij})$, with $n$ members per group:
+
+$$\theta=1-\sqrt{\frac{\sigma^2}{\sigma^2+n\tau^2}}
+\qquad \text{(GLS; Wooldridge 2010, ch. 10).}$$
+
+- The group mean $\bar{Y}_j$ carries $\alpha_j$ plus noise of variance $\sigma^2/n$.
+- Many members or large group differences ($n\tau^2\gg\sigma^2$): the group mean is mostly $\alpha_j$, so remove nearly all of it, $\theta\to1$, like fixed effects.
+- Few members or small group differences: the group mean is mostly noise, so remove little of it, $\theta\to0$, like pooled OLS.
+
+| $\sigma=1.5,\ \tau=2$ | $n=1$ |         $n=4$ (simulation) | $n=20$ |
+|-----------------------|------:|---------------------------:|-------:|
+| $\theta$              |  0.40 | $1-\sqrt{2.25/18.25}=0.65$ |   0.84 |
+
+## Testing Fixed Against Random: Hausman
+
+$H_0$: $\alpha_j$ is unrelated to $X$ (Hausman 1978). Fixed effects is consistent either way; random effects is consistent and more precise under $H_0$, inconsistent otherwise.
+
+$$H=\frac{(\hat{\beta}_{FE}-\hat{\beta}_{RE})^2}
+{\operatorname{Var}(\hat{\beta}_{FE})-\operatorname{Var}(\hat{\beta}_{RE})}
+\xrightarrow{d}\chi_1^2$$
+
+- **Numerator:** how far apart the two estimates are. Under $H_0$ both are right, so they should differ only by noise.
+- **Denominator:** how much noise to expect. Under $H_0$ random effects is the most precise, so $\operatorname{Var}(\hat{\beta}_{FE}-\hat{\beta}_{RE})=\operatorname{Var}(\hat{\beta}_{FE})-\operatorname{Var}(\hat{\beta}_{RE})$.
+- **Large** $H$: the gap is more than noise, so reject random effects. In the 1,000 simulated samples it rejects 5.6% of the time in world A, 100% in world B.
+
+Marriage data: $\chi_{10}^2=37.0$, $p<0.001$. Caveat: the denominator assumes random effects is fully efficient, which fails when errors are serially correlated.
+
+## FE vs RE: How to Choose
+
+| If the question is | Use |
+|------------------------------------|------------------------------------|
+| The effect of a member-level variable, and the group effect may be confounded | Fixed effects |
+| The effect of a group-level variable (school sector) | Random effects (fixed effects cannot estimate it), which needs $\alpha_j$ unrelated to every regressor |
+| How much variation lies between groups (Week 4's ICC) | Random effects |
+
+- Not rejecting does not make fixed effects wrong: it stays consistent either way.
+- Fixed effects is not automatically causal: it removes only what group members share.
+
+# DID
+
+::: callout-tip
+## A Comprehensive Course (Free Slides) on DiD by Pedro H. C. Sant'Anna
+
+<https://psantanna.com/did-resources/#/>
+:::
+
+## The Canonical 2 × 2 $\bigstar$
+
+Two groups, two periods. One group is treated in period 2.
+
+|         | Before             | After              | Difference               |
+|---------|--------------------|--------------------|--------------------------|
+| Treated | $E[Y\mid g=1,t=1]$ | $E[Y\mid g=1,t=2]$ | $\Delta_1$               |
+| Control | $E[Y\mid g=0,t=1]$ | $E[Y\mid g=0,t=2]$ | $\Delta_0$               |
+|         |                    |                    | $\tau=\Delta_1-\Delta_0$ |
+
+- The first difference removes anything fixed about each group.
+- The second difference removes anything common to both groups over time.
+- Equivalent regression: $Y_{it}=\alpha+\gamma\,\text{treated}_i+\delta\,\text{post}_t+\tau(\text{treated}_i\times\text{post}_t)+\epsilon_{it}$.
+
+## The 2 × 2 in Regression Form
+
+Group $g_i\in\{0,1\}$, period $t\in\{1,2\}$; the four cell means follow:
+
+$$Y_{it}=\alpha+\gamma g_i+\delta\,\text{post}_t+\tau(g_i\times\text{post}_t)+\epsilon_{it}.$$
+
+|                 | Before          | After                       | Difference    |
+|------------------|------------------|------------------|------------------|
+| Treated ($g=1$) | $\alpha+\gamma$ | $\alpha+\gamma+\delta+\tau$ | $\delta+\tau$ |
+| Control ($g=0$) | $\alpha$        | $\alpha+\delta$             | $\delta$      |
+|                 |                 |                             | $\tau$        |
+
+- $\gamma$ absorbs fixed differences in level; $\delta$ absorbs the common time trend; $\tau$ is what is left.
+- Unit and period fixed effects in place of $g_i$ and $\text{post}_t$: two-way FE, **identical with two groups and two periods**, not otherwise.
+
+## Parallel Trends $\bigstar$
+
+**The identifying assumption**
+
+$$E[Y_{i2}(0)-Y_{i1}(0)\mid g_i=1]
+=
+E[Y_{i2}(0)-Y_{i1}(0)\mid g_i=0].$$
+
+*Absent treatment*, the two groups' average outcomes would have moved in parallel.
+
+- Levels may differ arbitrarily. Only the *trends* in the untreated potential outcome must agree.
+- **Untestable:** it concerns a counterfactual trend. Pre-treatment parallelism is suggestive evidence, not proof.
+- **Not scale-free:** parallel trends in levels and parallel trends in logs are different assumptions, and both cannot generally hold.
+- Needs **no anticipation:** units must not change behaviour before treatment in expectation of it.
+
+::: callout-warning
+# Parallel Trends Is Not Scale-Free
+
+Suppose untreated outcomes would have grown by 10% in both groups, from a base of 20 in the treated group and 40 in the control group.
+
+|         | Before | After | Change |
+|---------|-------:|------:|-------:|
+| Treated |     20 |    22 |     +2 |
+| Control |     40 |    44 |     +4 |
+
+- Parallel trends holds **in logs** (both +10%) but **fails in levels** (+2 versus +4). A DID in levels would report a spurious $-2$.
+- Here both hold only if base levels are equal or nothing grows. **There is no neutral choice:** the transformation is part of the identifying assumption.
+- Choose before looking at results: would untreated outcomes grow by the same amount, or the same percentage? It matters most when levels are far apart.
+
+**When Does the Scale Not Matter?**
+
+Parallel trends holds for every monotone transformation of Y if and only if the whole distribution of $Y(0)$ satisfies a parallel-trends condition. In practice: the population splits into a part where treatment is as good as random and a part whose $Y(0)$ distribution does not change over time.
+
+- In any real DiD the scale is therefore part of the assumption. Choose it before seeing results, on substantive grounds
+
+- The condition can be falsified in the pre-period: compare the groups’ outcome distributions, not only means.
+
+- For effects on whole distributions under weaker assumptions: Callaway and Li (2019).
+:::
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5.5
+
+# Card and Krueger: Difference-in-Differences
+
+# Observed employment
+PA <- c(23.33, 21.17)
+NJ <- c(20.44, 21.03)
+
+# NJ counterfactual under parallel trends
+NJ_cf <- NJ[1] + (PA[2] - PA[1])
+
+# Difference-in-differences
+did <- (NJ[2] - NJ[1]) - (PA[2] - PA[1])
+
+# Plot
+op <- par(mar = c(4.5, 4.5, 1, 3), xpd = NA)
+
+plot(NA,
+     xlim = c(0.75, 2.65),
+     ylim = c(17.2, 24.5),
+     xaxt = "n",
+     xlab = "",
+     ylab = "FTE employment per store",
+     las = 1)
+
+axis(1, at = c(1, 2),
+     labels = c("February 1992\n(before)",
+                "November 1992\n(after)"),
+     tick = FALSE, line = 0.5)
+
+# PA: control group
+lines(c(1, 2), PA,
+      col = "navy", lwd = 2)
+
+points(c(1, 2), PA,
+       col = "navy", pch = 16, cex = 1.2)
+
+# NJ: treated group
+lines(c(1, 2), NJ,
+      col = "firebrick3", lwd = 2)
+
+points(c(1, 2), NJ,
+       col = "firebrick3", pch = 16, cex = 1.2)
+
+# Counterfactual NJ trend
+lines(c(1, 2), c(NJ[1], NJ_cf),
+      col = "firebrick3", lty = 2, lwd = 2)
+
+# Labels
+text(0.93, PA[1], "PA 23.33",
+     col = "navy", pos = 2, cex = 0.9)
+
+text(2.07, PA[2] + 0.2, "PA 21.17",
+     col = "navy", pos = 4, cex = 0.9)
+
+text(0.93, NJ[1], "NJ 20.44",
+     col = "firebrick3", pos = 2, cex = 0.9)
+
+text(2.06, NJ[2] - 0.2, "NJ 21.03",
+     col = "firebrick3", pos = 4, cex = 0.9)
+
+text(2.07, NJ_cf, "NJ without the law 18.28",
+     col = "firebrick3", pos = 4, cex = 0.85)
+
+# Vertical arrow indicating treatment effect
+arrows(2.07, NJ[2] - 0.08,
+       2.07, NJ_cf + 0.08,
+       length = 0.10, lwd = 1.2)
+
+text(2.12, (NJ[2] + NJ_cf) / 2,
+     "effect = 2.76",
+     pos = 4, cex = 0.9)
+
+par(op)
+```
+
+### Decomposition of Estimations $\bigstar$
+
+Decompose the treated group's observed change. Its period-2 outcome is $Y_{i2}(1)$, its period-1 outcome is $Y_{i1}(0)$ (no anticipation); add and subtract the counterfactual $Y_{i2}(0)$:
+
+$$\begin{aligned}
+\Delta_1
+&=E[Y_{i2}(1)-Y_{i1}(0)\mid g_i=1]\\
+&=\underbrace{E[Y_{i2}(1)-Y_{i2}(0)\mid g_i=1]}_{\text{ATT}}
++\underbrace{E[Y_{i2}(0)-Y_{i1}(0)\mid g_i=1]}_{\text{treated group's untreated trend}}.
+\end{aligned}$$
+
+The control group supplies an estimate of that second, unobservable term:
+
+$$\Delta_0=E[Y_{i2}(0)-Y_{i1}(0)\mid g_i=0].$$
+
+Subtracting,
+
+$$\boxed{
+\Delta_1-\Delta_0
+=
+\text{ATT}
++
+\underbrace{
+E[\Delta Y(0)\mid g=1]
+-
+E[\Delta Y(0)\mid g=0]
+}_{\text{differential trend; }=0\text{ under parallel trends}}
+}$$
+
+- The estimand is the **ATT**, not the ATE: we borrowed a counterfactual trend *for the treated group*. Nothing in the design identifies what treatment would have done to the controls.
+
+- The bias term *is* the parallel-trends violation, exactly. Every diagnostic for DiD is aimed at that one object.
+
+# Staggered DID
+
+## Staggered Setting $\bigstar$
+
+The $2\times 2$ with many periods: **units adopt the policy at different times** (states pass a law in 1995, 2001, 2008). The standard specification is the $2\times 2$ regression, extended:
+
+$$Y_{it}=\alpha_i+\lambda_t+\beta D_{it}+\epsilon_{it},
+\qquad
+D_{it}=\mathbb{1}\{t\geq G_i\}.$$
+
+For thirty years this was assumed to estimate "the" treatment effect. It does when the effect is **constant across units and over time since treatment**. With heterogeneous or dynamic effects it need not estimate any sensible average.
+
+## Example: Marriage Data $\bigstar$
+
+The panel section's TWFE (545 men, 1980–87, $\hat{\beta}=0.061$) is this setting: men marry in different years. Each man falls into one group:
+
+| Group | Men | Role in TWFE |
+|----------------------|---------------------------:|----------------------|
+| Never married, 1980–87 | 162 | Never treated |
+| Married all 8 years | 73 | Always treated |
+| Marry in 1981, $\ldots$, 1987 and stay married | 239 | Staggered: 51, 33, 40, 27, 30, 27, 31 |
+| Marry, then leave marriage | 71 | Switches off: not staggered |
+
+- Staggered adoption needs $D$ to stay on once it starts. That holds for 474 of the 545 men; the 71 who leave marriage are an on/off design (Beyond 0/1 section).
+- TWFE compares, for example, men who marry in 1985 with men who stay single (*clean*), and with men who married in 1981 (*already treated*).
+- So the 0.061 rests on parallel trends *and* on a marriage premium that does not grow or fade with years married. If it does, the forbidden comparison bites.
+
+## The Forbidden Comparison $\bigstar$
+
+::: callout-important
+The TWFE estimate is a weighted average of *all possible* 2 × 2 DID comparisons in the data, including comparisons that use **already-treated units as controls**.
+:::
+
+Before the real data, a toy with no noise. Three units, four periods. The outcome without treatment is **0 for everyone**, so every number above 0 is a treatment effect:
+
+| Unit  | $t=1$ | $t=2$ | $t=3$ | $t=4$ |                                          |
+|-------|------:|------:|------:|------:|------------------------------------------|
+| Early |     0 | **1** | **2** | **3** | Treated from $t=2$; effect grows 1, 2, 3 |
+| Late  |     0 |     0 |     0 | **1** | Treated from $t=4$; effect 1             |
+| Never |     0 |     0 |     0 |     0 | Never treated                            |
+
+- **Bold cells are treated.** Early's effect keeps growing the longer it is treated.
+- Every effect is positive. Late's effect in $t=4$ is exactly 1.
+
+A $2\times 2$ that TWFE uses: *late* is the treated unit, *early* the control. Before $=t=2$ (late untreated); after $=t=4$ (late treated).
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5.5
+
+# Toy example: staggered treatment timing
+t <- 1:4
+
+early <- c(0, 1, 2, 3)
+late  <- c(0, 0, 0, 1)
+never <- c(0, 0, 0, 0)
+
+op <- par(mar = c(4.5, 4.5, 2, 7), xpd = NA)
+
+plot(NA,
+     xlim = c(0.6, 6.1),
+     ylim = c(-0.6, 3.4),
+     xaxt = "n",
+     xlab = expression("period " * t),
+     ylab = "outcome",
+     bty = "o")
+
+axis(1, at = 1:4, labels = 1:4)
+
+# Highlight the before and after periods
+rect(1.75, -0.6, 2.25, 3.4,
+     col = "grey88", border = NA)
+
+rect(3.75, -0.6, 4.25, 3.4,
+     col = "grey88", border = NA)
+
+text(2, 3.15, "before", cex = 0.9)
+text(4, 3.15, "after", cex = 0.9)
+
+# Early-treated unit
+lines(t, early, col = "navy", lwd = 2.5)
+points(t, early, col = "navy", pch = 16, cex = 1.2)
+
+# Late-treated unit
+lines(t, late, col = "orangered3", lwd = 2.5)
+points(t, late, col = "orangered3", pch = 16, cex = 1.2)
+
+# Never-treated unit
+lines(t, never, col = "grey60",
+      lty = 2, lwd = 1.5)
+
+points(4, 0, col = "grey60", pch = 16, cex = 1)
+
+# Annotations
+text(1.70, 1.10,
+     "early:\ntreated\nfrom t = 2",
+     col = "navy", cex = 0.85, adj = 1)
+
+text(4.45, 2.85,
+     "early (control):\n1 -> 3, change +2",
+     col = "navy", adj = 0, cex = 0.9)
+
+text(4.45, 1.20,
+     "late (treated):\n0 -> 1, change +1",
+     col = "orangered3", adj = 0, cex = 0.9)
+
+text(4.45, -0.05,
+     "never: 0",
+     col = "grey40", adj = 0, cex = 0.9)
+
+par(op)
+```
+
+Early is treated at both dates, so its line rises for one reason: its own effect grows from 1 to 3.
+
+|   | Before: $t=2$ | After: $t=4$ | Change |
+|----|---:|---:|---:|
+| Late (treated) | 0 | 1 | $+1$ |
+| Early (control) | 1 | 3 | $+2$ |
+| $2\times2=$ late's change $-$ early's change |  |  | $1-2=-1$ |
+
+- The control's change should be what late would do *untreated*: 0 (see never). Early rises by 2 only because *its own effect* grows from 1 to 3.
+
+- Subtracting that growth gives $-1$, though every effect is positive. Late vs. never over the same dates gives the right answer: $1-0=1$.
+
+- If early's effect were constant $(1,1,1)$, its change would be 0 and the comparison harmless: the problem needs effects that change over time.
+
+- The control's change should be what late would do *untreated*: 0 (see never). Early rises by 2 only because *its own effect* grows from 1 to 3.
+
+- Subtracting that growth gives $-1$, though every effect is positive. Late vs. never over the same dates gives the right answer: $1-0=1$.
+
+- If early's effect were constant $(1,1,1)$, its change would be 0 and the comparison harmless: the problem needs effects that change over time.
+
+## The Goodman-Bacon Decomposition (not evaluated)
+
+TWFE is a weighted average of every $2\times2$ in the data:
+
+$$\hat{\beta}^{\mathrm{TWFE}}
+=
+\sum_{\text{pairs}}s_{ab}\hat{\beta}_{ab}^{2\times2},
+\qquad
+\sum_{\text{pairs}}s_{ab}=1.$$
+
+- **The** $2\times2$s: treated vs. never (clean); earlier vs. later, before later switches (clean); **later vs. earlier, after earlier switches (forbidden)**.
+- **The weights:** how much data the pair uses $\times$ variance of $D$ in the pair, the same rule as the panel section's $Tp_i(1-p_i)$.
+
+**What the weights imply**:
+
+Every weight has the $p(1-p)$ shape of a Bernoulli variance, so **groups treated near the middle of the panel dominate**: the weights come from OLS mechanics, not from group sizes alone and not from any estimand you chose (Week 1's variance weighting).
+
+The forbidden comparison uses the periods after early switches. Its weight is larger when early switched early (a long stretch) and late switches halfway through it ($p=1/2$). That stretch holds early's long-run effects: the ones it subtracts.
+
+All of this is computable from the data alone: `bacondecomp::bacon()` lists every $2\times2$, its estimate, and its weight.
+
+## Decomposition of Weights
+
+Early (treated) vs. late (control), periods 1–3, while late is still untreated:
+
+|                   | $t=1$ | $t=2$ | $t=3$ |
+|-------------------|------:|------:|------:|
+| Early: $D$        |     0 |     1 |     1 |
+| Early: $Y$        |     0 |     1 |     2 |
+| Late: $D$ and $Y$ |     0 |     0 |     0 |
+
+$$\begin{aligned}
+2\times2
+&=\left[\frac{1+2}{2}-0\right]-[0-0]=1.5
+&& \text{before }t=1,\text{ after }t=2,3\\[6pt]
+\operatorname{Var}(D)
+&=p(1-p)=\frac{2}{3}\cdot\frac{1}{3}=0.222
+&& \text{early has }D=1\text{ in 2 of 3 periods}\\[6pt]
+\text{Size}
+&=(3/4)^2=0.5625
+&& \text{uses 3 of the 4 periods, squared}\\[6pt]
+\text{Raw weight}
+&=0.5625\times0.222=0.125
+\end{aligned}$$
+
+$p(1-p)$ is the panel section's $p_i(1-p_i)$: **largest when the treated group is treated half the time**. Equal group sizes, so they cancel.
+
+Same steps for every pair; weight = raw weight / sum:
+
+| Comparison | $2\times2$ | Periods | $p(1-p)$ | Raw weight | Weight |
+|------------|-----------:|:----------:|:----------:|------------|-----------:|
+| Early vs. never | 2.0 | 1–4 | $\frac{3}{4}\cdot\frac{1}{4}$ | $1\times0.1875=0.1875$ | 0.3 |
+| Late vs. never | 1.0 | 1–4 | $\frac{1}{4}\cdot\frac{3}{4}$ | $1\times0.1875=0.1875$ | 0.3 |
+| Early vs. late | 1.5 | 1–3 | $\frac{2}{3}\cdot\frac{1}{3}$ | $\frac{9}{16}\times0.222=0.125$ | 0.2 |
+| Late vs. early | $-0.5$ | 2–4 | $\frac{1}{3}\cdot\frac{2}{3}$ | $\frac{9}{16}\times0.222=0.125$ | 0.2 |
+| **Sum** |  |  |  | **0.625** | **1** |
+
+- **Weighted sum:** $0.3(2)+0.3(1)+0.2(1.5)+0.2(-0.5)=1.10$. The TWFE regression on the 12 cells gives **1.10**; `bacon()` gives the same pieces.
+- **True average effect on the treated cells:** 1.75.
+
+## Fix
+
+::: callout-important
+TWFE is fine when treatment timing is common, or when effects are genuinely constant. It is unreliable exactly where sociologists use it most.
+:::
+
+### Clean 2 × 2s, Then One Average $\bigstar$
+
+All of them share one principle: **never use an already-treated unit as a control**. Build clean 2 × 2 comparisons, then aggregate with weights you choose.
+
+| Method | Idea | R |
+|------------------------|------------------------|------------------------|
+| Callaway–Sant’Anna (2021) | $\operatorname{ATT}(g,t)$; never- or not-yet-treated controls | `did` |
+| Sun–Abraham (2021) | CS's blocks as one regression (Event Studies) | `fixest::sunab` |
+| de Chaisemartin–D’Haultfoeuille | Clean comparisons at switch dates | `DIDmultiplegt` |
+| Borusyak–Jaravel–Spiess | Impute $Y(0)$ from untreated cells | `didimputation` |
+
+# Event Studies
+
+## The Idea $\bigstar$
+
+$D_{it}$ is still binary: 0 before unit $i$ starts, 1 from then on. The static TWFE puts one $\beta$ on $D_{it}$: every cohort and every year since the start, averaged into one number. The event study estimates one effect per period relative to the start:
+
+$$Y_{it}=\alpha_i+\lambda_t+\sum_{k\neq-1}\tau_k\cdot\mathbb{1}\{t-G_i=k\}+\epsilon_{it},$$
+
+where $G_i$ is unit $i$'s treatment date (for example, the year a man marries) and $k=-1$ is the omitted reference.
+
+- **Pre-period coefficients** ($k<0$) are the parallel-trends check. Flat and near zero is what you want to see.
+- **Post-period coefficients** trace out the dynamics: does the effect grow, fade, or appear only after a lag?
+- **Caution:** with staggered $G_i$, the event study can inherit the forbidden comparison (end of this section).
+
+## Each $\tau_k$ Is a 2 × 2 Against Period $k = −1$ $\bigstar$
+
+Treated units start at $G=0$, so $k=t$; controls never start. Plug in, dropping $\epsilon$:
+
+|   | $t=-2$ | $t=-1$ (base) | $t=0$ (start) | $t=1$ |
+|---------------|---------------|---------------|---------------|---------------|
+| Treated | $\alpha_T+\lambda_{-2}+\tau_{-2}$ | $\alpha_T+\lambda_{-1}$ | $\alpha_T+\lambda_0+\tau_0$ | $\alpha_T+\lambda_1+\tau_1$ |
+| Control | $\alpha_C+\lambda_{-2}$ | $\alpha_C+\lambda_{-1}$ | $\alpha_C+\lambda_0$ | $\alpha_C+\lambda_1$ |
+
+Two-period DiDs against $t=-1$ ($\alpha$ cancels in a row, $\lambda$ across rows):
+
+$$\begin{aligned}
+\text{pre},\ t=-2\text{ vs. }-1:\quad
+&(\lambda_{-2}-\lambda_{-1}+\tau_{-2})
+-(\lambda_{-2}-\lambda_{-1})=\tau_{-2}\\[6pt]
+\text{start},\ t=0\text{ vs. }-1:\quad
+&(\lambda_0-\lambda_{-1}+\tau_0)
+-(\lambda_0-\lambda_{-1})=\tau_0\\[6pt]
+\text{post},\ t=1\text{ vs. }-1:\quad
+&(\lambda_1-\lambda_{-1}+\tau_1)
+-(\lambda_1-\lambda_{-1})=\tau_1
+\end{aligned}$$
+
+- An event study is a set of two-period DiDs that share one base period, $t=-1$.
+- **Pre:** $\tau_{-2}$ should be 0; if not, the groups were already drifting apart. **From** $t=0$ on: the usual DiD effect; $t=0$ is already treated.
+
+## The Event Study on the Toy Example $\bigstar$
+
+Toy: 2 treated, 2 control units, periods 1–6; $D: 0\rightarrow1$ at period 4. Titles: the one-number TWFE $\hat{\beta}$ .
+
+- **Growing vs. fading:** same $\hat{\beta}$, opposite paths; the event study separates them.
+- **Trend:** leads $-0.8,-0.4$ already slope up, and the "effects" $0.4,0.8,1.2$ continue the same line. The picture warns you; $\hat{\beta}=1.2$ did not. This is Ludwig and Brüderl's marriage premium: future husbands were already on steeper paths; FE 8.3% and rising, FEIS 0.5%.
+- **More transparent, not more causal:** the leads check only the pre-period; the lags are effects only if trends would have stayed parallel *after* adoption, which no data can show.
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 3.8
+
+# Event time: treatment starts at period 4
+k <- -3:2
+
+# Three event-study patterns
+growing <- c(0, 0, 0, 1, 2, 3)
+fading  <- c(0, 0, 0, 3, 2, 1)
+trend   <- c(-0.8, -0.4, 0, 0.4, 0.8, 1.2)
+
+effects <- list(growing, fading, trend)
+
+titles <- c(
+  "growing: TWFE 2",
+  "fading: TWFE 2",
+  "trend, no effect: TWFE 1.2"
+)
+
+op <- par(
+  mfrow = c(1, 3),
+  mar = c(3.8, 3.5, 2.6, 0.6),
+  mgp = c(2, 0.6, 0)
+)
+
+for (j in 1:3) {
+
+  plot(k, effects[[j]],
+       type = "b",
+       pch = 16,
+       col = "navy",
+       lwd = 2,
+       cex = 0.9,
+       xlim = c(-3.2, 2.2),
+       ylim = c(-1, 3.4),
+       xaxt = "n",
+       xlab = "event time",
+       ylab = expression(tau[k]),
+       main = titles[j],
+       cex.main = 0.85)
+
+  axis(1, at = k)
+
+  # Zero-effect reference
+  abline(h = 0, col = "grey50", lwd = 1)
+
+  # Treatment begins at event time 0
+  abline(v = -0.5, col = "grey60", lty = 3)
+}
+
+par(op)
+```
+
+The staggered toy: early starts at $t=2$ with effects **1, 2, 3** (growing), late at $t=4$ with effect 1. The forbidden $2\times2$, late vs. early, $t=3\rightarrow4$:
+
+|   | Change, $t=3\rightarrow4$ | Static TWFE reads it as | Event study reads it as |
+|------------------|------------------|------------------|------------------|
+| Late (treated) | $0\rightarrow1:\ +1$ | $\beta$ | $\tau_0$ |
+| Early (control) | $2\rightarrow3:\ +1$ | $\beta-\beta=0$ | $\tau_2-\tau_1$ |
+| $2\times2$ | $1-1=0$ | $0=\beta$ | $0=\tau_0-(\tau_2-\tau_1)$ |
+
+- **Static TWFE** thinks early's effect is constant, so early's $+1$ must be the common trend. It reads the $2\times2$ as $\beta=0$, and is pulled down: 1.10, not 1.75.
+- **The event study** knows early moved from $k=1$ to $k=2$, and that its effect grew by $\tau_2-\tau_1=3-2=1$. It subtracts that growth: $\tau_0=0+1=1$. Correct.
+- The TWFE event study gives exactly **1, 2, 3**: it **fixes the growing-effect problem**.
+
+## Reading the Event-Study Equation
+
+One man married in 1984 ($G_i=1984$), observed 1980–87. $k=t-G_i$ is years since marriage:
+
+| Year $t$ | 1980 | 1981 | 1982 | 1983 | 1984 | 1985 | 1986 | 1987 |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| $k=t-1984$ | $-4$ | $-3$ | $-2$ | $-1$ | $0$ | $1$ | $2$ | $3$ |
+| Dummy that is 1 | $\tau_{-4}$ | $\tau_{-3}$ | $\tau_{-2}$ | None | $\tau_0$ | $\tau_1$ | $\tau_2$ | $\tau_3$ |
+
+- Each year switches on **exactly one dummy**, except $k=-1$, the reference: every $\tau_k$ compares year $k$ with the year before marriage.
+- A man who never marries has every dummy 0: he only helps estimate $\alpha_i$ and $\lambda_t$.
+- $\tau_{-4},\tau_{-3},\tau_{-2}$: marriage cannot have caused anything yet, so they should be near 0.
+
+## Specification Details That Matter
+
+Three choices inside the specification change the picture; report each.
+
+- **Normalization:** one lead must be omitted (here $k=-1$). Every $\tau_k$ is relative to it, so the picture shifts if you change the reference period. Say which you used.
+- **Binning the endpoints:** with unbalanced exposure, far leads and lags are estimated off few units. Bin them ($k\leq-5$, $k\geq5$) or restrict to a balanced window, and say which.
+- **Never-treated units** anchor the time effects $\lambda_t$.
+
+## Event Study Assumptions $\bigstar$
+
+To subtract early's growth from late's comparison, the event study assumes **every cohort follows the same path** $\tau_0,\tau_1,\tau_2$: one $\tau_k$ for all.
+
+**Break it:** keep early at 1, 2, 3, but late gains 3 at $k=0$. Early vs. never says $\tau_0=1$, late vs. never says 3; one $\tau_0$ cannot be both, and the misfit leaks:
+
+| $k$                                  |    $-3$ |    $-2$ |  $0$ |  $1$ |  $2$ |
+|--------------------------------------|--------:|--------:|-----:|-----:|-----:|
+| Truth (average over cohorts)         |       0 |       0 |    2 |    2 |    3 |
+| TWFE event study                     | $-0.75$ | $-0.25$ | 2.00 | 2.75 | 3.25 |
+| Clean blocks (vs. never, base $g-1$) |       0 |       0 |    2 |    2 |    3 |
+
+- A **fake pre-trend and wrong post effects**, from treatment effects alone: the forbidden $2\times2$ is still in the regression (Sun and Abraham 2021).
+- **Why the leads move:** late jumps 3, the shared $\hat{\tau}_0$ is 2, so OLS raises late's level ($\hat{\alpha}=0.75$); the leads go negative to pull its before-years back to 0.
+- **Fix:** give each cohort its own path, then average by $k$.
+
+### Sun–Abraham: the Same Blocks, as One Regression
+
+Sun and Abraham (2021)'s fix for the event study: do not force one $\tau_k$ on all cohorts. Interact event time with cohort:
+
+$$Y_{it}
+=
+\alpha_i+\lambda_t+
+\sum_g\sum_{k\neq-1}
+\delta_{gk}\,\mathbb{1}\{G_i=g\}\mathbb{1}\{t-g=k\}
++\epsilon_{it}$$
+
+- $\delta_{gk}$: cohort $g$'s effect $k$ years after starting, one coefficient per block.
+- Then average across cohorts at each $k$, weighted by cohort size (`fixest::sunab`).
+
+|            | Sun–Abraham               | Callaway–Sant'Anna           |
+|------------|---------------------------|------------------------------|
+| How        | One regression            | Separate $2\times2$s         |
+| Controls   | Never (or last) treated   | Never or not-yet treated     |
+| Covariates | Linear, in the regression | OR, IPW, or DR in each block |
+
+Same controls, no covariates: identical estimates (divorce data: both $-6.5$ over $k=0$–$10$; one overall number, both $-10.56$).
+
+## Choices Every Staggered DiD Makes
+
+| Choice | Options | Consequence |
+|------------------------|------------------------|------------------------|
+| Comparison group | Never treated; not yet treated | Not-yet uses more data but needs no anticipation and parallel trends with future adopters |
+| Baseline | $g-1$ only; all pre-periods | All pre-periods is efficient if trends are parallel throughout, biased if not |
+| Aggregation | Simple; by event time; by cohort; by calendar time | Each is a different estimand; say which |
+| Anticipation | Shift $g$ back by $\delta$ periods | Otherwise effects leak into the baseline |
+| Covariates | None; DR within each $ATT(g,t)$ | Use pre-treatment values only |
+| Inference | Cluster; bootstrap; randomization | Few treated cohorts need care |
+
+Efficiency when adoption timing is as good as random: Roth and Sant'Anna (2023b) (`staggered`). A design-based reading of TWFE under random timing: Athey and Imbens (2022).
+
+# Beyond 0/1
+
+## TWFE Gets Run on Any Treatment $\bigstar$
+
+In sociology $Y_{it}=\alpha_i+\lambda_t+\beta D_{it}+\epsilon_{it}$ is run on almost anything that changes within a person:
+
+- A **count or dose**: number of children (Budig and England), hours worked, neighborhood poverty rate;
+- A **status that switches on and off**: married, cohabiting, union member, employed.
+
+**How** $\hat{\beta}$ is read: "One more unit of $D$ raises $Y$ by $\beta$." That reading needs four things:
+
+1.  The effect is **linear in** $D$: the first child does what the third one does;
+2.  It is **the same for every person**: no one chose $D$ because they gain more;
+3.  It is **the same at every time since the change**: no growth or fade-out;
+4.  **No carryover**: once $D$ goes back down, the past dose stops mattering.
+
+**What** $\hat{\beta}$ actually is: a weighted average of comparisons between people whose $D$ changed by different amounts at different times, already-changed people included as controls.
