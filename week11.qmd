@@ -1,0 +1,542 @@
+---
+title: "Week 11 Synthetic Control and Its Extensions"
+format: html
+author: Zhe Chen
+embed-resources: true
+---
+
+# The Idea $\bigstar$
+
+Difference-in-differences needs a control group. What if the treated unit is California, or East Germany, or a single firm?
+- Comparative case studies have always done this informally: “compare California to the rest of the country.” The choice of comparison was made by the author, and the reader had to trust it.
+- **Synthetic control** makes that choice a data-driven, transparent, pre-registered procedure: construct a weighted average of untreated units that reproduces the treated unit’s pre-treatment trajectory.
+
+The identifying idea is not new. What is new is that the weights are chosen by an algorithm, reported in a table, and checked against placebo units.
+
+# Setup $\bigstar$
+
+Unit 1 (California) is treated from year $T_0+1$ onward. Units $j=2,\ldots,J+1$, the *donor pool*, are never treated. For each year $t>T_0$ the effect is
+
+$$
+\tau_t=Y_{1t}(1)-Y_{1t}(0).
+$$
+
+We observe $Y_{1t}(1)$; **the whole problem is the number $Y_{1t}(0)$**: California's cigarette sales in, say, 1995 had Prop 99 never passed.
+
+**Every method today has the same form**
+
+Predict $Y_{1t}(0)$ by a weighted sum of the donors' outcomes in the same year,
+
+$$
+\hat{Y}_{1t}(0)
+=w_2Y_{2t}+w_3Y_{3t}+\cdots+w_{J+1}Y_{J+1,t}
+=\sum_{j=2}^{J+1}w_jY_{jt},
+$$
+
+and estimate $\hat{\tau}_t=Y_{1t}-\hat{Y}_{1t}(0)$. Methods differ only in how they choose the weights $w_j$.
+
+# Running Example: Proposition 99
+
+California raised its cigarette tax by 25 cents a pack in 1989 and funded anti-smoking campaigns. 
+- Outcome: packs sold per capita. 
+- Donors: 38 states with no large tobacco program or tax increase in the period.
+
+California falls faster than the donor average, and it was already doing so before 1989 (1988: 90.1 against 113.8)
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 4.5
+
+# Approximate values reconstructed from the figure
+year <- 1970:2000
+
+california <- c(
+  123, 121, 124, 125, 127, 128, 129, 127,
+  126, 121, 119, 117, 114, 110, 104, 102,
+  99, 97, 91, 85, 80, 70, 69, 65, 60,
+  58, 56, 55, 54, 49, 41
+)
+
+donors <- c(
+  123, 125, 129, 132, 135, 137, 139, 140,
+  139, 139, 138, 137, 135, 131, 125, 121,
+  119, 117, 114, 112, 108, 106, 104, 103,
+  103, 104, 102, 103, 102, 99, 92
+)
+
+# Plot
+op <- par(mar = c(4, 4, 1, 1), mgp = c(2.2, 0.7, 0))
+
+plot(year, california,
+     type = "l",
+     col = "firebrick3",
+     lwd = 2,
+     xlim = c(1970, 2001),
+     ylim = c(25, 145),
+     xlab = "year",
+     ylab = "packs per capita",
+     xaxt = "n",
+     las = 1)
+
+axis(1, at = seq(1970, 2000, 5))
+
+# Average donor states
+lines(year, donors,
+      col = "grey40",
+      lty = 3,
+      lwd = 1.5)
+
+# Proposition 99 (1989)
+abline(v = 1989, lty = 2, col = "grey50")
+
+legend("bottomleft",
+       legend = c("California", "average of 38 donor states"),
+       col = c("firebrick3", "grey40"),
+       lty = c(1, 3),
+       lwd = c(2, 1.5),
+       bty = "n",
+       cex = 0.9)
+
+par(op)
+```
+
+## The Naive Approach: the Donor Average $\bigstar$
+
+Give every donor the same weight, $w_j=1/38$, and add California's average pre-1989 gap: this is DiD (Week 10).
+
+| | 1970–88 mean | 1989–2000 mean | Change |
+|---|---:|---:|---:|
+| California | 116.2 | 60.4 | $-55.8$ |
+| Average of 38 donors | 130.6 | 102.1 | $-28.5$ |
+| Difference | $-14.4$ | $-41.7$ | **$-27.3$** |
+
+- DiD assumes California would have fallen as fast as the donor average.
+- It was not doing so before the law: from 1970 to 1988 California fell by 32.9 packs, the donor average by 6.3. Parallel trends fails in the pre-period, so $-27.3$ is too large in absolute value.
+- **The fix:** choose the weights so that the donors' weighted past *looks like* California's past.
+
+## Two Donors, One Weight $\bigstar$
+
+Start with two donors, Utah and Nevada. One number to choose, $w$:
+
+$$
+\hat{Y}_{CA,t}(0)=wY_{UT,t}+(1-w)Y_{NV,t},
+\qquad 0\leq w\leq1.
+$$
+
+Pick $w$ to make the pre-period gaps as small as possible:
+
+$$
+\begin{aligned}
+\operatorname{SSR}(w)
+&=\sum_{t=1970}^{1988}
+\left(Y_{CA,t}-wY_{UT,t}-(1-w)Y_{NV,t}\right)^2
+&& \text{squared pre-period gaps}\\[6pt]
+&=\sum_t\left[(Y_{CA,t}-Y_{NV,t})-w(Y_{UT,t}-Y_{NV,t})\right]^2
+&& \text{regroup the }w\text{ terms}\\[6pt]
+0
+&=-2\sum_t(Y_{UT,t}-Y_{NV,t})
+\left[(Y_{CA,t}-Y_{NV,t})-w(Y_{UT,t}-Y_{NV,t})\right]
+&& \text{derivative set to 0}\\[6pt]
+w
+&=\frac{\sum_t(Y_{UT,t}-Y_{NV,t})(Y_{CA,t}-Y_{NV,t})}
+{\sum_t(Y_{UT,t}-Y_{NV,t})^2}
+&& \text{solve for }w
+\end{aligned}
+$$
+
+- This is **OLS through the origin**: regress $Y_{CA,t}-Y_{NV,t}$ on $Y_{UT,t}-Y_{NV,t}$, one observation per pre-period year.
+- SSR is a parabola in $w$: if the solution falls outside $[0,1]$, take the nearer endpoint.
+
+$w=123{,}200/214{,}460=0.574$.
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+years <- 1970:2000
+
+# Approximate trajectories reconstructed from the slide
+california <- c(
+  123, 121, 124, 125, 127, 128, 129, 127,
+  126, 121, 119, 117, 114, 110, 104, 102,
+  99, 97, 91, 85, 80, 70, 69, 65, 60,
+  58, 56, 55, 54, 49, 41
+)
+
+utah <- c(
+  65, 67, 70, 73, 75, 76, 77, 78,
+  79, 77, 74, 76, 72, 68, 66, 67,
+  65, 69, 55, 58, 55, 57, 58, 55,
+  54, 54, 52, 55, 48, 45, 42
+)
+
+nevada <- c(
+  185, 188, 195, 199, 202, 204, 202, 195,
+  190, 186, 180, 175, 169, 162, 153, 140,
+  148, 145, 147, 140, 138, 115, 112, 109,
+  108, 106, 102, 96, 103, 104, 94
+)
+
+# Synthetic California
+w <- 0.574
+synthetic <- w * utah + (1 - w) * nevada
+
+op <- par(
+  mar = c(4, 4.5, 1, 1),
+  mgp = c(2.3, 0.7, 0)
+)
+
+plot(years, california,
+     type = "l",
+     col = "red3",
+     lwd = 2,
+     xlim = c(1970, 2001),
+     ylim = c(20, 215),
+     xlab = "year",
+     ylab = "packs per capita",
+     las = 1)
+
+# Synthetic California
+lines(years, synthetic,
+      col = "navy",
+      lty = 2,
+      lwd = 2)
+
+# Utah
+lines(years, utah,
+      col = "grey45",
+      lwd = 1)
+
+# Nevada
+lines(years, nevada,
+      col = "grey55",
+      lty = 3,
+      lwd = 1.5)
+
+# Proposition 99
+abline(v = 1989, col = "grey50", lty = 2)
+
+legend("topright",
+       legend = c(
+         "California",
+         "0.574 Utah + 0.426 Nevada",
+         "Utah",
+         "Nevada"
+       ),
+       col = c("red3", "navy", "grey45", "grey55"),
+       lty = c(1, 2, 1, 3),
+       lwd = c(2, 2, 1, 1.5),
+       bty = "n",
+       cex = 0.85)
+
+par(op)
+```
+
+- **SSR:** $w=0$ (Nevada only) 70,976; $w=1$ (Utah only) 39,037; $w=0.5$ 1,392; $w=0.574$ 202. Neither state alone resembles California; the mixture does.
+- **Pre-period fit in packs:** root mean squared prediction error,
+
+$$
+\operatorname{RMSPE}
+=\sqrt{\operatorname{SSR}/19}
+=\sqrt{202/19}
+=3.26,
+$$
+
+the typical size of a pre-period gap.
+
+- **Effect:** average gap 1989–2000 $=-15.8$ packs, against $-27.3$ from the donor average.
+
+## Many Donors $\bigstar$
+
+Same objective, one weight per donor:
+
+$$
+\min_{w_2,\ldots,w_{J+1}}
+\sum_{t\leq T_0}
+\left(Y_{1t}-\sum_{j=2}^{J+1}w_jY_{jt}\right)^2
+\qquad
+\text{subject to}\quad
+w_j\geq0,\quad
+\sum_{j=2}^{J+1}w_j=1.
+$$
+
+- The same two rules as with Utah and Nevada, now on every weight: no weight is negative, and the weights add to one. With two donors the weights $w$ and $1-w$ already add to one, so the rules left only $0\leq w\leq1$.
+- With 38 donors there is no formula like the one for $w$; software finds the weights (a quadratic program).
+- On Prop 99, all 19 pre-years, 38 donors: average gap 1989–2000 $=-19.5$, pre-period RMSPE 1.66.
+- Without the constraints, 38 weights could fit 19 years exactly; more on this below.
+
+# Why the Constraints Matter $\bigstar$
+
+The restrictions $w_j\geq0$ and $\sum_j w_j=1$ look like technicalities. **They are the heart of the method.**
+
+- **No extrapolation:** the synthetic unit is a *convex combination* of real units, so it lies inside the donor pool's support. Unconstrained regression would happily assign weights of $+3$ and $-2$ and predict outside anything ever observed.
+- **Sparsity:** the constraints usually produce weights on a handful of donors and zero on the rest. You can print the weight table and let readers judge whether the comparison is sensible.
+- **Transparency:** the counterfactual is a named, weighted set of real places, not a regression coefficient.
+- If no convex combination matches the treated unit, if California is richer than every donor, the method tells you, through poor pre-treatment fit. That is a feature.
+
+# Matching Predictors as Well as Past Outcomes $\bigstar$
+
+Abadie, Diamond, and Hainmueller (2010) match *predictors* $k=1,\ldots,K$. Each $X_{jk}$ is one number per state that the researcher defines: mean price 1980–88, sales in 1975, $\ldots$
+
+**Inner step.** Fix predictor weights $v_k\geq0$. Choose $w$ to match the predictors:
+
+$$
+w(v)=\underset{w_2,\ldots,w_{J+1}}{\arg\min}
+\sum_{k=1}^{K}v_k\left(X_{1k}-\sum_{j=2}^{J+1}w_jX_{jk}\right)^2,
+\qquad w_j\geq0,\quad \sum_jw_j=1.
+$$
+
+**Outer step.** Among all choices of $v$, keep the one whose $w(v)$ fits the pre-period *outcomes* best:
+
+$$
+\min_v\sum_{t\leq T_0}\left(Y_{1t}-\sum_jw_j(v)Y_{jt}\right)^2.
+$$
+
+- $w$ minimizes the *predictor* gaps; the outcome fit only chooses $v$.
+- Two kinds of years: the outer step uses *every* pre-year, 1970–88; predictors summarize windows the researcher picks (**a choice**).
+
+## The Two Steps on Two Donors $\bigstar$
+
+Utah and Nevada again; two covariates: price, 1980–88 (CA 89.42, UT 89.43, NV 93.24); beer sales, 1984–88 (CA 24.28, UT 13.34, NV 37.00).
+
+| $v_{\text{price}}$ ($v_{\text{beer}}=1-v_{\text{price}}$) | Inner $w(v)$ | Outcome SSR |
+|---|---:|---:|
+| 0 (beer only) | 0.538 | 494 |
+| 0.5 | 0.549 | 337 |
+| **0.768** | **0.574** | **202** |
+| 1 (price only) | 1.000 | 39,037 |
+
+$w=$ Utah's weight; Nevada gets $1-w$.
+
+- **The loop:** for $v_{\text{price}}=0,0.001,\ldots,1$, get $w(v)$, then the outcome SSR; keep the smallest of the 1,001 tries.
+- **Price only:** Utah has California's price, so $w=1$. **Beer only:** $w=0.538$.
+- $v$ weights covariates, $w$ weights donors; the outcome only chooses $v$.
+
+$v$ depends on units (price varies little, so it needs a big $v$): a tuning knob, not importance.
+
+## Searching for $v$ When There Are Many Predictors
+
+With two predictors, $v$ had one free number and we tried 1,001 values. With ADH's seven, $v$ has six free numbers (they add to 1).
+
+- A grid of 1,000 values each would be $10^{18}$ tries. Software **searches**: move $v$ in the direction that lowers SSR until it stops falling.
+- The search can stop at a *local minimum*; different software reports different $v$ and $w$ for the same data (Klößner et al. 2018). Report $w$ and the fit; do not read $v_k$ as importance.
+- **A common way out:** drop the covariates and fit $w$ to the pre-period outcomes, as on the Many Donors slide. No $v$, nothing to search. Prop 99: SSR 52 (ADH's 60), gap $-19.5$.
+- Covariates guard against fitting noise in the outcome path; past outcomes guard against unmeasured traits. Report both when they differ.
+
+# Assumptions 
+
+Everything so far used 1970–88 only. **After 1988 we keep the same weights:**
+
+$$
+\begin{aligned}
+\hat{Y}_{CA,1995}(0)
+&=0.342Y_{UT,1995}+0.238Y_{NV,1995}+0.209Y_{MT,1995}\\
+&\quad+0.149Y_{CO,1995}+0.062Y_{CT,1995}.
+\end{aligned}
+$$
+
+**Assumption:** a mix that tracked California for 19 years would have kept tracking it.
+
+Why would a mix track California before 1989? Two possible reasons.
+
+1. **It shares what drives California's sales:** income, prices, culture, how health-conscious people are. Then it keeps tracking after 1988. **This is what we hope.**
+2. **Luck:** with 38 donors, some mix can cancel California's year-to-year bumps. Those bumps are new after 1988, so the tracking stops.
+
+# Synthetic Control Is a 2×2 With a Built Control $\bigstar$
+
+DiD and SC both compare California's change with a control's change, before (1970–88) and after (1989–2000). Mean packs per capita; differences use unrounded means.
+
+| | Before | After | After $-$ Before |
+|---|---:|---:|---:|
+| California | 116.2 | 60.4 | |
+| Control 1: average of 38 donors (*given*) | 130.6 | 102.1 | |
+| Gap, California $-$ control 1 | $-14.4$ | $-41.7$ | **$-27.3$ (DiD)** |
+| Control 2: synthetic California (*built*) | 116.0 | 79.2 | |
+| Gap, California $-$ control 2 | 0.2 | $-18.8$ | **$-19.1$ (SC)** |
+
+- **Same $2\times2$, different control:** DiD takes it as given; SC builds it so that the before gap is about 0.
+- **Parallel trends, for both:** without the law, the gap stays at its before level.
+- **SC's usual estimate**, the after gap alone ($-18.8$), takes the before gap as 0.
+
+```{r}
+#| echo: false
+#| fig-width: 11
+#| fig-height: 4.8
+
+years <- 1970:2000
+pre <- years <= 1988
+post <- years >= 1989
+
+# Approximate yearly gaps reconstructed from the slide
+gap_did <- c(
+   2.9, -2, -5, -7, -9, -11, -15, -18, -20,
+  -22, -21, -20, -22, -21, -23, -22, -21,
+  -23, -23.7, -29, -31, -36, -39, -43,
+  -45, -47, -48, -48, -50, -51, -52
+)
+
+gap_sc <- c(
+   6, 2, -1, -2, -3, -2, -1, 0, -1,
+   1, 0, -1, 1, 2, 0, -1, 0,
+   1, 0, -8, -12, -15, -17, -20,
+  -23, -22, -24, -23, -26, -23, -28
+)
+
+# Means and DiD estimates reported in the slide
+pre_mean <- c(-14.4, 0.2)
+post_mean <- c(-41.7, -18.8)
+did <- c(-27.3, -19.1)
+
+titles <- c(
+  "Control = average of 38 donors (given)",
+  "Control = synthetic California (built)"
+)
+
+gaps <- list(gap_did, gap_sc)
+
+op <- par(
+  mfrow = c(1, 2),
+  mar = c(4.5, 4.5, 3, 1),
+  mgp = c(2.2, 0.7, 0)
+)
+
+for (j in 1:2) {
+
+  plot(years, gaps[[j]],
+       type = "l",
+       col = "grey45",
+       lwd = 1.5,
+       xlim = c(1969, 2001),
+       ylim = c(-53, 13),
+       xlab = "year",
+       ylab = "California minus control",
+       main = titles[j],
+       cex.main = 0.9,
+       las = 1)
+
+  # Zero line
+  abline(h = 0, col = "grey80")
+
+  # Treatment starts in 1989
+  abline(v = 1989, lty = 2, col = "grey50")
+
+  # Before mean
+  segments(1970, pre_mean[j], 1989, pre_mean[j],
+           col = "navy", lwd = 3)
+
+  # Parallel-trends counterfactual
+  segments(1989, pre_mean[j], 2000, pre_mean[j],
+           col = "navy", lty = 3, lwd = 2)
+
+  # After mean
+  segments(1989, post_mean[j], 2000, post_mean[j],
+           col = "firebrick3", lwd = 3)
+
+  # Vertical DiD arrow
+  arrows(2000, pre_mean[j],
+         2000, post_mean[j],
+         length = 0.08, lwd = 1.2)
+
+  # Labels
+  text(1971, pre_mean[j] - 5,
+       paste0("before mean: ", pre_mean[j]),
+       col = "navy", adj = 0, cex = 0.8)
+
+  text(1980, post_mean[j] + 3,
+       paste0("after mean: ", post_mean[j]),
+       col = "firebrick3", adj = 0, cex = 0.8)
+
+  text(1999, (pre_mean[j] + post_mean[j]) / 2,
+       paste0("2x2: ", did[j]),
+       pos = 2, cex = 0.8)
+}
+
+par(op)
+```
+
+- **Gray:** the yearly gap. **Blue:** before mean; **dotted:** where parallel trends says it stays without the law. **Red:** after mean. $2\times2=\text{red}-\text{blue}$.
+- **Left:** the gap fell before the law (+2.9 in 1970, $-23.7$ in 1988), so parallel trends already fails; $-27.3$ includes that trend.
+- **Right:** the built control's gap is near 0 before 1989; the assumption is that it stays near 0.
+
+# When Parallel Trends Fails After Weighting $\bigstar$
+
+Weighting does not remove the assumption: without the law, California and synthetic California would have moved together after 1988. It fails when:
+1. **The fit was luck**: with many donors and a short pre-period, the weights match noise, not what drives sales.
+2. **No mix reaches California**: it is extreme; the fit fails before 1989.
+3. **A donor has its own shock after 1988**: e.g. its own cigarette tax.
+4. The law reaches the donors: Californians buy cigarettes in Nevada (weight.24), so Nevada’s sales rise because of Prop 99. Synthetic California is then too high: the effect is overstated.
+5. **California reacts early**: once the law is known, before it starts.
+6. **Something else changes in California at the same time**: SC estimates all of it. Prop 99 was itself a tax rise and an anti-smoking program; SC cannot split them.
+
+# Checklist $\bigstar$
+
+- **Choose the donors first:** drop states with their own tobacco policies (ADH dropped 11 states and DC) and neighbours the law may reach. Then accept the fit; do not shop for the pool that fits best.
+- **Pre-period fit:** plot both paths for 1970–88; report the RMSPE in packs.
+- **In-time placebo:** pretend the law began in 1981, fit the weights on 1970–80, and check that the 1981–88 gap is near 0.
+- **Leave-one-out:** drop each donor with positive weight, refit; the estimate should barely move.
+- **Anticipation:** a law can matter once it is known. Prop 99 passed in November 1988 and the tax rose in January 1989, so smokers could stock up first. If the gap opens early, start the treatment at the vote.
+
+# Placebo Test $\bigstar$
+
+One treated state, so no usual standard error. Instead, run the method on every state (Abadie, Diamond, and Hainmueller 2010):
+
+1. Treat each of the 39 states in turn as "treated"; build its synthetic control from the other 38.
+2. Compute its ratio $\operatorname{RMSPE}^{\text{after}}/\operatorname{RMSPE}^{\text{before}}$. Dividing by the pre-period fit keeps a state the method could not fit from looking like a big effect.
+3. Rank California among the 39: $p=\text{rank}/39$.
+
+**Can it be reported as a $p$-value?** Yes: it is a permutation test, and papers report it as the $p$-value.
+
+- **Meaning:** if the law did nothing and California were one of 39 interchangeable states, a ratio this large would come up 1 time in 39. Exact only if the treated state had been picked at random.
+- Always state the floor: with 39 states the smallest possible $p$ is $1/39=0.026$.
+
+## Example 
+
+- **Pre-period MSPE:** California 3.17; median donor 15.4. Only 6 donors fit as well as twice California's MSPE (shown).
+- **Post/pre MSPE ratio:** California 124, largest of 39 (next: Georgia, 47). Placebo rank $1/39=0.026$, the smallest attainable.
+
+## Standard Error 
+
+Second option (Arkhangelsky et al. 2021, `synthdid`): estimate the "effect" for placebo states, and use their spread as the standard error.
+
+$$
+\mathrm{SE}=\mathrm{sd}\text{ of the placebo estimates},
+\qquad
+95\%\ \mathrm{CI}=\hat{\tau}\pm1.96\,\mathrm{SE}.
+$$
+
+| Prop 99 | Estimate | Placebo SE | 95% CI |
+|---|---:|---:|---|
+| SC | $-19.6$ | 11.1 | $[-41.4,\ 2.1]$ |
+| SDiD | $-15.6$ | 8.9 | $[-33.1,\ 1.9]$ |
+
+- The SC interval includes 0, while the rank test gives $p=0.026$. The SE uses the raw placebo effects, so states the method fits badly inflate it; the ratio discounts them.
+- **Report the rank $p$-value; add the placebo SE if you want an interval, and say which one you used.**
+
+## In-Time and Leave-One-Out Placebo
+
+**In-time placebo:** pretend the law began in 1981; fit on 1970–80 with ADH's predictors moved back (covariates 1972–80; sales in 1970, 1975, 1980).
+
+- Fit 1970–80: RMSPE 0.89. Average gap 1981–88: $-2.9$ packs.
+- **Not zero:** California was already pulling away in the 1980s, by about 15% of the post-1989 effect ($-18.8$). Report it.
+
+**Leave-one-out:** drop each donor with positive weight, refit.
+
+| Dropped | Utah | Nevada | Montana | Colorado | Connecticut |
+|---|---:|---:|---:|---:|---:|
+| Average gap | $-18.2$ | $-20.6$ | $-17.6$ | $-19.3$ | $-18.7$ |
+
+No single donor drives the estimate.
+
+# Extensions 
+
+| Situation | Method | R |
+|---|---|---|
+| One treated unit, good pre-fit | Classic synthetic control | `Synth`, `tidysynth` |
+| One treated unit, poor pre-fit | Augmented / ridge SC | `augsynth` |
+| Many units, want DID robustness | Synthetic DID | `synthdid` |
+| Many units, staggered, covariates | Callaway–Sant'Anna (Wk 10) | `did` |
+
+- These are not rivals so much as points on a spectrum between "trust the weights" and "trust the outcome model." The augmented versions deliberately use both, the same insurance logic as AIPW.
+- Report the classic estimator alongside whichever you prefer, so readers can see how much the extrapolation is doing.
